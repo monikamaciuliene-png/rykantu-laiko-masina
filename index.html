@@ -24,6 +24,7 @@
   --holo: linear-gradient(90deg, #8FF5FF 0%, #B79CFF 35%, #FF8BE0 68%, #FFD98A 100%);
   --k-archyvas: #8FF5FF;
   --k-tekstas: #F3EEE2;
+  --k-tyrimas: #FFD98A;
   --k-balsas: #7CF5A6;
   --k-renginys: #FFB3D9;
   --f-display: "Unbounded", "Arial Black", system-ui, sans-serif;
@@ -133,6 +134,7 @@ h1 { margin: 0; font-family: var(--f-display); font-weight: 700; font-size: clam
 .kchip[data-kind="archyvas"] i, .kd-archyvas { border-radius: 0; outline: 1px dashed var(--c); outline-offset: 1px; }
 .kchip[data-kind="tekstas"] i, .kd-tekstas { border-radius: 6px 6px 1px 1px; }
 .kchip[data-kind="balsas"] i, .kd-balsas { border-radius: 50%; }
+.kchip[data-kind="tyrimas"] i, .kd-tyrimas { width: 12px; border-radius: 0; clip-path: polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%); }
 .kchip[data-kind="renginys"] i, .kd-renginys { width: 13px; border-radius: 2px; }
 .hud-mid { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; min-height: 0; }
 .panel {
@@ -275,8 +277,8 @@ input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border: 0; bo
           <div class="p-top"><span class="tag">Apie projektą</span><button class="x" type="button" data-close aria-label="Uždaryti">&times;</button></div>
           <h2 class="p-title" id="aboutTitle">Rykantų laiko mašina</h2>
           <p>Tai <a href="https://www.rykantupastas.lt/" target="_blank" rel="noopener noreferrer">Rykantų pašto</a>, Piliečių mokslo asociacijos, <a href="https://vilniustech.lt/" target="_blank" rel="noopener noreferrer">VILNIUS TECH</a> ir Participio projektas ir bendras tyrinėjimas.</p>
-          <p>Čia surinkta <span id="aboutCount"></span> apie Rykantus: archyvų dokumentai ir nuotraukos, tekstai, gyventojų balsai ir renginiai nuo 1619 m. iki šių dienų.</p>
-          <p class="p-meta">Spustelėk kortelę arba spausk „Keliauti“. Forma ir spalva rodo grupę: pašto ženklas reiškia archyvą, arka tekstą, diskas balsą, bilietas renginį. Pasuk ratuką atgal ir naujesni įrašai išblės.</p>
+          <p>Čia surinkta <span id="aboutCount"></span> apie Rykantus: archyvų dokumentai ir nuotraukos, tekstai, moksliniai tyrimai, gyventojų balsai ir renginiai nuo 1619 m. iki šių dienų.</p>
+          <p class="p-meta">Spustelėk kortelę arba spausk „Keliauti“. Forma ir spalva rodo grupę: pašto ženklas reiškia archyvą, arka tekstą, šešiakampis tyrimą, diskas balsą, bilietas renginį. Pasuk ratuką atgal ir naujesni įrašai išblės.</p>
           <div class="p-actions"><button class="ok" type="button" data-close>Pradėti</button></div>
         </aside>
       </div>
@@ -310,7 +312,7 @@ input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border: 0; bo
     <ol class="log" id="log"></ol>
   </section>
   <footer class="foot">
-    <p>Archyvų įrašai rasti Europeanoje (paieška Rykant*, 29 rezultatai) ir radzima.org, skenai iš epaveldas.lt. Spaudos straipsniai iš „Trakų žemės“, „Klevų alėjos“, „Vorutos“, LRT, 15min, l24.lt, „Kurier Wileński“, „Magazyn Wileński“ ir kitų leidinių, tinklaraščio įrašai ir 13 tinklalaidės „Rykantų pašto laiškai“ epizodų (2024 m. balandis-rugpjūtis) rasti internete. Viskas patikrinta 2026-10-15.</p>
+    <p>Archyvų įrašai rasti Europeanoje (paieška Rykant*, 29 rezultatai) ir radzima.org, skenai iš epaveldas.lt. Spaudos straipsniai iš „Trakų žemės“, „Klevų alėjos“, „Vorutos“, LRT, 15min, l24.lt, „Kurier Wileński“, „Magazyn Wileński“ ir kitų leidinių, tinklaraščio įrašai ir 13 tinklalaidės „Rykantų pašto laiškai“ epizodų (2024 m. balandis-rugpjūtis) rasti internete. Moksliniai tyrimai rasti per Google Scholar, lituanistika.lt, eLABa ir žurnalų svetaines. Viskas patikrinta 2026-10-15.</p>
     <p>Rykantų laiko mašina yra Rykantų pašto, Piliečių mokslo asociacijos, VILNIUS TECH ir Participio projektas.</p>
     <p>Licencijos nurodytos prie kiekvieno įrašo, todėl prieš naudodami pakartotinai jas patikrinkite. Įrašų be aiškios licencijos vaizdai nerodomi, pateikiama tik nuoroda.</p>
   </footer>
@@ -336,12 +338,14 @@ input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border: 0; bo
       bg: ["#0A2C80", "#1C0F5C"], ink: "#F2F5FF", soft: "#C9D6F7", year: ["#8FF5FF", "#B79CFF", "#FF8BE0", "#FFD98A"], edge: 0x8ff5ff, glass: 0xdfe8ff },
     tekstas: { label: "Tekstai", about: "Romanas, kraštotyra, moksliniai straipsniai, lietuvių ir lenkų spauda, enciklopedija ir Rykantų pašto tinklaraštis.",
       bg: ["#F3EEE2", "#DDD3BE"], ink: "#16204A", soft: "#5E5747", year: ["#0047AB", "#0047AB"], edge: 0xf3eee2, glass: 0xfff4e2 },
+    tyrimas: { label: "Tyrimai", about: "Moksliniai straipsniai, knygos, disertacijos ir šaltinių publikacijos, kuriose tiriami ar minimi Rykantai.",
+      bg: ["#F6D58A", "#D99A3E"], ink: "#2B1A07", soft: "#6B4513", year: ["#7A2E0E", "#7A2E0E"], edge: 0xffd98a, glass: 0xfff0cc },
     balsas: { label: "Balsai", about: "Tinklalaidė „Rykantų pašto laiškai“: 13 epizodų, kuriuose gyventojai pasakoja apie kaimą, bendruomenę ir paštą (2024 m.).",
       bg: ["#13704A", "#062A1C"], ink: "#EFFFF4", soft: "#A9DDBE", year: ["#7CF5A6", "#D8FF8A"], edge: 0x7cf5a6, glass: 0xd9ffe8 },
     renginys: { label: "Renginiai", about: "Kaimo šventės ir sukaktys, festivaliai, koncertai, ekskursija ir LRT PROTOTO žaidimas apie Rykantus.",
       bg: ["#9A2367", "#3D0A3F"], ink: "#FFF1F8", soft: "#F3BDD9", year: ["#FFB3D9", "#FFD98A"], edge: 0xffb3d9, glass: 0xffe3f1 }
   };
-  const KIND_ORDER = ["archyvas", "tekstas", "balsas", "renginys"];
+  const KIND_ORDER = ["archyvas", "tekstas", "tyrimas", "balsas", "renginys"];
 
   const ITEMS = [
     /* Archyvai */
@@ -401,7 +405,7 @@ input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border: 0; bo
     { id: "vilnija", kind: "tekstas", year: 2010, date: "2010", type: "Kraštotyra", title: "Rykantai „Vilnijos vartuose“", holder: "Barbara Jocienė, Trakų viešosios bibliotekos Rykantų filialas", lang: "", licence: "",
       notes: "Kaimo istorija su 25 šaltinių sąrašu: dominikonų rezidencija, plytos ir kalkės dominikonams, 1850 m. dvaras su 12 kaimų, 1920 m. kovos, 1936 m. mokykla, 2005 m. kryžius.",
       links: [["Vilnijos vartai", "https://www.vilnijosvartai.lt/vietoves/rykantai/"]] },
-    { id: "giniuniene", kind: "tekstas", year: 2023, date: "2023", type: "Mokslinis straipsnis", title: "Rykantų Švč. Trejybės bažnyčios sienų tapybos raida ir ikonografija", holder: "A. Giniūnienė, „Acta Academiae Artium Vilnensis“ 110/111", lang: "", licence: "CC BY",
+    { id: "giniuniene", kind: "tyrimas", year: 2023, date: "2023", type: "Mokslinis straipsnis", title: "Rykantų Švč. Trejybės bažnyčios sienų tapybos raida ir ikonografija", holder: "A. Giniūnienė, „Acta Academiae Artium Vilnensis“ 110/111", lang: "", licence: "CC BY",
       notes: "P. 121-175. Pasijos ciklas (dail. Jan Janowicz, signuotas 1668 m.), dominikonų ciklas, Oginskių portretai ir visa restauravimo istorija nuo 1931-1932 m. atidengimo iki 1991 m. restauravimo.",
       links: [["PDF", "https://leidykla.vda.lt/Files/file/Acta_110-111/Acta_110_111_05.pdf"], ["Lituanistika", "https://www.lituanistika.lt/content/105769"]] },
     { id: "glatzer", kind: "tekstas", year: 2023, date: "2023-10-11", type: "Straipsnis", title: "Rykantų miestelyje transformuojamas senasis pašto pastatas", holder: "Jurgita Ribinskaitė-Glatzer, 15min.lt", lang: "", licence: "",
@@ -472,7 +476,7 @@ input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border: 0; bo
       links: [["Kurier Wileński", "https://kurierwilenski.lt/2020/11/19/nowy-odcinek-wilenszczyzny-w-obiektywie-tym-razem-o-rykontach/"]] },
     { id: "verbos-2021", kind: "tekstas", year: 2021, date: "2021-03-26", type: "Straipsnis", title: "Tradicinės verbos", holder: "Jolanta Zakarevičiūtė, " + TZ, lang: "", licence: "",
       notes: "Rykantų gyventoja tautodailininkė Irena Pomarnacka, kurios vilnietiškos verbos turi tautinio paveldo sertifikatą. 2019 m. jos šeima augino apie 600 jurginų kerų.",
-      links: [["Trakų žemė", "https://traku-zeme.lt/tradicines-verbos/"]] },
+      links: [["Trakų žemė", "https://traku-zeme.lt/tradicines-verbos/"], ["Tyrimas 2015", "https://www.vdu.lt/cris/bitstreams/a9983fd2-21f7-4833-8999-b6555d42f894/download"]] },
     { id: "napoleon-2021", kind: "tekstas", year: 2021, date: "2021-12-27", type: "Straipsnis", title: "Napoleono kelio galimybės Lietuvoje", holder: "„Voruta“", lang: "", licence: "",
       notes: "Istorikas Arvydas Pociūnas: 1812 m. birželio 27 d. Napoleonas išvyko iš Kauno, nakvojo Ausieniškių dvare ir pakeliui į Vilnių trumpai sustojo Rykantuose.",
       links: [["Voruta", "https://www.voruta.lt/napoleono-kelio-galimybes-lietuvoje/"]] },
@@ -506,6 +510,90 @@ input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border: 0; bo
     { id: "library-2026", kind: "tekstas", year: 2026, date: "2026-09-07", type: "Straipsnis", title: "Trakų rajono savivaldybės viešosios bibliotekos padalinių sukaktys", holder: "Jolanta Zakarevičiūtė, " + TZ, lang: "", licence: "",
       notes: "Rykantų bibliotekai 85 metai. Ji pradėjo veikti 1941 m. Užukulpyje, po karo veikė Lentvaryje, nuo 1960 m. Kariotiškėse, o 2007 m. persikėlė į Rykantus. 1976-2004 m. joje dirbo E. Krylova, nuo 2009 m. vyresnioji bibliotekininkė yra Barbara Jocienė.",
       links: [["Trakų žemė", "https://traku-zeme.lt/traku-rajono-savivaldybes-viesosios-bibliotekos-padaliniu-sukaktys/"]] },
+
+
+    /* Tyrimai */
+    { id: "lukaszewicz-1842", kind: "tyrimas", year: 1842, date: "1842", type: "Knyga", title: "Dzieje kościołów wyznania helweckiego w Litwie", holder: "Józef Łukaszewicz, t. 1, p. 17", lang: "lenkų k.", licence: "Viešasis domenas",
+      notes: "Rykantai minimi tarp ankstyviausių Lietuvos kalvinistų bažnyčių, kurios jau buvo apie 1555 m., gerokai anksčiau nei 1585 m. mūrinė bažnyčia.",
+      links: [["Google Books", "https://books.google.com/books?id=7ENBAAAAcAAJ"]] },
+    { id: "okolowicz-1956", kind: "tyrimas", year: 1956, date: "1956", type: "Geografija", title: "Ledyninė rina ir morenos aplink Rykantus", holder: "W. Okołowicz, „Prace Geograficzne“ 6", lang: "lenkų k.", licence: "",
+      notes: "Aprašomas Rykantų apylinkių reljefas: ledyno suformuota rina ir morenų kalvos.",
+      links: [["rcin.org.pl", "https://rcin.org.pl/igipz/Content/17909/PDF/WA51_22168_r1956-nr6_Prace-Geogr.pdf"]] },
+    { id: "wasilewski-1962", kind: "tyrimas", year: 1962, date: "1962", type: "Šaltinio publikacija", title: "Testament Ostafiego Wołłowicza", holder: "T. Wasilewski, „Odrodzenie i Reformacja w Polsce“ 7", lang: "lenkų k.", licence: "",
+      notes: "Išnašoje Trakų kaštelionas Mikalojus Talvošas (mirė 1600 m.) įvardijamas kaip Rykantų ir Szylany evangelikų bažnyčių globėjas.",
+      links: [["rcin.org.pl", "https://rcin.org.pl/ihpan/Content/41435/PDF/WA303_21453_A512-7-1962-OiR_Wasilewski.pdf"]] },
+    { id: "dialects", kind: "tyrimas", year: 1994, date: "1994, 2016", type: "Kalbotyra", title: "Rykantai tarmių tyrimuose", holder: "K. Morkūnas, „Lietuvių kalbotyros klausimai“ 34; K. Rutkovska", lang: "", licence: "",
+      notes: "Rykantai yra tarp lietuvių tarmių tyrimo vietų, nagrinėjant priedzūkio ribas. K. Rutkovskos Lietuvos lenkų tarmių tyrime (2016) Rykantai yra ekspedicijų vietovė Nr. 576.",
+      links: [["Morkūnas 1994", "http://journals.lki.lt/actalinguisticalithuanica/article/download/1465/1559"]] },
+    { id: "svidinskaite-2000", kind: "tyrimas", year: 2000, date: "2000", type: "Etnologija", title: "Šventinta ugnis ir jos vartojimas. Liaudiškasis požiūris (Trakų dekanatas. XX a.)", holder: "D. Svidinskaitė, LKMA metraštis 16", lang: "", licence: "",
+      notes: "Rykantų parapija yra tarp tirtųjų. 1910-1930 m. gimę pateikėjai pasakoja, kaip Didįjį šeštadienį šventinta ugnis nešama namo, ir kaip buvo deginami sovietų valdžios liepti nupjauti kryžiai.",
+      links: [["Lituanistika", "https://www.lituanistika.lt/content/15495"]] },
+    { id: "hoards", kind: "tyrimas", year: 2005, date: "2005-2012", type: "Numizmatika", title: "Rykantų lobiai numizmatikos tyrimuose", holder: "E. Remecas, I. Kaplūnaitė, Z. Duksa", lang: "", licence: "",
+      notes: "1957 m. rastas Rykantų lobis įtrauktas į paskutinių Vytauto kaldintų monetų lobių sąrašą. Aprašomas ir XV a. antrojo ketvirčio lietuviškų monetų lobis, o Z. Duksa abejoja „Rykantų II“ lobio datavimu 1665 m.",
+      links: [["Remecas 2005", "https://www.lb.lt/uploads/documents/docs/publications/remecas_4.pdf"], ["Kaplūnaitė 2009", "https://epublications.vu.lt/object/elaba:1930983/1930983.pdf"], ["Duksa 2012", "https://www.lituanistika.lt/content/38266"]] },
+    { id: "landscape", kind: "tyrimas", year: 2005, date: "2005-2024", type: "Geografija", title: "Rykantų bažnyčia kultūriniame kraštovaizdyje", holder: "F. Kavoliutė, D. Liutikas", lang: "", licence: "",
+      notes: "Rykantai priskiriami vietoms, kur XVI a. bažnyčios stovi seniai ir nepertraukiamai gyvenamuose kraštovaizdžio branduoliuose. Piligrimystės vietų žemėlapyje jie pažymėti Nr. 36.",
+      links: [["Kavoliutė 2005", "https://gamtostyrimai.lt/wp-content/uploads/2022/06/267_d11ec64f2f7c74c4a73712ba99e99716.pdf"], ["Liutikas 2005", "https://gamtostyrimai.lt/wp-content/uploads/2022/06/263_927cde37b6c1449cb5a986646221afdb.pdf"], ["Liutikas 2024", "https://lstc.lt/wp-content/uploads/2025/05/lkma-metrastis_t47_p343-382_Liutikas.pdf"]] },
+    { id: "war-1944", kind: "tyrimas", year: 2008, date: "2008-2023", type: "Karo istorija", title: "1943-1944 m. įvykiai prie Rykantų", holder: "T. Balbus, V. Martišius, V. Stravinskienė", lang: "", licence: "",
+      notes: "1943 m. Armija Krajova puolė pagalbinės policijos postą Rykantuose. 1944 m. liepą vokiečių Vilniaus įgula prasiveržė Rykantų kryptimi.",
+      links: [["Balbus 2012", "https://www.zurnalai.vu.lt/gr/article/download/37702/35429/99672"], ["Martišius 2008", "https://www.vdu.lt/cris/bitstreams/339be087-8cfb-4ff3-a8a8-670e7bcc77e9/download"], ["Stravinskienė 2023", "https://gs.elaba.lt/object/elaba:180534479/180534479.pdf"]] },
+    { id: "church-art", kind: "tyrimas", year: 2010, date: "2010-2022", type: "Dailėtyra", title: "Bažnyčios paveikslai ir paramentai tyrimuose", holder: "R. Norkutė, M. Kuodienė, R. Nazaraitė, S. Stonytė", lang: "", licence: "",
+      notes: "XVIII a. pabaigos Švč. Trejybės paveikslas, XVIII a. šv. Dominyko paveikslas, Čenstakavos Madonos paveikslas (dubliuotas, restauruotas 2015 m.) ir XX a. pradžios arnotas, saugomas Bažnytinio paveldo muziejuje (BT-225).",
+      links: [["Norkutė 2010", "https://www.vdu.lt/cris/bitstreams/94ca7b75-6383-42a4-96e9-aec6588b972d/download"], ["Kuodienė 2021", "https://www.lndm.lt/wp-content/uploads/2023/06/T23_12-Marija-Kuodien%C4%97_83-87p.pdf"], ["Nazaraitė 2022", "https://gs.elaba.lt/object/elaba:133065217/133065217.pdf"], ["Stonytė 2017", "https://gs.elaba.lt/object/elaba:22758466/22758466.pdf"]] },
+    { id: "architecture", kind: "tyrimas", year: 2011, date: "2011-2024", type: "Architektūra", title: "Rykantų bažnyčia architektūros tyrimuose", holder: "V. Levandauskas, P. Birecki, A. S. Czyż, A. Stankiewicz", lang: "", licence: "",
+      notes: "Apatinėse sienose įmūryti didesni nei 1 m akmenys. Bažnyčia priskiriama retesnėms mūrinėms LDK kalvinistų šventovėms, lyginama su kanauninkų reguliariųjų bažnyčia (kontraforsai, žvaigždiniai skliautai) ir ankstyvosiomis salinėmis bažnyčiomis, cituojama 1784 m. vizitacija.",
+      links: [["Levandauskas 2011", "https://www.vdu.lt/cris/bitstreams/766fa3c8-c1da-4424-966d-cc1ff240970b/download"], ["Birecki 2015", "https://apcz.umk.pl/AUNC_ZiK/article/view/AUNC_ZiK.2015.005"], ["Czyż 2024", "https://aaav.vda.lt/journal/article/view/248"], ["Stankiewicz 2024", "https://www.vdu.lt/cris/bitstreams/c352f638-5894-4266-9c5f-b5b326ce861a/download"]] },
+    { id: "passion", kind: "tyrimas", year: 2012, date: "2012-2015", type: "Dailėtyra", title: "Kryžiaus kelias ir Kristaus kapas Rykantų bažnyčioje", holder: "A. Giniūnienė; J. Blažiūnas", lang: "", licence: "",
+      notes: "Trakų dominikonai, gavę bažnyčią iš M. Oginskio, užsakė Pasijos scenas. 14 sienų tapybos scenų ciklas baigiasi Kristaus kapo niša, kurios durelėse nutapyti romėnų sargybiniai. Konservatorius K. Kviatkovskis 1929 m. tvarkė polichromiją, 1931 m. 1668 m. freskas.",
+      links: [["Menotyra 2012", "https://www.lituanistika.lt/content/38281"], ["Knyga 2013", "https://books.google.com/books?id=MKWJDgAAQBAJ"], ["Kryždirbystė 2015", "https://gs.elaba.lt/object/elaba:22905618/22905618.pdf"], ["Blažiūnas 2012", "https://lkma.lt/site/archive/metrastis/XXXVI/T.36-119-132.pdf"]] },
+    { id: "savukynas-2012", kind: "tyrimas", year: 2012, date: "2012", type: "Knyga", title: "Istorija ir mitologijos: tapatybės raiškos XVII-XIX amžiaus Lietuvoje", holder: "Virginijus Savukynas, Viešosios politikos strategijų centras", lang: "", licence: "",
+      notes: "Skyriai „Kaip tapo užkeikta Rykantų bažnyčia?“ ir „Trumpa Rykantų bažnyčios istorija“ nagrinėja užburtos bažnyčios legendą ir kodėl ja tikėta, per požiūrį į protestantus.",
+      links: [["Lituanistika", "https://www.lituanistika.lt/content/44714"]] },
+    { id: "war-1920", kind: "tyrimas", year: 2012, date: "2012, 2018", type: "Karo istorija", title: "1920 m. spalio kovos dėl Rykantų", holder: "G. Surgailis, „Karo archyvas“ 27; V. Rakutis", lang: "", licence: "CC BY 4.0",
+      notes: "1920 m. spalio 15 d. lenkai puolė frontu Bevandenė-Semeniškės-Rykantai, ir 3-iasis pėstininkų pulkas pasitraukė iš Rykantų. Spalio 16 d. artilerija apšaudė Balčiūnų ir Rykantų kaimus, 3-ioji kuopa puolė Rykantus iš pietų, bet šarvuotojo traukinio ugnis kuopas atstūmė. Nuo 1921 m. demarkacijos linija saugota nuo Rūdiškių iki Rykantų.",
+      links: [["Surgailis 2012", "https://www.journals.lka.lt/journal/ka/article/814/file/pdf"], ["Rakutis 2018", "http://www.paneveziomuziejus.lt/files/krasto_istorija/Rakutis%204%20pestininku%20pulko%202018.pdf"]] },
+    { id: "kicinska-2012", kind: "tyrimas", year: 2012, date: "2012", type: "Šaltinio publikacija", title: "Rosa Bogu Y Ludziom Mila Y Przyiemna: wizerunek Marcybelli Anny Hlebowiczównej Ogińskiej", holder: "U. Kicińska, „Rocznik Lubelskiego Towarzystwa Genealogicznego“ 4", lang: "lenkų k.", licence: "",
+      notes: "Skelbiamas Marcibelės Onos Oginskienės testamentas: jos vyras amžiams nupirko dvarus „Rykonty wielkie i małe“ dominikonų išlaikymui.",
+      links: [["rocznik.ltg.pl", "https://rocznik.ltg.pl/wp-content/uploads/2018/07/Kicinska.pdf"]] },
+    { id: "war-1812", kind: "tyrimas", year: 2013, date: "2013", type: "Karo istorija", title: "1812 m. birželio susirėmimai prie Rykantų", holder: "D. Nawrot, „Kauno istorijos metraštis“ 13; A. I. Popov", lang: "", licence: "",
+      notes: "1812 m. birželį gen. Tučkovo būrys stovėjo Rykantuose ir siuntė gvardijos kazokus Kauno keliu, kurie maždaug už 7 varstų susirėmė su prancūzų kavalerija. Rusų ariergardas kovėsi su prancūzų raiteliais prie Rykantų.",
+      links: [["Nawrot 2013", "https://www.vdu.lt/cris/bitstreams/720fa275-bd3b-4353-a613-be1e21b23588/download"], ["Popov", "https://www.borodino.ru/wp-content/uploads/2020/10/38.-Popov.pdf"]] },
+    { id: "border-memory", kind: "tyrimas", year: 2016, date: "2016", type: "Disertacija", title: "Tarpukario sienos atmintis", holder: "L. Leparskienė, VU daktaro disertacija", lang: "", licence: "",
+      notes: "Pateikėja apie tarpukario demarkacijos liniją: „Rykantai, čia buvo rubežius“.",
+      links: [["VU", "https://epublications.vu.lt/object/elaba:17657663/17657663.pdf"]] },
+    { id: "archaeology", kind: "tyrimas", year: 2012, date: "2012, 2022", type: "Archeologija", title: "Sausių pilkapynas ir 2022 m. tyrimai bažnyčioje", holder: "J. Balčiūnas, A. Strazdas; „Archeologiniai tyrinėjimai Lietuvoje“", lang: "", licence: "",
+      notes: "2011 m. Sausių-Bevandeniškių II pilkapyne rasti keturi I tūkstantmečio vidurio ir antrosios pusės pilkapiai, 2012 m. jie įrašyti į registrą. 2022 m. rugsėjo 27 d. išduotas leidimas Nr. 351 archeologiniams tyrimams Rykantų bažnyčioje (D. Ostrauskienė).",
+      links: [["Lituanistika", "https://www.lituanistika.lt/content/110494"], ["Leidimai 2022", "http://atl.lad.lt/2022/606-627.pdf"]] },
+    { id: "thesium-2017", kind: "tyrimas", year: 2017, date: "2017", type: "Botanika", title: "Notes on the enigmatic Thesium linophyllon and report on Thesium ramosum in Lithuania", holder: "Z. Gudžinskas, E. Žalneravičius, „Botanica Lithuanica“ 23(2)", lang: "anglų k.", licence: "",
+      notes: "Ant geležinkelio šlaito Rykantuose rastas Thesium augalas, galbūt retas T. ramosum. 2006-2007 m. jo nebepavyko rasti.",
+      links: [["Botanica Lithuanica", "https://botanicalithuanica.gamtc.lt/administravimas/uploads/04_botanica_lituanica2017_no2_gudzinskas_zalnieravicius_6015114f1b389.pdf"]] },
+    { id: "petitions-1883", kind: "tyrimas", year: 2017, date: "2017", type: "Mokslinis straipsnis", title: "Rykantų parapijiečių skundai, 1883-1884 m.", holder: "V. Žaltauskaitė, „Lietuvos istorijos metraštis“ 2017/1", lang: "", licence: "",
+      notes: "Nagrinėjami Rykantų parapijiečių 1883-1884 m. prašymai ir skundai prieš kunigą I. Barštį.",
+      links: [["CEJSH", "https://cejsh.icm.edu.pl/cejsh/element/bwmeta1.element.ojs-issn-0202-3342-year-2017-issue-1-article-c73333b1-58f9-352f-9426-cb773f533e56/c/articles-56031368.pdf.pdf"]] },
+    { id: "jovaisa-2018", kind: "tyrimas", year: 2018, date: "2018", type: "Mokslinis straipsnis", title: "Trakų parapija ir jos šventovė XV-XVIII amžiuje", holder: "Liudas Jovaiša, „Acta Academiae Artium Vilnensis“ 90", lang: "", licence: "CC BY 4.0",
+      notes: "Rykantai įrašyti 1744 m. Trakų parapijos kaimų sąraše ir minimi kaip dominikonų aptarnaujama filijinė koplyčia (dar 1785 m.).",
+      links: [["Lituanistika", "https://www.lituanistika.lt/content/78543"], ["PDF", "https://leidykla.vda.lt/Files/file/Acta_90/ACTA_90_Jovaisa.pdf"]] },
+    { id: "madonna-2019", kind: "tyrimas", year: 2019, date: "2019", type: "Mokslinis straipsnis", title: "Madona su auskarais: Rykantų Švč. Mergelės Marijos su Kūdikiu paveikslo tyrimai ir restauravimas", holder: "T. Račiūnaitė, R. Kasiulytė, „Acta Academiae Artium Vilnensis“ 92/93", lang: "", licence: "CC BY 4.0",
+      notes: "P. 305-339. 2013-2014 m. restauruojant cheminė analizė datavimą perkėlė iš XVII a. į 1720-1730 m., ikonografija sieja paveikslą su prarasta Skarulių Madona, rentgenogramos atskleidė užtapytą altorėlį su žvakėmis. Į Rykantų bažnyčią jis pateko XX a. antroje pusėje.",
+      links: [["Lituanistika", "https://www.lituanistika.lt/content/80032"], ["Pavanaitė 2018", "https://www.lituanistika.lt/content/86200"]] },
+    { id: "manor-plans", kind: "tyrimas", year: 2020, date: "2020", type: "Mokslinis straipsnis", title: "Rykantų valstybinio dvaro planai Žilevičiaus archyve", holder: "A. Katilius, „Lietuvos istorijos metraštis“ 2020/2", lang: "", licence: "",
+      notes: "XIX a. vidurio Rykantų valstybinio dvaro planai ir kaimų gyventojų sąrašai išliko Žilevičiaus archyve.",
+      links: [["bibliotekanauki.pl", "https://bibliotekanauki.pl/articles/55996041.pdf"]] },
+    { id: "jevlasauskis-1586", kind: "tyrimas", year: 2023, date: "2023", type: "Mokslinis straipsnis", title: "Kelionių į Lietuvą XV-XIX a. pradžioje aprašymai: egodokumentalumo ir tipologijos problema", holder: "Arvydas Pacevičius, „Knygotyra“ 81", lang: "", licence: "",
+      notes: "Cituojami Teodoro Jevlašauskio užrašai: 1586 m. kovo 5 d., nakvodamas Rykantuose pakeliui į Kauną, jis vos nebuvo plėšikų užmuštas. Tą patį epizodą mini ir T. Čelkis (2024).",
+      links: [["Knygotyra", "https://epublications.vu.lt/object/elaba:184601852/184601852.pdf"], ["Čelkis 2024", "https://epublications.vu.lt/object/elaba:214219750/214219750.pdf"]] },
+    { id: "language-1901", kind: "tyrimas", year: 2023, date: "2023", type: "Mokslinis straipsnis", title: "Konfliktai dėl kalbos vartojimo pridėtinėse pamaldose: lietuviškos spaudos refleksija", holder: "A. Katilius, LKMA metraštis 46", lang: "", licence: "",
+      notes: "Remiantis 1901 m. „Žinyčia“, Rykantai minimi tarp parapijų, kuriose pridėtinės pamaldos vyko be lietuvių kalbos.",
+      links: [["eLABa", "https://gs.elaba.lt/object/elaba:182464374/182464374.pdf"]] },
+    { id: "mills-1777", kind: "tyrimas", year: 2026, date: "2026", type: "Šaltinio publikacija", title: "Lustracja młynów wodnych i wiatraków powiatu trockiego z 1777 roku", holder: "Joanna Kunigielis, „Zapiski Historyczne“ 91(1)", lang: "lenkų k.", licence: "",
+      notes: "1777 m. Trakų pavieto malūnų revizijoje įrašytas Trakų dominikonų malūnas Rykantuose ant Rykontos upės, ištekančios iš Rykantų ežero, Karčiškių vietovėje prie Vosyliukų. Mokestis 16 zlotų.",
+      links: [["Zapiski Historyczne", "https://zapiskihistoryczne.pl/files/5/Vol._91_2026/ZH_91-1_06_Kunigielis_N.pdf"]] },
+    { id: "barge-1786", kind: "tyrimas", year: 2026, date: "2026", type: "Mokslinis straipsnis", title: "1786 m. byla dėl apiplėšto strugo", holder: "R. Bedulskis, „Lietuvos istorijos metraštis“ 2026/1", lang: "", licence: "",
+      notes: "1786 m. kovo 31 d. per potvynį Neryje nutrūko prie Žaliojo tilto pririštas naujas strugas, ir srovė jį nunešė iki Trakų dominikonų Rykantų valdai priklausiusių Vosyliukų ir Semeniukų. Teisme Vilniaus suolininkas Danielius Hertelis bylinėjosi su dominikonais dėl Rykantų ir aplinkinių kaimų valstiečių išardyto ir apvogto strugo.",
+      links: [["eLABa", "https://gs.elaba.lt/object/elaba:320099709/320099709.pdf"]] },
+    { id: "bulhak-1930", kind: "archyvas", year: 1930, date: "apie 1930", type: "Nuotrauka", title: "Rykantų Švč. Trejybės bažnyčia, fotografavo Janas Bulhakas", holder: "S. Lorentz, „Między Warszawą a Wilnem“ (2022), nuotraukų priedas", lang: "", licence: "",
+      notes: "Priedo nuotrauka Nr. 53, paimta iš Polonos. Viena seniausių žinomų bažnyčios nuotraukų.",
+      links: [["UwB repozitorija", "https://repozytorium.uwb.edu.pl/jspui/handle/11320/19604"]] },
 
     /* Balsai */
     { id: "pod-jociene", kind: "balsas", year: 2024, date: "2024-04-03", type: "Tinklalaidė", title: "Barbara Jocienė apie Rykantus", holder: POD, lang: "", licence: "",
@@ -828,7 +916,8 @@ vec3 blobDisplace(vec3 p){
     arc(x0, yn, rn, Math.PI / 2, -Math.PI / 2, 14);
     return pts;
   }
-  const SHAPES = { archyvas: stampPts(), tekstas: archPts(), balsas: discPts(), renginys: ticketPts() };
+  function hexPts() { const m = 14, a = 74; return [[m + a, m], [CW - m - a, m], [CW - m, CH / 2], [CW - m - a, CH - m], [m + a, CH - m], [m, CH / 2]]; }
+  const SHAPES = { archyvas: stampPts(), tekstas: archPts(), tyrimas: hexPts(), balsas: discPts(), renginys: ticketPts() };
   function tracePath(g, pts) { g.beginPath(); g.moveTo(pts[0][0], pts[0][1]); for (let i = 1; i < pts.length; i++) g.lineTo(pts[i][0], pts[i][1]); g.closePath(); }
   function maskCanvas(kind) {
     const c = document.createElement("canvas"); c.width = CW / 2; c.height = CH / 2;
@@ -873,6 +962,16 @@ vec3 blobDisplace(vec3 p){
       for (let i = 0; i < n; i++) { s = (s * 37 + 11) % 997; const bh = 6 + (s % 30); g.fillRect(x0 + i * (bw + gap), base - bh, bw, bh); }
       g.font = mono(500, 17); g.fillStyle = K.soft; g.fillText(`${num(item)} / ${N}`, cx, 456);
       g.textAlign = "left";
+    } else if (item.kind === "tyrimas") {
+      const cx = W / 2;
+      g.textAlign = "center"; g.fillStyle = K.soft;
+      g.font = mono(500, 17); g.fillText(`${num(item)} / ${N}`, cx, 40);
+      fit(typeTxt, 17, 280, 12, s => mono(500, s)); g.fillText(typeTxt, cx, 66);
+      const ys = fit(yr, 92, 320, 40, disp); g.fillStyle = yearFill; g.fillText(yr, cx, 92 + (92 - ys) / 2);
+      g.fillStyle = K.ink; g.fillRect(48, 200, W - 96, 2);
+      g.textAlign = "left"; g.font = sans(29); wrap(g, item.title, 48, 214, W - 96, 37, 5);
+      g.textAlign = "center"; g.font = mono(400, 16); g.fillStyle = K.soft; wrap(g, item.holder, cx, H - 112, 300, 21, 2);
+      g.textAlign = "left";
     } else if (item.kind === "tekstas") {
       const cx = W / 2;
       g.fillStyle = "rgba(22,32,74,0.07)";
@@ -912,7 +1011,7 @@ vec3 blobDisplace(vec3 p){
     }
     g.restore();
     tracePath(g, shape);
-    g.lineWidth = 3; g.strokeStyle = item.kind === "tekstas" ? "rgba(22,32,74,0.45)" : "rgba(255,255,255,0.55)"; g.stroke();
+    g.lineWidth = 3; g.strokeStyle = item.kind === "tekstas" ? "rgba(22,32,74,0.45)" : item.kind === "tyrimas" ? "rgba(43,26,7,0.4)" : "rgba(255,255,255,0.55)"; g.stroke();
   }
 
   function initGL() {
@@ -984,7 +1083,7 @@ vec3 objectTangent = vec3(tangent.xyz);
     function addOrbit(obj, o) { o.obj = obj; o.pos = new T.Vector3(); o.eul = new T.Euler(); orbiters.push(o); scene.add(obj); return o; }
 
     /* Record cards: each on its own orbit, four rings at different speeds, coloured and shaped by group */
-    const BASE = 0.8, FW = 0.94, FH = 1.175;
+    const BASE = 0.74, FW = 0.94, FH = 1.175;
     let glFocus = null, dialYear = TODAY;
     const maxAniso = renderer.capabilities.getMaxAnisotropy();
     const faceGeo = new T.PlaneGeometry(FW, FH);
@@ -1007,11 +1106,11 @@ vec3 objectTangent = vec3(tangent.xyz);
       frame.position.z = -0.02;
       const edges = new T.LineLoop(outlines[item.kind], edgeMat(0.85, K.edge));
       grp.add(frame, face, edges);
-      const ring = i % 5;
+      const ring = i % 6;
       const o = addOrbit(grp, {
         card: true, item, cv, tex, faceMat, edges, frame, edgeBase: new T.Color(K.edge),
-        R: [2.9, 3.6, 4.3, 5.0, 5.7][ring], th0: (i / N) * Math.PI * 2 + ring * 0.7, w: [0.11, 0.095, 0.08, 0.068, 0.058][ring],
-        tx: (i % 2 ? 1 : -1) * (0.14 + ring * 0.08), tz: ((i * 37) % 11 - 5) * 0.04, ph: i * 1.7, scale: BASE, ghost: false
+        R: [2.8, 3.4, 4.0, 4.6, 5.2, 5.8][ring], th0: (i / N) * Math.PI * 2 + ring * 0.7, w: [0.11, 0.098, 0.086, 0.075, 0.066, 0.058][ring],
+        tx: (i % 2 ? 1 : -1) * (0.12 + ring * 0.07), tz: ((i * 37) % 11 - 5) * 0.04, ph: i * 1.7, scale: BASE, ghost: false
       });
       frame.userData.card = o;
       hitMeshes.push(frame);
