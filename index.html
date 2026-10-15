@@ -74,6 +74,7 @@ a:hover { color: #8FF5FF; }
 .d-fig .sc { animation: none; }
 .scrap:hover { z-index: 4; }
 .scrap:hover .sc { transform: scale(1.08) rotate(-1.5deg); }
+.mode-scatter .scrap:hover .sc, .mode-stream .scrap:hover .sc { transform: scale(1.5) rotate(-1.5deg); }
 .scrap.is-dim { opacity: 0.1; pointer-events: none; }
 .scrap.is-sel { z-index: 5; }
 .scrap:focus-visible { outline: none; }
@@ -939,7 +940,7 @@ h1 { font-weight: 400; font-style: italic; font-size: clamp(30px, 3.6vw, 46px); 
     geom.bottom = Math.max(geom.top + 220, stage.clientHeight - dock.offsetHeight - 30);
     geom.cy = (geom.top + geom.bottom) / 2;
   }
-  const baseScale = () => Math.max(0.5, Math.min(1, (geom.bottom - geom.top) / 620));
+  const baseScale = () => Math.max(0.36, Math.min(0.66, (geom.bottom - geom.top) / 940));
   const playhead = () => mode === "scatter" ? [pan.tx + SC.cx, pan.ty + SC.cy] : [geom.cx, geom.cy];
   const blobRadius = () => Math.max(46, Math.min(stage.clientWidth * 0.1, (geom.bottom - geom.top) * 0.19));
   function yearAt(p) {
@@ -1037,8 +1038,8 @@ h1 { font-weight: 400; font-style: italic; font-size: clamp(30px, 3.6vw, 46px); 
   function layoutScatter() {
     updateGeom();
     const W = stage.clientWidth, band = geom.bottom - geom.top;
-    SC.s = Math.max(0.5, Math.min(0.82, band / 760));
-    SC.w = Math.max(W * 1.7, 1700); SC.h = Math.max(band * 1.9, 1200);
+    SC.s = Math.max(0.32, Math.min(0.52, band / 1180));
+    SC.w = Math.max(W * 1.4, 1400); SC.h = Math.max(band * 1.55, 950);
     SC.cx = SC.w / 2; SC.cy = SC.h / 2;
     const R = blobRadius() * 1.5;
     const P = ORDER.map(item => {
