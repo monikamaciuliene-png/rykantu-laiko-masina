@@ -12,7 +12,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Unbounded:wght@500;700;900&display=swap">
 <style>
-/* Layout: cobalt field with the chrome blob at the centre; every record is a scrap in a time ring around it (clockwise 1619 to 2026), pan and zoom; a picked scrap opens large beside a caption box; filter dock at the bottom; one full screen, no catalogue list */
+/* Layout: cobalt field with the chrome blob at the centre; every record is a scrap in a time ring around it (clockwise 1619 to 2026), pan and zoom; a picked scrap opens large beside a caption box; filter dock at the bottom; logbook below */
 :root {
   --cobalt: #0047AB;
   --cobalt-glow: #2A6BE0;
@@ -24,11 +24,14 @@
   --glass: rgba(6, 22, 70, 0.55);
   --paper: #F3EEE2;
   --holo: linear-gradient(90deg, #8FF5FF 0%, #B79CFF 35%, #FF8BE0 68%, #FFD98A 100%);
+  --ink-black: #0A0E1A;
+  --white-paper: #F4F3EF;
+  --holo-diag: linear-gradient(135deg, #8FF5FF 0%, #B79CFF 35%, #FF8BE0 68%, #FFD98A 100%);
   --k-archyvas: #8FF5FF;
-  --k-tekstas: #F3EEE2;
-  --k-tyrimas: #FFD98A;
-  --k-balsas: #7CF5A6;
-  --k-renginys: #FFB3D9;
+  --k-tekstas: #F4F3EF;
+  --k-tyrimas: #B79CFF;
+  --k-balsas: #FF8BE0;
+  --k-renginys: #FFC2A8;
   --f-display: "Unbounded", "Arial Black", system-ui, sans-serif;
   --f-body: "Instrument Sans", "Helvetica Neue", Arial, sans-serif;
   --f-mono: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
@@ -44,13 +47,12 @@ a:hover { color: #8FF5FF; }
 /* Scene */
 .scene {
   position: relative;
-  height: 100vh;
-  height: 100svh;
-  min-height: 560px;
+  height: clamp(640px, 94vh, 1000px);
+  height: clamp(640px, 94svh, 1000px);
   overflow: hidden;
   overflow: clip;
   isolation: isolate;
-  touch-action: none;
+  touch-action: pan-y;
   cursor: grab;
   background: radial-gradient(ellipse 70% 62% at 50% 48%, var(--cobalt-glow) 0%, var(--cobalt) 45%, #00307F 78%, var(--cobalt-deep) 100%);
 }
@@ -64,9 +66,15 @@ a:hover { color: #8FF5FF; }
 
 /* Scraps */
 .scrap { position: absolute; display: block; margin: 0; padding: 0; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; transition: opacity 0.35s, filter 0.35s; }
-.scrap .sc { position: relative; width: 100%; height: 100%; transition: transform 0.25s; }
+.scrap .sc { position: relative; width: 100%; height: 100%; transition: transform 0.25s; animation: drift var(--dur, 8s) ease-in-out var(--delay, 0s) infinite; }
+@keyframes drift {
+  0%, 100% { translate: 0 0; rotate: 0deg; }
+  30% { translate: var(--dx, 4px) var(--dy, -5px); rotate: var(--dr, 1deg); }
+  65% { translate: calc(var(--dx, 4px) * -0.7) calc(var(--dy, -5px) * 0.6); rotate: calc(var(--dr, 1deg) * -0.8); }
+}
+.d-fig .sc { animation: none; }
 .scrap:hover { z-index: 4; }
-.scrap:hover .sc { transform: scale(1.08); }
+.scrap:hover .sc { transform: scale(1.08) rotate(-1.5deg); }
 .scrap.is-dim { opacity: 0.1; pointer-events: none; }
 .scrap.is-future { opacity: 0.22; filter: grayscale(0.8); }
 .scrap.is-sel { z-index: 5; }
@@ -86,39 +94,41 @@ a:hover { color: #8FF5FF; }
   mask: conic-gradient(#000 0 0) content-box, radial-gradient(circle 4.5px, #0000 96%, #000) -6px -6px / 12px 12px round padding-box;
 }
 .k-archyvas .sc img { display: block; width: 100%; height: 100%; object-fit: contain; background: #E6E1D3; pointer-events: none; user-select: none; }
-.k-archyvas.no-img .sc { background: linear-gradient(150deg, #0A2C80, #1C0F5C); color: var(--ink); padding: 14px 15px; display: flex; flex-direction: column; gap: 6px; }
-.k-archyvas.no-img .s-type { color: #C9D6F7; }
+.k-archyvas.no-img .sc { background: var(--ink-black); color: var(--white-paper); padding: 14px 15px; display: flex; flex-direction: column; gap: 6px; }
+.k-archyvas.no-img .s-type { color: #8FF5FF; }
 .k-archyvas.no-img .s-year { background: var(--holo); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .yr-tag { position: absolute; left: -6px; bottom: -12px; font-family: var(--f-mono); font-size: 14px; font-weight: 500; padding: 2px 7px; background: var(--night); color: #8FF5FF; }
 
 /* Texts: church-window arch of paper */
-.k-tekstas .sc { background: var(--paper); color: #16204A; border-radius: 999px 999px 8px 8px; padding: 26% 14px 14px; display: flex; flex-direction: column; align-items: center; gap: 5px; text-align: center; box-shadow: 0 10px 24px rgba(0, 10, 50, 0.35); }
-.k-tekstas .s-type { color: #5E5747; }
+.k-tekstas .sc { background: var(--white-paper); color: var(--ink-black); border-radius: 999px 999px 8px 8px; padding: 26% 14px 14px; display: flex; flex-direction: column; align-items: center; gap: 5px; text-align: center; box-shadow: 0 10px 24px rgba(0, 10, 50, 0.35); }
+.k-tekstas .s-type { color: #4A5266; }
 .k-tekstas .s-year { color: var(--cobalt); }
 .k-tekstas .s-title { -webkit-line-clamp: 5; }
 
 /* Research: amber hexagon */
-.k-tyrimas .sc { background: linear-gradient(160deg, #F6D58A, #D99A3E); color: #2B1A07; clip-path: polygon(22% 0, 78% 0, 100% 50%, 78% 100%, 22% 100%, 0 50%); padding: 16px 30px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 4px; text-align: center; }
-.k-tyrimas .s-type { color: #6B4513; }
-.k-tyrimas .s-year { color: #7A2E0E; font-size: 26px; }
+.k-tyrimas .sc { background: var(--holo-diag); color: var(--white-paper); clip-path: polygon(22% 0, 78% 0, 100% 50%, 78% 100%, 22% 100%, 0 50%); padding: 16px 30px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 4px; text-align: center; }
+.k-tyrimas .sc::before { content: ""; position: absolute; inset: 3px; background: var(--ink-black); clip-path: polygon(22% 0, 78% 0, 100% 50%, 78% 100%, 22% 100%, 0 50%); }
+.k-tyrimas .sc > * { position: relative; }
+.k-tyrimas .s-type { color: #B79CFF; }
+.k-tyrimas .s-year { font-size: 26px; background: var(--holo); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .k-tyrimas .s-title { -webkit-line-clamp: 3; font-size: 13px; }
 
 /* Voices: green disc */
-.k-balsas .sc { background: radial-gradient(circle at 50% 50%, #1B8A5A 0 22%, #13704A 23% 60%, #062A1C 100%); color: #EFFFF4; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-align: center; box-shadow: 0 10px 24px rgba(0, 20, 10, 0.4); }
-.k-balsas .s-year { font-size: 20px; color: #7CF5A6; }
+.k-balsas .sc { background: repeating-radial-gradient(circle at 50% 50%, rgba(10, 14, 26, 0.07) 0 1px, transparent 1px 5px), radial-gradient(circle at 30% 26%, rgba(255, 255, 255, 0.85), transparent 42%), conic-gradient(from 200deg, #8FF5FF, #B79CFF, #FF8BE0, #FFD98A, #8FF5FF); color: var(--ink-black); border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-align: center; box-shadow: 0 10px 24px rgba(0, 20, 10, 0.4); }
+.k-balsas .s-year { font-size: 20px; color: var(--ink-black); }
 .k-balsas .s-title { -webkit-line-clamp: 1; font-size: 14px; }
 .bars { display: flex; align-items: flex-end; gap: 3px; height: 16px; }
-.bars i { width: 4px; background: #7CF5A6; border-radius: 1px; }
+.bars i { width: 4px; background: var(--ink-black); border-radius: 1px; }
 
 /* Events: ticket */
 .k-renginys .sc {
-  background: linear-gradient(150deg, #9A2367, #3D0A3F); color: #FFF1F8; border-radius: 12px; padding: 12px 16px; display: flex; flex-direction: column; gap: 4px;
+  background: var(--holo) top / 100% 7px no-repeat, var(--white-paper); color: var(--ink-black); border-radius: 12px; padding: 16px 16px 12px; display: flex; flex-direction: column; gap: 4px;
   -webkit-mask: radial-gradient(circle 11px at 0 66%, #0000 97%, #000) left / 51% 100% no-repeat, radial-gradient(circle 11px at 100% 66%, #0000 97%, #000) right / 51% 100% no-repeat;
   mask: radial-gradient(circle 11px at 0 66%, #0000 97%, #000) left / 51% 100% no-repeat, radial-gradient(circle 11px at 100% 66%, #0000 97%, #000) right / 51% 100% no-repeat;
 }
-.k-renginys .sc::after { content: ""; position: absolute; left: 14px; right: 14px; top: 66%; border-top: 2px dashed rgba(255, 241, 248, 0.45); }
-.k-renginys .s-type { color: #F3BDD9; }
-.k-renginys .s-year { color: #FFB3D9; font-size: 24px; }
+.k-renginys .sc::after { content: ""; position: absolute; left: 14px; right: 14px; top: 66%; border-top: 2px dashed rgba(10, 14, 26, 0.3); }
+.k-renginys .s-type { color: #4A5266; }
+.k-renginys .s-year { color: var(--cobalt); font-size: 24px; }
 .k-renginys .s-title { -webkit-line-clamp: 2; font-size: 13px; }
 
 /* HUD */
@@ -158,10 +168,10 @@ h1 { margin: 0; font-family: var(--f-display); font-weight: 700; font-size: clam
 .ok { font-family: var(--f-mono); font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--cobalt-deep); background: var(--ink); border: 1px solid var(--ink); border-radius: 999px; padding: 8px 16px; cursor: pointer; }
 .ok:hover { background: #8FF5FF; border-color: #8FF5FF; }
 .about-wrap { position: relative; pointer-events: auto; flex: none; }
-.panel.about { touch-action: pan-y; position: absolute; right: 0; top: calc(100% + 10px); z-index: 6; width: min(400px, calc(100vw - 32px)); max-height: min(72vh, 560px); }
+.panel.about { position: absolute; right: 0; top: calc(100% + 10px); z-index: 6; width: min(400px, calc(100vw - 32px)); max-height: min(72vh, 560px); }
 
 /* Dock */
-.dock { position: absolute; left: 50%; bottom: 16px; transform: translateX(-50%); width: min(1020px, calc(100% - 32px)); display: grid; gap: 10px; padding: 12px 14px; border-radius: 20px; background: rgba(0, 18, 64, 0.62); -webkit-backdrop-filter: blur(16px) saturate(140%); backdrop-filter: blur(16px) saturate(140%); border: 1px solid var(--line); pointer-events: auto; cursor: default; }
+.dock { position: absolute; z-index: 3; left: 50%; bottom: 16px; transform: translateX(-50%); width: min(1020px, calc(100% - 32px)); display: grid; gap: 10px; padding: 12px 14px; border-radius: 20px; background: rgba(0, 18, 64, 0.62); -webkit-backdrop-filter: blur(16px) saturate(140%); backdrop-filter: blur(16px) saturate(140%); border: 1px solid var(--line); pointer-events: auto; cursor: default; }
 .dock-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; }
 .year { font-family: var(--f-display); font-weight: 700; font-size: clamp(20px, 2.4vw, 26px); line-height: 1; min-width: 4.2ch; background: var(--holo); -webkit-background-clip: text; background-clip: text; color: transparent; font-variant-numeric: tabular-nums; }
 .year.is-text { font-size: 15px; }
@@ -194,7 +204,7 @@ input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border: 0; bo
 .zoom .pill { padding: 6px 12px; }
 
 /* Detail: a picked scrap opens large beside its caption */
-.detail { touch-action: pan-y; position: absolute; inset: 0; z-index: 4; display: flex; align-items: center; justify-content: center; gap: 28px; padding: 76px 72px 150px; background: rgba(0, 14, 50, 0.7); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); cursor: default; }
+.detail { position: absolute; inset: 0; z-index: 4; display: flex; align-items: center; justify-content: center; gap: 28px; padding: 76px 72px 150px; background: rgba(0, 14, 50, 0.7); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); cursor: default; }
 .d-fig { margin: 0; flex: 0 1 auto; min-width: 0; display: flex; justify-content: center; max-height: 100%; }
 .d-fig img { display: block; max-width: min(46vw, 640px); max-height: calc(94svh - 260px); object-fit: contain; background: #F4F1E8; padding: 10px; box-shadow: 0 30px 80px rgba(0, 5, 30, 0.6); }
 .d-fig .scrap { position: relative; cursor: default; }
@@ -212,6 +222,25 @@ input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border: 0; bo
 .d-next { right: 18px; }
 .tip { position: absolute; z-index: 4; pointer-events: none; max-width: 280px; font-family: var(--f-mono); font-size: 12px; line-height: 1.4; padding: 6px 10px; border-radius: 8px; background: rgba(0, 11, 38, 0.88); border: 1px solid var(--line); transform: translate(14px, 14px); }
 
+/* Below the scene */
+.below { max-width: 1180px; margin: 0 auto; padding-block: 56px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 22px; }
+.log-wrap { display: grid; gap: 18px; }
+.log-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 6px 20px; }
+.log-head h2 { margin: 0; font-family: var(--f-display); font-weight: 700; font-size: clamp(28px, 4vw, 44px); letter-spacing: -0.01em; }
+.log-head p { margin: 0; color: var(--ink-soft); font-size: 15px; max-width: 52ch; }
+.log { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); }
+.log li { display: grid; grid-template-columns: 4.5rem 8rem minmax(0, 1fr) auto; gap: 6px 20px; padding-block: 16px; border-bottom: 1px solid var(--line); align-items: start; }
+.log li.is-active { background: linear-gradient(90deg, rgba(143, 245, 255, 0.08), transparent 70%); }
+.log-n { font-family: var(--f-mono); font-size: 12px; color: var(--ink-soft); padding-top: 4px; }
+.log-date { font-family: var(--f-mono); font-size: 14px; font-variant-numeric: tabular-nums; padding-top: 2px; }
+.log-main { min-width: 0; display: grid; gap: 3px; }
+.log-title { font-size: 18px; font-weight: 600; }
+.log-holder { color: var(--ink-soft); font-size: 15px; }
+.log-notes { font-size: 15px; }
+.log-side { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+.log-img { width: 64px; height: 80px; object-fit: contain; background: rgba(0, 10, 40, 0.35); border: 1px solid var(--line); border-radius: 4px; }
+.foot { color: var(--ink-soft); font-size: 14px; display: grid; gap: 6px; max-width: 72ch; }
+.foot p { margin: 0; }
 
 @media (max-width: 700px) {
   .dock { bottom: 10px; padding: 10px; gap: 8px; width: calc(100% - 20px); }
@@ -223,8 +252,12 @@ input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border: 0; bo
   .d-cap { flex: none; width: 100%; max-height: none; }
   .d-nav { top: auto; bottom: 214px; transform: none; }
   .d-count { right: 64px; top: 20px; }
+  .log li { grid-template-columns: 3rem minmax(0, 1fr); }
+  .log-date { grid-column: 2; }
+  .log-main { grid-column: 1 / -1; }
+  .log-side { grid-column: 1 / -1; flex-direction: row; justify-content: space-between; align-items: center; }
 }
-@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; transition: none !important; } }
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; transition: none !important; animation: none !important; } }
 </style>
 </head>
 <body>
@@ -241,9 +274,8 @@ input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border: 0; bo
           <div class="p-top"><span class="tag">Apie projektą</span><button class="x" type="button" data-close aria-label="Uždaryti">&times;</button></div>
           <h2 class="p-title" id="aboutTitle">Rykantų laiko mašina</h2>
           <p>Tai <a href="https://www.rykantupastas.lt/" target="_blank" rel="noopener noreferrer">Rykantų pašto</a>, Piliečių mokslo asociacijos, <a href="https://vilniustech.lt/" target="_blank" rel="noopener noreferrer">VILNIUS TECH</a> ir Participio projektas ir bendras tyrinėjimas.</p>
-          <p>Čia surinkta <span id="aboutCount"></span> apie Rykantus: archyvų dokumentai ir nuotraukos, tekstai, moksliniai tyrimai, gyventojų balsai ir renginiai nuo 1619 m. iki šių dienų. Tyrinėk ir ieškok vaizdų, raštų ir istorijų įkvėpimui.</p>
-          <p class="p-meta">Įrašai išdėlioti laiko ratu aplink laiko mašiną: nuo viršaus pagal laikrodžio rodyklę, nuo seniausio iki naujausio. Tempk, kad judintum, didink mygtukais + ir − arba dviem pirštais, spustelėk įrašą, kad jį atvertum. Forma ir spalva rodo grupę: pašto ženklas reiškia archyvą, arka tekstą, šešiakampis tyrimą, diskas balsą, bilietas renginį.</p>
-          <p class="p-meta">Šaltiniai: Europeana, LIMIS, epaveldas.lt, EAIS, Kultūros vertybių registras, Polona, Internet Archive, radzima.org, Spotify, lietuvių ir lenkų spauda, Google Scholar, lituanistika.lt, eLABa. Patikrinta 2026-10-15. Licencija nurodyta prie kiekvieno įrašo; vaizdai be aiškios licencijos nerodomi.</p>
+          <p>Čia surinkta <span id="aboutCount"></span> apie Rykantus: archyvų dokumentai ir nuotraukos, tekstai, moksliniai tyrimai, gyventojų balsai ir renginiai nuo 1619 m. iki šių dienų.</p>
+          <p class="p-meta">Įrašai išdėlioti laiko ratu aplink laiko mašiną: nuo viršaus pagal laikrodžio rodyklę, nuo seniausio iki naujausio. Tempk, kad judintum, didink mygtukais + ir −, spustelėk įrašą, kad jį atvertum. Forma ir spalva rodo grupę: pašto ženklas reiškia archyvą, arka tekstą, šešiakampis tyrimą, diskas balsą, bilietas renginį.</p>
           <div class="p-actions"><button class="ok" type="button" data-close>Pradėti</button></div>
         </aside>
       </div>
@@ -282,6 +314,21 @@ input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border: 0; bo
   <div class="tip" id="tip" hidden></div>
 </section>
 
+<main class="below">
+  <section class="log-wrap" aria-labelledby="logTitle">
+    <div class="log-head">
+      <h2 id="logTitle">Žurnalas</h2>
+      <p>Visi laiko mašinos įrašai nuo seniausio. Pavadinimas atveria šaltinį naujame skirtuke.</p>
+    </div>
+    <nav class="kinds" id="kindsLog" aria-label="Įrašų grupės žurnale"></nav>
+    <ol class="log" id="log"></ol>
+  </section>
+  <footer class="foot">
+    <p>Archyvų įrašai rasti Europeanoje, LIMIS, epaveldas.lt, EAIS, Kultūros vertybių registre, Polonoje, Internet Archive ir radzima.org; skenai iš epaveldas.lt, LIMIS ir Polonos. Spaudos straipsniai iš „Trakų žemės“, „Klevų alėjos“, „Vorutos“, LRT, 15min, l24.lt, „Kurier Wileński“, „Magazyn Wileński“ ir kitų leidinių, tinklaraščio įrašai ir 13 tinklalaidės „Rykantų pašto laiškai“ epizodų (2024 m. balandis-rugpjūtis) rasti internete. Moksliniai tyrimai rasti per Google Scholar, lituanistika.lt, eLABa ir žurnalų svetaines. Viskas patikrinta 2026-10-15.</p>
+    <p>Licencijos nurodytos prie kiekvieno įrašo, todėl prieš naudodami pakartotinai jas patikrinkite. Įrašų be aiškios licencijos vaizdai nerodomi, pateikiama tik nuoroda.</p>
+    <p>Rykantų laiko mašina yra Rykantų pašto, Piliečių mokslo asociacijos, VILNIUS TECH ir Participio projektas.</p>
+  </footer>
+</main>
 
 <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.min.js"></script>
 <script>
@@ -797,6 +844,12 @@ input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border: 0; bo
     b.dataset.id = item.id;
     b.setAttribute("aria-label", `${item.date}, ${item.type}: ${item.title}`);
     b.innerHTML = `<span class="sc">${scrapInner(item)}</span>`;
+    const wr = rng(item.id + "w");
+    b.style.setProperty("--dx", ((wr() - 0.5) * 18).toFixed(1) + "px");
+    b.style.setProperty("--dy", ((wr() - 0.5) * 18).toFixed(1) + "px");
+    b.style.setProperty("--dr", ((wr() - 0.5) * 5).toFixed(2) + "deg");
+    b.style.setProperty("--dur", (6 + wr() * 6).toFixed(2) + "s");
+    b.style.setProperty("--delay", (-wr() * 12).toFixed(2) + "s");
     world.appendChild(b);
     scraps.set(item, b);
     sizes.set(item, baseSize(item, rng(item.id + "s")));
@@ -964,6 +1017,7 @@ input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border: 0; bo
       b.classList.toggle("is-future", ok && i.year != null && i.year > dialYear);
       b.tabIndex = ok ? 0 : -1;
     });
+    document.querySelectorAll(".log li").forEach(li => { li.hidden = !matches(BY_ID[li.dataset.id]); });
   }
   function renderChips(el) {
     el.innerHTML = `<button class="kchip" type="button" data-kind="" aria-pressed="true"><i></i>Visi <span>${N}</span></button>` + KIND_ORDER.map(k =>
@@ -1025,6 +1079,7 @@ input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border: 0; bo
       detail.hidden = true;
       rollYear(dialYear);
     }
+    document.querySelectorAll(".log li").forEach(li => li.classList.toggle("is-active", !!item && li.dataset.id === item.id));
   }
   const stepBy = d => {
     const P = pool();
@@ -1083,8 +1138,32 @@ input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border: 0; bo
     step();
   });
 
-
+  /* ---------- Logbook ---------- */
+  const log = $("#log");
+  ORDER.forEach(item => {
+    const li = document.createElement("li");
+    li.dataset.id = item.id;
+    li.innerHTML = `
+      <span class="log-n">${num(item)}</span>
+      <span class="log-date">${esc(item.date)}</span>
+      <div class="log-main">
+        <span class="log-title"><a href="${item.links[0][1]}" target="_blank" rel="noopener noreferrer">${esc(item.title)}</a></span>
+        <span class="log-holder">${kdot(item.kind)}${esc(item.type)} · ${esc(item.holder)}${item.lang ? " · " + esc(item.lang) : ""}</span>
+        <span class="log-notes">${esc(item.notes)}</span>
+        ${item.links.length > 1 ? `<span class="d-links">${linkHTML(item)}</span>` : ""}
+      </div>
+      <div class="log-side">
+        ${item.img ? `<img class="log-img" src="${item.img}" alt="" loading="lazy">` : ""}
+        <span class="chip">${esc(item.licence || "Licencija: žr. įrašą")}</span>
+        <button class="pill" type="button">Atverti</button>
+      </div>`;
+    const b = li.querySelector(".log-side button");
+    b.setAttribute("aria-label", `Atverti „${item.title}“ laiko mašinoje`);
+    b.addEventListener("click", () => { select(item); stage.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" }); });
+    log.appendChild(li);
+  });
   renderChips($("#kindsScene"));
+  renderChips($("#kindsLog"));
 
   /* ---------- WebGL: the chrome blob, pinned to the centre of the ring ---------- */
   const NOISE = `
