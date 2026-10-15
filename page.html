@@ -36,6 +36,7 @@ a:hover { color: #8FF5FF; }
   height: clamp(640px, 92vh, 940px);
   height: clamp(640px, 92svh, 940px);
   overflow: hidden;
+  overflow: clip;
   isolation: isolate;
   background: radial-gradient(ellipse 70% 62% at 50% 45%, var(--cobalt-glow) 0%, var(--cobalt) 42%, #00307F 76%, var(--cobalt-deep) 100%);
 }
@@ -300,7 +301,7 @@ input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border: 0; bo
     <ol class="log" id="log"></ol>
   </section>
   <footer class="foot">
-    <p>Archyvų įrašai rasti Europeanoje (paieška Rykant*, 29 rezultatai) ir radzima.org, skenai iš epaveldas.lt. Straipsniai, tinklaraščio įrašai ir 13 tinklalaidės „Rykantų pašto laiškai“ epizodų (2024 m. balandis-rugpjūtis) rasti internete. Viskas patikrinta 2026-10-15.</p>
+    <p>Archyvų įrašai rasti Europeanoje (paieška Rykant*, 29 rezultatai) ir radzima.org, skenai iš epaveldas.lt. Spaudos straipsniai iš „Trakų žemės“, „Klevų alėjos“, „Vorutos“, LRT, 15min, l24.lt, „Kurier Wileński“, „Magazyn Wileński“ ir kitų leidinių, tinklaraščio įrašai ir 13 tinklalaidės „Rykantų pašto laiškai“ epizodų (2024 m. balandis-rugpjūtis) rasti internete. Viskas patikrinta 2026-10-15.</p>
     <p>Rykantų laiko mašina yra Rykantų pašto, Piliečių mokslo asociacijos, VILNIUS TECH ir Participio projektas.</p>
     <p>Licencijos nurodytos prie kiekvieno įrašo, todėl prieš naudodami pakartotinai jas patikrinkite. Įrašų be aiškios licencijos vaizdai nerodomi, pateikiama tik nuoroda.</p>
   </footer>
@@ -319,15 +320,16 @@ input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border: 0; bo
   const VRVA = "Vilniaus regioninis valstybės archyvas";
   const KPC = "Kultūros paveldo centro biblioteka";
   const BLOG = "Rykantų pašto tinklaraštis";
+  const TZ = "„Trakų žemė“";
 
   const KINDS = {
     archyvas: { label: "Archyvai", about: "Archyvų ir muziejų dokumentai, brėžiniai ir nuotraukos nuo 1619 m. Skenai iš epaveldas.lt.",
       bg: ["#0A2C80", "#1C0F5C"], ink: "#F2F5FF", soft: "#C9D6F7", year: ["#8FF5FF", "#B79CFF", "#FF8BE0", "#FFD98A"], edge: 0x8ff5ff, glass: 0xdfe8ff },
-    tekstas: { label: "Tekstai", about: "Romanas, kraštotyra, mokslinis straipsnis, spauda, enciklopedija ir Rykantų pašto tinklaraštis.",
+    tekstas: { label: "Tekstai", about: "Romanas, kraštotyra, moksliniai straipsniai, lietuvių ir lenkų spauda, enciklopedija ir Rykantų pašto tinklaraštis.",
       bg: ["#F3EEE2", "#DDD3BE"], ink: "#16204A", soft: "#5E5747", year: ["#0047AB", "#0047AB"], edge: 0xf3eee2, glass: 0xfff4e2 },
     balsas: { label: "Balsai", about: "Tinklalaidė „Rykantų pašto laiškai“: 13 epizodų, kuriuose gyventojai pasakoja apie kaimą, bendruomenę ir paštą (2024 m.).",
       bg: ["#13704A", "#062A1C"], ink: "#EFFFF4", soft: "#A9DDBE", year: ["#7CF5A6", "#D8FF8A"], edge: 0x7cf5a6, glass: 0xd9ffe8 },
-    renginys: { label: "Renginiai", about: "Šventės, ekskursija ir LRT PROTOTO žaidimas apie Rykantus.",
+    renginys: { label: "Renginiai", about: "Kaimo šventės ir sukaktys, festivaliai, koncertai, ekskursija ir LRT PROTOTO žaidimas apie Rykantus.",
       bg: ["#9A2367", "#3D0A3F"], ink: "#FFF1F8", soft: "#F3BDD9", year: ["#FFB3D9", "#FFD98A"], edge: 0xffb3d9, glass: 0xffe3f1 }
   };
   const KIND_ORDER = ["archyvas", "tekstas", "balsas", "renginys"];
@@ -417,15 +419,84 @@ input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border: 0; bo
     { id: "year-2026", kind: "tekstas", year: 2026, date: "2026-04", type: "Tinklaraščio įrašas", title: "Rykantų pašto 2026-ieji", holder: "Jurgita, " + BLOG, lang: "", licence: "",
       notes: "2025-ųjų apžvalga: gyvuose susitikimuose per 500 dalyvių, internete pasiekta daugiau nei 3 000 žmonių, paštas oficialiai išlipo iš skolų.",
       links: [["rykantupastas.lt", "https://www.rykantupastas.lt/rykantu-pasto-2026-ieji/"]] },
-    { id: "zoline", kind: "tekstas", year: 2026, date: "2026-08-20", type: "Straipsnis", title: "Žolinė Rykantuose subūrė bendruomenę švęsti ir paminėti 624-ąsias miestelio vardo metines", holder: "Ieva Skaistytė, „Voruta“", lang: "", licence: "",
-      notes: "Per Žolinę paminėtos 624-osios vardo metinės, pagerbti ilgamečiai bendruomenės nariai, paminėtas bibliotekos 85-metis. Koncertavo vietos šokių ir folkloro kolektyvai.",
-      links: [["Voruta", "https://www.voruta.lt/zoline-rykantuose-subure-bendruomene-svesti-ir-pamineti-624-asias-miestelio-vardo-metines/"]] },
+    { id: "zoline", kind: "renginys", year: 2026, date: "2026-08-20", type: "Šventė", title: "Žolinė Rykantuose subūrė bendruomenę švęsti ir paminėti 624-ąsias miestelio vardo metines", holder: "Ieva Skaistytė, „Voruta“", lang: "", licence: "",
+      notes: "Per Žolinę paminėtos 624-osios vardo metinės, pagerbti ilgamečiai bendruomenės nariai, paminėtas bibliotekos 85-metis. Koncertavo vietos šokių ir folkloro kolektyvai. Kalbėjo bendruomenės pirmininkas Česlovas Jocius, laiškininkė Stasė Vaitiekaitienė, centro direktorė Ieva Skaistytė, o B. Jocienė rodė senas nuotraukas.",
+      links: [["Voruta", "https://www.voruta.lt/zoline-rykantuose-subure-bendruomene-svesti-ir-pamineti-624-asias-miestelio-vardo-metines/"], ["Trakų žemė", "https://traku-zeme.lt/624-metu-rykantu-istorijos-centre-zmones/"]] },
     { id: "vle", kind: "tekstas", year: null, date: "Be datos", type: "Enciklopedija", title: "Rykantai", holder: "Visuotinė lietuvių enciklopedija", lang: "", licence: "",
       notes: "Gyventojų skaičius nuo 1889 m. (112) iki 2021 m. (251), mokykla, paštas nuo 1965 m., bažnyčios dailė. Atskiras straipsnis apie 1957 m. rastą Rykantų lobį.",
       links: [["VLE: Rykantai", "https://www.vle.lt/straipsnis/rykantai/"], ["VLE: Rykantų lobis", "https://www.vle.lt/straipsnis/rykantu-lobis/"]] },
     { id: "tic", kind: "tekstas", year: null, date: "Be datos", type: "Paveldo puslapiai", title: "Bažnyčia ir „užburtos bažnyčios“ legenda", holder: "Trakų turizmo informacijos centras", lang: "lietuvių, anglų k.", licence: "",
       notes: "Bažnyčią 1585 m. pastatė A. Tolvaišas, 1655 m. ją nuniokojo maskvėnai, 1688 m. M. Oginskis atidavė Trakų dominikonams. Pasak legendos, 1696 m. vokiečių keliautojas rado bažnyčią atvirą su kūnais viduje, o žmonės kaltino ją praradusius reformatus.",
       links: [["Bažnyčia (EN)", "https://www.trakai-visit.lt/en/rykantai-church-of-the-saint-trinity/"], ["Bažnyčia ir Oginskienė", "https://www.trakai-visit.lt/rykantu-svc-trejybes-baznycia-marcibele-ona-oginskiene/"], ["Legenda", "https://www.trakai-visit.lt/uzburta-rykantu-baznycia/"], ["Maršruto leidinys", "https://www.trakai-visit.lt/wp-content/uploads/2018/02/mistiskos-traku-apylinkes.pdf"]] },
+
+
+    /* Spauda */
+    { id: "karys-1920", kind: "tekstas", year: 1960, date: "1960", type: "Straipsnis", title: "Želigovskiada, 1920 m.", holder: "Algirdas Budreckis, „Karys“, 1960 m. Nr. 7-8", lang: "", licence: "",
+      notes: "1920 m. spalio 16-17 d. lenkų pajėgos su šarvuočiais užėmė Rykantų geležinkelio stotį, o lietuviai Rykantus atsiėmė lapkričio 17 d. 1971 m. „Kario“ straipsnyje K. Ališauskas aprašo įnirtingas kovas prie Rykantų spalio 15 d.",
+      links: [["partizanai.org", "https://www.partizanai.org/index.php/karys-1960m-7-8/5133-zeligovskiada-1920-m"], ["„Karys“ 1971", "https://partizanai.org/karys-1971m-1-2/6033-zeligovskiada"]] },
+    { id: "mw-2002", kind: "tekstas", year: 2002, date: "2002-08", type: "Straipsnis", title: "Rykonty dzisiaj i niegdyś", holder: "Mirosław Gajewski, „Magazyn Wileński“", lang: "lenkų k.", licence: "",
+      notes: "Išsamus istorijos pasakojimas: Talvošų dvaras, P. Vergerijaus 1555 m. minima medinė kalvinistų šventovė, 1655 m. nuniokojimas, 1688 m. M. G. Oginskio dovana Trakų dominikonams, Pasijos freskos (dail. Jan Janowicz). 1935 m. mokykloje mokėsi 47 vaikai, 1937 m. parapijoje buvo 2 694 tikintieji.",
+      links: [["Magazyn Wileński", "http://www.magwil.lt/archiwum/archiwum/2002/mmw8/sierp6.htm"]] },
+    { id: "mw-2005", kind: "tekstas", year: 2005, date: "2005-10", type: "Straipsnis", title: "Świadkowie „wojny religijnej” w Rykontach", holder: "Alwida A. Bajor, „Magazyn Wileński“", lang: "lenkų k.", licence: "",
+      notes: "Pagal Józefo Mackiewicziaus 1935 m. reportažą apie mokytojo ir klebono „religinį karą“, kai buvo susipešta net bažnyčioje. Liudija 1924 m. gimusi Józefa Łozowska. Prieškarinė mokykla pastatyta mokytojos Tumanowiczowos iniciatyva, freskų signatūrą 1931 m. atrado dail. K. Kwiatkowski.",
+      links: [["Magazyn Wileński", "http://www.magwil.lt/archiwum/archiwum/2005/wmw-10/pazd-9.htm"]] },
+    { id: "deanpriests-2013", kind: "tekstas", year: 2013, date: "2013-09-23", type: "Straipsnis", title: "Klemensas Maliukevičius, Trakų dekanas, kunigas, kanauninkas ir visuomenininkas", holder: TZ, lang: "", licence: "",
+      notes: "Minimi tarpukario Rykantų kunigai Juozas Sarosekas (1921) ir Michailas Samusionekas (1925 m., kai apie 30 ha parapijos žemės priskirta IV kategorijai).",
+      links: [["Trakų žemė", "https://traku-zeme.lt/klemensas-maliukevicius-traku-dekanas-kunigas-kanauninkas-ir-visuomenininkas/"]] },
+    { id: "centre-2014", kind: "renginys", year: 2014, date: "2014-12-22", type: "Atidarymas", title: "Atidarytas Rykantų universalus daugiafunkcis centras", holder: "„Klevų alėja“, Trakų r. savivaldybės informacija", lang: "", licence: "",
+      notes: "Centras atidarytas 2014 m. gruodžio 16 d. rekonstruotame pastate. Jame veikia biblioteka, bendruomenės namai ir Lentvario pradinės mokyklos Rykantų skyrius. Kaina 1 681 421 Lt, iš jų 1 429 208 Lt ES struktūrinių fondų lėšos. Direktorius Dariušas Nedveckis.",
+      links: [["Klevų alėja", "https://www.klevualeja.lt/2014/12/22/atidarytas-rykantu-universalus-daugiafunkcis-centras/"]] },
+    { id: "madonna-2015", kind: "tekstas", year: 2015, date: "2015-05-06", type: "Straipsnis", title: "Obrazy maryjne z kościołów Wileńszczyzny na wystawie w Wilnie", holder: "Iwona Klimaszewska, l24.lt", lang: "lenkų k.", licence: "",
+      notes: "Kadaise pavogta ir surasta Rykantų Madona. Po metaliniu aptaisu restauratoriai rado karališkai pavaizduotą Mariją su karūna ir auskarais (kuratorė Sigita Maslauskaitė). Po parodos paveikslas turėjo likti Bažnytinio paveldo muziejuje.",
+      links: [["l24.lt", "http://l24.lt/pl/kultura-pl/item/68066-obrazy-maryjne-z-kosciolow-wilenszczyzny-na-wystawie-w-wilnie"]] },
+    { id: "savaite-2017", kind: "tekstas", year: 2017, date: "2017-05-19", type: "Straipsnis", title: "Savaitgalis: nuo Vilniaus iki Vievio ir atgal", holder: "Manvydas Vitkūnas, „Savaitė“", lang: "", licence: "",
+      notes: "Maršruto stotelė Rykantuose: akmenimis grįsta senojo Vilniaus-Kauno kelio atkarpa, Mikalojaus Talvošo fundota bažnyčia, kurios kriptoje jis palaidotas, 1812 m. nuostoliai ir 1920 m. kovos.",
+      links: [["Savaitė", "https://www.savaite.lt/panorama/lietuva/1445-savaitgalisnuovilniausikivievioiratgal.html"]] },
+    { id: "concert-2019", kind: "renginys", year: 2019, date: "2019-04-30", type: "Koncertas", title: "Šimtmečius skaičiuojančios Rykantų bažnyčios skliautais liesis muzika", holder: "„Klevų alėja“", lang: "", licence: "",
+      notes: "2019 m. gegužės 4 d. bažnyčioje koncertavo Grigiškių meno mokykla. Primenama, kad mūrinę bažnyčią 1585 m. pastatė dvarininkas A. Tolvaiša, o jam neturint įpėdinių ji atiteko katalikams Oginskiams.",
+      links: [["Klevų alėja", "https://www.klevualeja.lt/2019/04/30/simtmecius-skaiciuojancios-rykantu-baznycios-skliautais-liesis-muzika/"]] },
+    { id: "roads-2020", kind: "tekstas", year: 2020, date: "2020-08-04", type: "Straipsnis", title: "Tarp Vilniaus ir Kauno automobiliu: įdomiausios lankytinos vietos", holder: "15min.lt", lang: "", licence: "",
+      notes: "Nuo magistralės ties Rykantais galima pasiekti Vilsos upelio krioklius (didžiausias apie 1,5 m). Nuo Rykantų Paneriškių atodangos link veda senas akmenimis grįstas kelias.",
+      links: [["15min.lt", "https://www.15min.lt/gyvenimas/naujiena/keliones/tarp-vilniaus-ir-kauno-automobiliu-idomiausios-lankytinos-vietos-1630-1356090"]] },
+    { id: "kurier-2020", kind: "tekstas", year: 2020, date: "2020-11-19", type: "Straipsnis", title: "Nowy odcinek „Wileńszczyzny w obiektywie”: tym razem o Rykontach", holder: "„Kurier Wileński“", lang: "lenkų k.", licence: "",
+      notes: "Apie „YouTube“ laidos epizodą. Istorikas Tomasz Bożerocki primena „Karą ir taiką“ ir 1812 m. sudegintą kaimą, archyvaras Albert Wołk gyvenvietės pradžią sieja su X-XI a. ir tarpukariu rastais pilkapiais.",
+      links: [["Kurier Wileński", "https://kurierwilenski.lt/2020/11/19/nowy-odcinek-wilenszczyzny-w-obiektywie-tym-razem-o-rykontach/"]] },
+    { id: "verbos-2021", kind: "tekstas", year: 2021, date: "2021-03-26", type: "Straipsnis", title: "Tradicinės verbos", holder: "Jolanta Zakarevičiūtė, " + TZ, lang: "", licence: "",
+      notes: "Rykantų gyventoja tautodailininkė Irena Pomarnacka, kurios vilnietiškos verbos turi tautinio paveldo sertifikatą. 2019 m. jos šeima augino apie 600 jurginų kerų.",
+      links: [["Trakų žemė", "https://traku-zeme.lt/tradicines-verbos/"]] },
+    { id: "napoleon-2021", kind: "tekstas", year: 2021, date: "2021-12-27", type: "Straipsnis", title: "Napoleono kelio galimybės Lietuvoje", holder: "„Voruta“", lang: "", licence: "",
+      notes: "Istorikas Arvydas Pociūnas: 1812 m. birželio 27 d. Napoleonas išvyko iš Kauno, nakvojo Ausieniškių dvare ir pakeliui į Vilnių trumpai sustojo Rykantuose.",
+      links: [["Voruta", "https://www.voruta.lt/napoleono-kelio-galimybes-lietuvoje/"]] },
+    { id: "velicka-2022", kind: "tekstas", year: 2022, date: "2022-08-11", type: "Straipsnis", title: "Rykantams 620 metų", holder: "Vidmantas Velička, „Voruta“", lang: "", licence: "",
+      notes: "Iš čia kildinama 1402 m. data. Kryžiuočių kelių aprašymuose (Th. Hirsch, 1863; lietuviškai 1988 m.) 64-ajame kelyje „Kelias prie Neries“ penktoji nakvynė yra prie Rykantų. Kelias nedatuotas, o 1402 m. autorius išveda iš prieš jį einančio, 1402 m. datuoto kelio.",
+      links: [["Voruta", "https://www.voruta.lt/vidmantas-velicka-rykantams-620-metu/"]] },
+    { id: "festyn-2023", kind: "renginys", year: 2023, date: "2023-06-06", type: "Festivalis", title: "Festyn Kultury Polskiej Ziemi Trockiej w Rykontach", holder: "l24.lt", lang: "lenkų k.", licence: "",
+      notes: "32-asis Trakų krašto lenkų kultūros festivalis „Dźwięcz, Polska Pieśni!“ 2023 m. birželio 11 d. pirmą kartą vyko Rykantuose, dalyvavo ansamblis „Suwalszczyzna“ iš Lenkijos.",
+      links: [["l24.lt", "https://l24.lt/pl/imprezy/item/390548-festyn-kultury-polskiej-ziemi-trockiej-w-rykontach"]] },
+    { id: "fete-2023", kind: "renginys", year: 2023, date: "2023-08-16", type: "Šventė", title: "Rykantų 621 metų šventė ir senų nuotraukų paroda", holder: "l24.lt", lang: "lenkų k.", licence: "",
+      notes: "Šv. Mišios, eisena prie atminimo akmens, senų medinių namų puošybos ir archeologijos apžvalgos, koncertavo „Vilsa“, „Ladwiarowianka“ ir „Padūkėlis“. Gyventojai paskolino senų nuotraukų: portretų, vestuvių, laidotuvių, ūkio darbų, bažnyčios.",
+      links: [["Šventė", "https://l24.lt/pl/kultura-pl/item/393197-swieto-w-rykontach"], ["Nuotraukų paroda", "https://l24.lt/pl/kultura-pl/item/393328-rykonty-wystawa-zdjec"]] },
+    { id: "well-2023", kind: "tekstas", year: 2023, date: "2023-08-20", type: "Straipsnis", title: "Kas ten šulinyje?", holder: "Libertas Klimka, LRT", lang: "", licence: "",
+      notes: "Prie ant aukšto piliakalnio ar alkos kalno pastatytos Rykantų bažnyčios esąs turbūt giliausias Lietuvos šulinys: 44 betono žiedai po 80 cm, daugiau nei 34 m gylio.",
+      links: [["LRT", "https://www.lrt.lt/naujienos/kultura/12/2058940/libertas-klimka-kas-ten-sulinyje"]] },
+    { id: "putvis-2023", kind: "tekstas", year: 2023, date: "2023-08-24", type: "Straipsnis", title: "Stasio Putvinskio-Pūtvio 125-osioms gimimo metinėms", holder: "„Voruta“", lang: "", licence: "",
+      notes: "1920 m. liepos 13 d.-spalio 11 d. ltn. S. Putvinskio raiteliai kovėsi su lenkais prie Rykantų, Eišiškių, Lentvario ir Vilniaus.",
+      links: [["Voruta", "https://www.voruta.lt/stasio-putvinskio-putvio-125-osioms-gimimo-metinems/"]] },
+    { id: "hena-2023", kind: "tekstas", year: 2023, date: "2023-12-27", type: "Straipsnis", title: "„Hena” z Antokolskiej. Henryk Trojanowski (1923-2006)", holder: "Tomasz Balbus, „Kurier Wileński“", lang: "lenkų k.", licence: "",
+      notes: "Armijos Krajovos 1-osios Vilniaus brigados kovotojo biografijoje minimas nesėkmingas bunkerio prie Rykantų puolimas 1944 m. pirmoje pusėje. Sužeistuosius jis gabeno į Vilnių.",
+      links: [["Kurier Wileński", "https://kurierwilenski.lt/2023/12/27/hena-z-antokolskiej-henryk-trojanowski-1923-2006/"]] },
+    { id: "fete-2024", kind: "renginys", year: 2024, date: "2024-08-19", type: "Šventė", title: "Rykantai skambiai paminėjo svarbias sukaktis", holder: "Trakų r. savivaldybė", lang: "", licence: "",
+      notes: "Paminėti 622 metai nuo pirmojo Rykantų paminėjimo ir centro 10-metis. Mišias aukojo klebonas Andžej Andžejevski ir kun. Miroslav Ulevič, eisena nuėjo prie istorinio Rykantų akmens, ansamblis „Vilsa“ atliko Trakų krašto lenkų kompozitorių ir poetų kūrinius.",
+      links: [["trakai.lt", "https://trakai.lt/naujienos/6178/rykantai-skambiai-paminejo-svarbias-sukaktis:4626"]] },
+    { id: "socbiz-2025", kind: "tekstas", year: 2025, date: "2025-11-03", type: "Straipsnis", title: "Atrask, įsitrauk, veik: socialinis verslas Trakų krašte", holder: "Trakų krašto VVG, " + TZ, lang: "", licence: "",
+      notes: "VšĮ „Rykantų paštas“ buvusiame pašte, atnaujintame pagal LEADER projektą, kuria socialinio verslo ir inovacijų centrą, vadovė Jurgita Ribinskaitė-Glatzer. Vienas iš keturių aprašytų atvejų.",
+      links: [["Trakų žemė", "https://traku-zeme.lt/atrask-isitrauk-veik-socialinis-verslas-traku-kraste/"]] },
+    { id: "prague-2026", kind: "renginys", year: 2026, date: "2026-08-09", type: "Festivalis", title: "Rykantų šokėjai tarptautiniame festivalyje Prahoje garsino Trakų kraštą ir Lietuvą", holder: TZ, lang: "", licence: "",
+      notes: "Rykantų centro tautinių šokių kolektyvai „Trepsis“ ir „Padūkėlės“, vadovė Aniceta Česnakauskienė, liepos 15-19 d. šoko festivalyje „Prague Folklore Days“.",
+      links: [["Trakų žemė", "https://traku-zeme.lt/rykantu-sokejai-tarptautiniame-festivalyje-prahoje-garsino-traku-krasta-ir-lietuva/"]] },
+    { id: "library-2026", kind: "tekstas", year: 2026, date: "2026-09-07", type: "Straipsnis", title: "Trakų rajono savivaldybės viešosios bibliotekos padalinių sukaktys", holder: "Jolanta Zakarevičiūtė, " + TZ, lang: "", licence: "",
+      notes: "Rykantų bibliotekai 85 metai. Ji pradėjo veikti 1941 m. Užukulpyje, po karo veikė Lentvaryje, nuo 1960 m. Kariotiškėse, o 2007 m. persikėlė į Rykantus. 1976-2004 m. joje dirbo E. Krylova, nuo 2009 m. vyresnioji bibliotekininkė yra Barbara Jocienė.",
+      links: [["Trakų žemė", "https://traku-zeme.lt/traku-rajono-savivaldybes-viesosios-bibliotekos-padaliniu-sukaktys/"]] },
 
     /* Balsai */
     { id: "pod-jociene", kind: "balsas", year: 2024, date: "2024-04-03", type: "Tinklalaidė", title: "Barbara Jocienė apie Rykantus", holder: POD, lang: "", licence: "",
@@ -716,6 +787,7 @@ vec3 blobDisplace(vec3 p){
 
   /* Card outlines in canvas pixels: archive = postage stamp, text = church-window arch, voice = disc, event = ticket */
   const CW = 460, CH = 575;
+  const TEXQ = window.innerWidth < 700 ? 0.6 : 0.8;
   function stampPts() {
     const m = 14, r = 9, pts = [];
     const edge = (ax, ay, bx, by, nx, ny) => {
@@ -758,8 +830,9 @@ vec3 blobDisplace(vec3 p){
 
   function drawCard(item, c) {
     const K = KINDS[item.kind], W = CW, H = CH, shape = SHAPES[item.kind];
-    c.width = W; c.height = H;
+    c.width = Math.round(W * TEXQ); c.height = Math.round(H * TEXQ);
     const g = c.getContext("2d");
+    g.setTransform(TEXQ, 0, 0, TEXQ, 0, 0);
     g.clearRect(0, 0, W, H);
     const yearFill = g.createLinearGradient(0, 0, W, H);
     K.year.forEach((col, i) => yearFill.addColorStop(K.year.length === 1 ? 0 : i / (K.year.length - 1), col));
@@ -902,7 +975,7 @@ vec3 objectTangent = vec3(tangent.xyz);
     function addOrbit(obj, o) { o.obj = obj; o.pos = new T.Vector3(); o.eul = new T.Euler(); orbiters.push(o); scene.add(obj); return o; }
 
     /* Record cards: each on its own orbit, four rings at different speeds, coloured and shaped by group */
-    const BASE = 0.9, FW = 0.94, FH = 1.175;
+    const BASE = 0.8, FW = 0.94, FH = 1.175;
     let glFocus = null, dialYear = TODAY;
     const maxAniso = renderer.capabilities.getMaxAnisotropy();
     const faceGeo = new T.PlaneGeometry(FW, FH);
@@ -925,11 +998,11 @@ vec3 objectTangent = vec3(tangent.xyz);
       frame.position.z = -0.02;
       const edges = new T.LineLoop(outlines[item.kind], edgeMat(0.85, K.edge));
       grp.add(frame, face, edges);
-      const ring = i % 4;
+      const ring = i % 5;
       const o = addOrbit(grp, {
         card: true, item, cv, tex, faceMat, edges, frame, edgeBase: new T.Color(K.edge),
-        R: [3.0, 3.8, 4.6, 5.4][ring], th0: (i / N) * Math.PI * 2 + ring * 0.7, w: [0.11, 0.09, 0.075, 0.06][ring],
-        tx: (i % 2 ? 1 : -1) * (0.16 + ring * 0.1), tz: ((i * 37) % 11 - 5) * 0.04, ph: i * 1.7, scale: BASE, ghost: false
+        R: [2.9, 3.6, 4.3, 5.0, 5.7][ring], th0: (i / N) * Math.PI * 2 + ring * 0.7, w: [0.11, 0.095, 0.08, 0.068, 0.058][ring],
+        tx: (i % 2 ? 1 : -1) * (0.14 + ring * 0.08), tz: ((i * 37) % 11 - 5) * 0.04, ph: i * 1.7, scale: BASE, ghost: false
       });
       frame.userData.card = o;
       hitMeshes.push(frame);
@@ -1028,7 +1101,7 @@ vec3 objectTangent = vec3(tangent.xyz);
         camera.position.y += (-my * 0.45 + 0.3 - camera.position.y) * k;
         camera.position.z = dist;
         camera.lookAt(look);
-        dock.set(0, portrait ? 0.9 : 0.05, portrait ? 6.2 : 5.8);
+        dock.set(0, portrait ? 0.9 : 0.05, portrait ? 6.6 : 6.3);
         for (const o of orbiters) {
           orbitPos(o, time, tmp);
           if (o.card && o === selected) tmp.copy(dock);
@@ -1041,7 +1114,7 @@ vec3 objectTangent = vec3(tangent.xyz);
             const wob = o === selected ? 0.1 : 0.3;
             o.obj.rotateY(Math.sin(time * 0.6 + o.ph) * wob);
             o.obj.rotateX(Math.sin(time * 0.45 + o.ph) * wob * 0.4);
-            const target = o === selected ? 1.35 : o.ghost ? 0.45 : o === hovered ? BASE * 1.18 : BASE;
+            const target = o === selected ? 1.25 : o.ghost ? 0.45 : o === hovered ? BASE * 1.18 : BASE;
             o.scale += (target - o.scale) * k;
             o.obj.scale.setScalar(o.scale);
             o.faceMat.color.lerp(o.ghost ? dim : white, k);
