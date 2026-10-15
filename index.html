@@ -12,15 +12,17 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Unbounded:wght@500;700;900&display=swap">
 <style>
-/* Layout: full-bleed WebGL scene on cobalt (chrome blob + four colour-coded clusters of record cards on one slow carousel), HUD corners, glass record panel, cluster chips, dial bar; logbook below */
+/* Layout: cobalt field with the chrome blob at the centre; every record is a scrap in a time ring around it (clockwise 1619 to 2026), pan and zoom; a picked scrap opens large beside a caption box; filter dock at the bottom; logbook below */
 :root {
   --cobalt: #0047AB;
   --cobalt-glow: #2A6BE0;
   --cobalt-deep: #001E5C;
+  --night: #000B26;
   --ink: #F2F5FF;
   --ink-soft: #B7C6EE;
   --line: rgba(242, 245, 255, 0.22);
-  --glass: rgba(6, 22, 70, 0.45);
+  --glass: rgba(6, 22, 70, 0.55);
+  --paper: #F3EEE2;
   --holo: linear-gradient(90deg, #8FF5FF 0%, #B79CFF 35%, #FF8BE0 68%, #FFD98A 100%);
   --k-archyvas: #8FF5FF;
   --k-tekstas: #F3EEE2;
@@ -42,65 +44,86 @@ a:hover { color: #8FF5FF; }
 /* Scene */
 .scene {
   position: relative;
-  height: clamp(640px, 92vh, 940px);
-  height: clamp(640px, 92svh, 940px);
+  height: clamp(640px, 94vh, 1000px);
+  height: clamp(640px, 94svh, 1000px);
   overflow: hidden;
   overflow: clip;
   isolation: isolate;
-  background: radial-gradient(ellipse 70% 62% at 50% 45%, var(--cobalt-glow) 0%, var(--cobalt) 42%, #00307F 76%, var(--cobalt-deep) 100%);
+  touch-action: pan-y;
+  cursor: grab;
+  background: radial-gradient(ellipse 70% 62% at 50% 48%, var(--cobalt-glow) 0%, var(--cobalt) 45%, #00307F 78%, var(--cobalt-deep) 100%);
 }
-.mega {
-  position: absolute;
-  left: 50%;
-  top: 47%;
-  z-index: 0;
-  transform: translate(-50%, -50%);
-  font-family: var(--f-display);
-  font-weight: 900;
-  font-size: 17vw;
-  line-height: 0.8;
-  letter-spacing: -0.02em;
-  color: transparent;
-  -webkit-text-stroke: 1px rgba(242, 245, 255, 0.3);
-  white-space: nowrap;
-  pointer-events: none;
-  user-select: none;
-}
-#gl { position: absolute; inset: 0; z-index: 1; width: 100%; height: 100%; display: block; touch-action: pan-y; }
-.blobfb {
-  display: none;
-  position: absolute;
-  left: 50%;
-  top: 44%;
-  z-index: 1;
-  width: min(56vw, 420px);
-  max-width: 100%;
-  aspect-ratio: 1;
-  transform: translate(-50%, -50%);
-  border-radius: 46% 54% 52% 48% / 50% 44% 56% 50%;
-  background: conic-gradient(from 20deg, #8FF5FF, #B79CFF, #FF8BE0, #FFD98A, #8FF5FF);
-  box-shadow: inset -30px -40px 80px rgba(0, 10, 60, 0.75), inset 24px 24px 60px rgba(255, 255, 255, 0.45);
-}
+.scene.is-dragging { cursor: grabbing; }
+#gl { position: absolute; inset: 0; z-index: 0; width: 100%; height: 100%; display: block; pointer-events: none; }
+.blobfb { display: none; position: absolute; z-index: 0; width: 200px; aspect-ratio: 1; border-radius: 46% 54% 52% 48% / 50% 44% 56% 50%; background: conic-gradient(from 20deg, #8FF5FF, #B79CFF, #FF8BE0, #FFD98A, #8FF5FF); box-shadow: inset -30px -40px 80px rgba(0, 10, 60, 0.75), inset 24px 24px 60px rgba(255, 255, 255, 0.45); transform: translate(-50%, -50%); pointer-events: none; }
 .no-gl .blobfb { display: block; }
 
-.hud {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
-  display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto;
-  gap: 16px;
-  padding-block: 22px;
-  padding-left: max(22px, env(safe-area-inset-left, 0px));
-  padding-right: max(22px, env(safe-area-inset-right, 0px));
-  pointer-events: none;
+.world { position: absolute; left: 0; top: 0; z-index: 1; transform-origin: 0 0; will-change: transform; }
+.tick { position: absolute; transform: translate(-50%, -50%); font-family: var(--f-mono); font-size: 22px; letter-spacing: 0.08em; color: var(--ink-soft); opacity: 0.75; white-space: nowrap; pointer-events: none; }
+
+/* Scraps */
+.scrap { position: absolute; display: block; margin: 0; padding: 0; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; transition: opacity 0.35s, filter 0.35s; }
+.scrap .sc { position: relative; width: 100%; height: 100%; transition: transform 0.25s; }
+.scrap:hover { z-index: 4; }
+.scrap:hover .sc { transform: scale(1.08); }
+.scrap.is-dim { opacity: 0.1; pointer-events: none; }
+.scrap.is-future { opacity: 0.22; filter: grayscale(0.8); }
+.scrap.is-sel { z-index: 5; }
+.scrap:focus-visible { outline: none; }
+.scrap.is-sel::after, .scrap:focus-visible::after { content: ""; position: absolute; inset: -12px; border: 4px solid #8FF5FF; border-radius: 14px; pointer-events: none; }
+.d-fig .scrap::after { display: none; }
+.s-type { display: block; font-family: var(--f-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; line-height: 1.2; }
+.s-year { display: block; font-family: var(--f-display); font-weight: 700; font-size: 30px; line-height: 1; letter-spacing: -0.01em; }
+.s-year.is-text { font-size: 17px; }
+.s-title { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 4; overflow: hidden; font-size: 14px; font-weight: 600; line-height: 1.22; }
+
+/* Archive: stamp-edged scan or stamp-shaped paper */
+.k-archyvas .sc {
+  padding: 8px;
+  background: #F4F1E8;
+  -webkit-mask: conic-gradient(#000 0 0) content-box, radial-gradient(circle 4.5px, #0000 96%, #000) -6px -6px / 12px 12px round padding-box;
+  mask: conic-gradient(#000 0 0) content-box, radial-gradient(circle 4.5px, #0000 96%, #000) -6px -6px / 12px 12px round padding-box;
 }
+.k-archyvas .sc img { display: block; width: 100%; height: 100%; object-fit: contain; background: #E6E1D3; pointer-events: none; user-select: none; }
+.k-archyvas.no-img .sc { background: linear-gradient(150deg, #0A2C80, #1C0F5C); color: var(--ink); padding: 14px 15px; display: flex; flex-direction: column; gap: 6px; }
+.k-archyvas.no-img .s-type { color: #C9D6F7; }
+.k-archyvas.no-img .s-year { background: var(--holo); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.yr-tag { position: absolute; left: -6px; bottom: -12px; font-family: var(--f-mono); font-size: 14px; font-weight: 500; padding: 2px 7px; background: var(--night); color: #8FF5FF; }
+
+/* Texts: church-window arch of paper */
+.k-tekstas .sc { background: var(--paper); color: #16204A; border-radius: 999px 999px 8px 8px; padding: 26% 14px 14px; display: flex; flex-direction: column; align-items: center; gap: 5px; text-align: center; box-shadow: 0 10px 24px rgba(0, 10, 50, 0.35); }
+.k-tekstas .s-type { color: #5E5747; }
+.k-tekstas .s-year { color: var(--cobalt); }
+.k-tekstas .s-title { -webkit-line-clamp: 5; }
+
+/* Research: amber hexagon */
+.k-tyrimas .sc { background: linear-gradient(160deg, #F6D58A, #D99A3E); color: #2B1A07; clip-path: polygon(22% 0, 78% 0, 100% 50%, 78% 100%, 22% 100%, 0 50%); padding: 16px 30px; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 4px; text-align: center; }
+.k-tyrimas .s-type { color: #6B4513; }
+.k-tyrimas .s-year { color: #7A2E0E; font-size: 26px; }
+.k-tyrimas .s-title { -webkit-line-clamp: 3; font-size: 13px; }
+
+/* Voices: green disc */
+.k-balsas .sc { background: radial-gradient(circle at 50% 50%, #1B8A5A 0 22%, #13704A 23% 60%, #062A1C 100%); color: #EFFFF4; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; text-align: center; box-shadow: 0 10px 24px rgba(0, 20, 10, 0.4); }
+.k-balsas .s-year { font-size: 20px; color: #7CF5A6; }
+.k-balsas .s-title { -webkit-line-clamp: 1; font-size: 14px; }
+.bars { display: flex; align-items: flex-end; gap: 3px; height: 16px; }
+.bars i { width: 4px; background: #7CF5A6; border-radius: 1px; }
+
+/* Events: ticket */
+.k-renginys .sc {
+  background: linear-gradient(150deg, #9A2367, #3D0A3F); color: #FFF1F8; border-radius: 12px; padding: 12px 16px; display: flex; flex-direction: column; gap: 4px;
+  -webkit-mask: radial-gradient(circle 11px at 0 66%, #0000 97%, #000) left / 51% 100% no-repeat, radial-gradient(circle 11px at 100% 66%, #0000 97%, #000) right / 51% 100% no-repeat;
+  mask: radial-gradient(circle 11px at 0 66%, #0000 97%, #000) left / 51% 100% no-repeat, radial-gradient(circle 11px at 100% 66%, #0000 97%, #000) right / 51% 100% no-repeat;
+}
+.k-renginys .sc::after { content: ""; position: absolute; left: 14px; right: 14px; top: 66%; border-top: 2px dashed rgba(255, 241, 248, 0.45); }
+.k-renginys .s-type { color: #F3BDD9; }
+.k-renginys .s-year { color: #FFB3D9; font-size: 24px; }
+.k-renginys .s-title { -webkit-line-clamp: 2; font-size: 13px; }
+
+/* HUD */
+.hud { position: absolute; inset: 0; z-index: 3; pointer-events: none; }
 .hud::before {
-  content: "";
-  position: absolute;
-  inset: 10px;
-  pointer-events: none;
-  opacity: 0.55;
+  content: ""; position: absolute; inset: 10px; pointer-events: none; opacity: 0.55;
   background:
     linear-gradient(var(--ink), var(--ink)) top left / 22px 1px no-repeat,
     linear-gradient(var(--ink), var(--ink)) top left / 1px 22px no-repeat,
@@ -111,107 +134,36 @@ a:hover { color: #8FF5FF; }
     linear-gradient(var(--ink), var(--ink)) bottom right / 22px 1px no-repeat,
     linear-gradient(var(--ink), var(--ink)) bottom right / 1px 22px no-repeat;
 }
-.hud-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
-.brand { display: grid; gap: 6px; }
+.hud-top { position: absolute; top: 20px; left: max(22px, env(safe-area-inset-left, 0px)); right: max(22px, env(safe-area-inset-right, 0px)); display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; }
+h1 { margin: 0; font-family: var(--f-display); font-weight: 700; font-size: clamp(20px, 2.6vw, 32px); line-height: 1.1; letter-spacing: -0.005em; text-wrap: balance; text-shadow: 0 2px 18px rgba(0, 20, 80, 0.6); }
 .tag { font-family: var(--f-mono); font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-soft); }
-h1 { margin: 0; font-family: var(--f-display); font-weight: 700; font-size: clamp(20px, 2.6vw, 32px); line-height: 1.1; letter-spacing: -0.005em; text-wrap: balance; }
-.clock { display: grid; justify-items: end; gap: 4px; text-align: right; }
-.year {
-  font-family: var(--f-display);
-  font-weight: 700;
-  font-size: clamp(20px, 2.4vw, 28px);
-  line-height: 1;
-  min-width: 4.2ch;
-  background: var(--holo);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  font-variant-numeric: tabular-nums;
-}
-.year.is-text { font-size: 15px; }
-.about-wrap { position: relative; pointer-events: auto; flex: none; }
-.panel.about { position: absolute; right: 0; top: calc(100% + 10px); z-index: 5; width: min(400px, calc(100vw - 32px)); max-height: min(72vh, 560px); }
-.kchip[data-kind="archyvas"] i, .kd-archyvas { border-radius: 0; outline: 1px dashed var(--c); outline-offset: 1px; }
-.kchip[data-kind="tekstas"] i, .kd-tekstas { border-radius: 6px 6px 1px 1px; }
-.kchip[data-kind="balsas"] i, .kd-balsas { border-radius: 50%; }
-.kchip[data-kind="tyrimas"] i, .kd-tyrimas { width: 12px; border-radius: 0; clip-path: polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%); }
-.kchip[data-kind="renginys"] i, .kd-renginys { width: 13px; border-radius: 2px; }
-.hud-mid { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; min-height: 0; }
-.panel {
-  position: relative;
-  width: min(420px, 100%);
-  max-height: 100%;
-  overflow: auto;
-  overscroll-behavior: contain;
-  padding: 20px 22px;
-  border-radius: 18px;
-  background: var(--glass);
-  -webkit-backdrop-filter: blur(18px) saturate(150%);
-  backdrop-filter: blur(18px) saturate(150%);
-  border: 1px solid var(--line);
-  box-shadow: 0 24px 60px rgba(0, 8, 40, 0.45);
-  pointer-events: auto;
-  display: grid;
-  gap: 8px;
-}
-.panel::before { content: ""; position: absolute; left: 20px; right: 20px; top: -1px; height: 2px; border-radius: 2px; background: var(--pk, var(--holo)); }
+
+.pill { font-family: var(--f-mono); font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink); background: var(--glass); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); border: 1px solid var(--line); border-radius: 999px; padding: 9px 15px; cursor: pointer; }
+.pill:hover { border-color: #8FF5FF; }
+.pill-hot { background: var(--ink); color: var(--cobalt-deep); border-color: var(--ink); font-weight: 500; }
+.pill-hot[aria-pressed="true"] { background: var(--holo); border-color: transparent; }
+.x { flex: none; width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--line); background: transparent; color: var(--ink); font-size: 18px; line-height: 1; cursor: pointer; }
+.x:hover { border-color: #8FF5FF; color: #8FF5FF; }
+.chip { font-family: var(--f-mono); font-size: 11px; letter-spacing: 0.04em; padding: 3px 9px; border: 1px solid var(--line); border-radius: 999px; color: var(--ink-soft); white-space: nowrap; }
+.kdot { display: inline-block; width: 9px; height: 9px; border-radius: 2px; background: var(--c, var(--ink)); margin-right: 8px; vertical-align: 0; }
+
+.panel { position: relative; padding: 20px 22px; border-radius: 18px; background: var(--glass); -webkit-backdrop-filter: blur(18px) saturate(150%); backdrop-filter: blur(18px) saturate(150%); border: 1px solid var(--line); box-shadow: 0 24px 60px rgba(0, 8, 40, 0.45); pointer-events: auto; display: grid; gap: 8px; overflow: auto; overscroll-behavior: contain; }
+.panel::before { content: ""; position: absolute; left: 20px; right: 20px; top: -1px; height: 2px; border-radius: 2px; background: var(--holo); }
 .panel p { margin: 0; }
 .p-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
 .p-meta { font-family: var(--f-mono); font-size: 13px; color: var(--ink-soft); }
 .p-title { margin: 0; font-family: var(--f-display); font-weight: 500; font-size: 20px; line-height: 1.22; text-wrap: balance; }
-.p-holder { color: var(--ink-soft); font-size: 15px; }
-.p-links { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; font-size: 15px; padding-top: 4px; }
-.chip { font-family: var(--f-mono); font-size: 11px; letter-spacing: 0.04em; padding: 3px 9px; border: 1px solid var(--line); border-radius: 999px; color: var(--ink-soft); white-space: nowrap; }
-.kdot { display: inline-block; width: 9px; height: 9px; border-radius: 2px; background: var(--c, var(--ink)); margin-right: 8px; vertical-align: 0; }
-.x { flex: none; width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--line); background: transparent; color: var(--ink); font-size: 18px; line-height: 1; cursor: pointer; }
-.x:hover { border-color: #8FF5FF; color: #8FF5FF; }
 .p-actions { display: flex; justify-content: flex-end; padding-top: 4px; }
 .ok { font-family: var(--f-mono); font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--cobalt-deep); background: var(--ink); border: 1px solid var(--ink); border-radius: 999px; padding: 8px 16px; cursor: pointer; }
 .ok:hover { background: #8FF5FF; border-color: #8FF5FF; }
+.about-wrap { position: relative; pointer-events: auto; flex: none; }
+.panel.about { position: absolute; right: 0; top: calc(100% + 10px); z-index: 6; width: min(400px, calc(100vw - 32px)); max-height: min(72vh, 560px); }
 
-.kinds { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; pointer-events: auto; }
-.kchip {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-family: var(--f-mono);
-  font-size: 12px;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--ink);
-  background: var(--glass);
-  -webkit-backdrop-filter: blur(12px);
-  backdrop-filter: blur(12px);
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  padding: 7px 12px;
-  cursor: pointer;
-}
-.kchip i { width: 10px; height: 10px; border-radius: 3px; background: var(--c, var(--holo)); }
-.kchip span { color: var(--ink-soft); font-variant-numeric: tabular-nums; }
-.kchip:hover { border-color: var(--c, #8FF5FF); }
-.kchip[aria-pressed="true"] { background: var(--ink); color: var(--cobalt-deep); border-color: var(--ink); }
-.kchip[aria-pressed="true"] span { color: var(--cobalt-deep); }
-.kinds-log { flex-direction: row; flex-wrap: wrap; align-items: center; justify-content: flex-start; }
-
-.bar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; pointer-events: auto; }
-.pill {
-  font-family: var(--f-mono);
-  font-size: 13px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--ink);
-  background: var(--glass);
-  -webkit-backdrop-filter: blur(12px);
-  backdrop-filter: blur(12px);
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  padding: 10px 16px;
-  cursor: pointer;
-}
-.pill:hover { border-color: #8FF5FF; }
-.pill-hot { background: var(--ink); color: var(--cobalt-deep); border-color: var(--ink); font-weight: 500; }
-.pill-hot[aria-pressed="true"] { background: var(--holo); border-color: transparent; }
+/* Dock */
+.dock { position: absolute; left: 50%; bottom: 16px; transform: translateX(-50%); width: min(1020px, calc(100% - 32px)); display: grid; gap: 10px; padding: 12px 14px; border-radius: 20px; background: rgba(0, 18, 64, 0.62); -webkit-backdrop-filter: blur(16px) saturate(140%); backdrop-filter: blur(16px) saturate(140%); border: 1px solid var(--line); pointer-events: auto; cursor: default; }
+.dock-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; }
+.year { font-family: var(--f-display); font-weight: 700; font-size: clamp(20px, 2.4vw, 26px); line-height: 1; min-width: 4.2ch; background: var(--holo); -webkit-background-clip: text; background-clip: text; color: transparent; font-variant-numeric: tabular-nums; }
+.year.is-text { font-size: 15px; }
 .dialwrap { position: relative; flex: 1 1 240px; min-width: 0; padding-top: 8px; }
 .ticks { position: absolute; left: 9px; right: 9px; top: 2px; height: 8px; pointer-events: none; }
 .ticks i { position: absolute; top: 0; width: 2px; height: 8px; background: var(--ink-soft); opacity: 0.85; }
@@ -220,8 +172,44 @@ input[type="range"]::-webkit-slider-runnable-track { height: 2px; background: va
 input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; margin-top: -8px; border-radius: 50%; background: var(--ink); box-shadow: 0 0 0 4px rgba(143, 245, 255, 0.25), 0 0 18px rgba(143, 245, 255, 0.85); }
 input[type="range"]::-moz-range-track { height: 2px; background: var(--holo); }
 input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border: 0; border-radius: 50%; background: var(--ink); box-shadow: 0 0 0 4px rgba(143, 245, 255, 0.25), 0 0 18px rgba(143, 245, 255, 0.85); }
+.search { flex: 1 1 220px; min-width: 0; display: flex; align-items: center; gap: 8px; padding: 0 12px; border: 1px solid var(--line); border-radius: 999px; background: rgba(0, 11, 38, 0.5); }
+.search::before { content: ""; width: 11px; height: 11px; border: 2px solid var(--ink-soft); border-radius: 50%; flex: none; }
+.search input { flex: 1; min-width: 0; height: 36px; border: 0; background: transparent; color: var(--ink); font: 15px var(--f-body); outline: none; }
+.search input::placeholder { color: var(--ink-soft); }
+.search:focus-within { border-color: #8FF5FF; }
+.kinds { display: flex; flex-wrap: wrap; gap: 6px; }
+.kchip { display: inline-flex; align-items: center; gap: 7px; font-family: var(--f-mono); font-size: 12px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 6px 11px; cursor: pointer; }
+.kchip i { width: 10px; height: 10px; border-radius: 3px; background: var(--c, var(--holo)); }
+.kchip span { color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+.kchip:hover { border-color: var(--c, #8FF5FF); }
+.kchip[aria-pressed="true"] { background: var(--ink); color: var(--cobalt-deep); border-color: var(--ink); }
+.kchip[aria-pressed="true"] span { color: var(--cobalt-deep); }
+.kchip[data-kind="archyvas"] i, .kd-archyvas { border-radius: 0; outline: 1px dashed var(--c); outline-offset: 1px; }
+.kchip[data-kind="tekstas"] i, .kd-tekstas { border-radius: 6px 6px 1px 1px; }
+.kchip[data-kind="tyrimas"] i, .kd-tyrimas { width: 12px; border-radius: 0; clip-path: polygon(22% 0, 78% 0, 100% 50%, 78% 100%, 22% 100%, 0 50%); }
+.kchip[data-kind="balsas"] i, .kd-balsas { border-radius: 50%; }
+.kchip[data-kind="renginys"] i, .kd-renginys { width: 13px; border-radius: 2px; }
+.zoom { display: flex; gap: 6px; margin-left: auto; }
+.zoom .pill { padding: 6px 12px; }
 
-.tip { position: absolute; z-index: 4; pointer-events: none; max-width: 280px; font-family: var(--f-mono); font-size: 12px; line-height: 1.4; padding: 6px 10px; border-radius: 8px; background: rgba(6, 22, 70, 0.8); border: 1px solid var(--line); transform: translate(14px, 14px); }
+/* Detail: a picked scrap opens large beside its caption */
+.detail { position: absolute; inset: 0; z-index: 4; display: flex; align-items: center; justify-content: center; gap: 28px; padding: 76px 72px 150px; background: rgba(0, 14, 50, 0.7); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); cursor: default; }
+.d-fig { margin: 0; flex: 0 1 auto; min-width: 0; display: flex; justify-content: center; max-height: 100%; }
+.d-fig img { display: block; max-width: min(46vw, 640px); max-height: calc(94svh - 260px); object-fit: contain; background: #F4F1E8; padding: 10px; box-shadow: 0 30px 80px rgba(0, 5, 30, 0.6); }
+.d-fig .scrap { position: relative; cursor: default; }
+.d-fig .scrap:hover .sc { transform: none; }
+.d-cap { flex: 0 1 420px; min-width: 0; max-height: 100%; overflow: auto; overscroll-behavior: contain; display: grid; gap: 9px; padding: 20px 22px; background: var(--night); border-top: 3px solid var(--pk, #8FF5FF); box-shadow: 0 30px 80px rgba(0, 5, 30, 0.6); }
+.d-cap p { margin: 0; }
+.d-cap .p-title { font-size: 21px; }
+.d-holder { color: var(--ink-soft); font-size: 15px; }
+.d-links { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; font-size: 15px; padding-top: 4px; }
+.d-links a { color: var(--pk, #8FF5FF); }
+.d-count { position: absolute; top: 22px; right: 74px; font-family: var(--f-display); font-weight: 500; font-size: 16px; padding: 6px 12px; border-radius: 999px; background: var(--glass); border: 1px solid var(--line); font-variant-numeric: tabular-nums; }
+.d-close { position: absolute; top: 20px; right: 22px; }
+.d-nav { position: absolute; top: 50%; transform: translateY(-50%); }
+.d-prev { left: 18px; }
+.d-next { right: 18px; }
+.tip { position: absolute; z-index: 4; pointer-events: none; max-width: 280px; font-family: var(--f-mono); font-size: 12px; line-height: 1.4; padding: 6px 10px; border-radius: 8px; background: rgba(0, 11, 38, 0.88); border: 1px solid var(--line); transform: translate(14px, 14px); }
 
 /* Below the scene */
 .below { max-width: 1180px; margin: 0 auto; padding-block: 56px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 22px; }
@@ -234,7 +222,6 @@ input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border: 0; bo
 .log li.is-active { background: linear-gradient(90deg, rgba(143, 245, 255, 0.08), transparent 70%); }
 .log-n { font-family: var(--f-mono); font-size: 12px; color: var(--ink-soft); padding-top: 4px; }
 .log-date { font-family: var(--f-mono); font-size: 14px; font-variant-numeric: tabular-nums; padding-top: 2px; }
-.log li.is-active .log-date { color: #8FF5FF; }
 .log-main { min-width: 0; display: grid; gap: 3px; }
 .log-title { font-size: 18px; font-weight: 600; }
 .log-holder { color: var(--ink-soft); font-size: 15px; }
@@ -245,29 +232,28 @@ input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border: 0; bo
 .foot p { margin: 0; }
 
 @media (max-width: 700px) {
-  .hud { padding-block: 16px; gap: 12px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
-  .mega { top: 40%; font-size: min(17svh, 34vw); transform: translate(-50%, -50%) rotate(-90deg); }
-  .hud-mid { flex-direction: column; align-items: stretch; justify-content: flex-end; gap: 10px; }
-  .kinds { flex-direction: row; flex-wrap: wrap; justify-content: flex-start; gap: 6px; }
-  .kchip { padding: 5px 9px; font-size: 11px; gap: 6px; }
-  .panel { width: 100%; max-height: 46%; padding: 14px 16px; gap: 6px; font-size: 15px; }
-  .p-title { font-size: 17px; }
-  .p-holder, .p-links { font-size: 14px; }
-  .idle-more, .tag-more { display: none; }
+  .dock { bottom: 10px; padding: 10px; gap: 8px; width: calc(100% - 20px); }
   .dialwrap { flex-basis: 100%; order: -1; }
+  .zoom { margin-left: 0; }
+  .kchip { padding: 5px 9px; font-size: 11px; }
+  .detail { flex-direction: column; justify-content: flex-start; gap: 14px; padding: 70px 16px 200px; overflow: auto; }
+  .d-fig img { max-width: 100%; max-height: 42svh; }
+  .d-cap { flex: none; width: 100%; max-height: none; }
+  .d-nav { top: auto; bottom: 214px; transform: none; }
+  .d-count { right: 64px; top: 20px; }
   .log li { grid-template-columns: 3rem minmax(0, 1fr); }
   .log-date { grid-column: 2; }
   .log-main { grid-column: 1 / -1; }
   .log-side { grid-column: 1 / -1; flex-direction: row; justify-content: space-between; align-items: center; }
 }
-@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; transition: none !important; } }
 </style>
 </head>
 <body>
 <section class="scene" id="scene" aria-label="Laiko mašina">
-  <div class="mega" aria-hidden="true">RYKANTAI</div>
-  <div class="blobfb" aria-hidden="true"></div>
   <canvas id="gl" aria-hidden="true"></canvas>
+  <div class="blobfb" id="blobfb" aria-hidden="true"></div>
+  <div class="world" id="world" role="group" aria-label="Įrašų kraštovaizdis"></div>
   <div class="hud">
     <div class="hud-top">
       <h1>Rykantų laiko mašina</h1>
@@ -278,16 +264,22 @@ input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border: 0; bo
           <h2 class="p-title" id="aboutTitle">Rykantų laiko mašina</h2>
           <p>Tai <a href="https://www.rykantupastas.lt/" target="_blank" rel="noopener noreferrer">Rykantų pašto</a>, Piliečių mokslo asociacijos, <a href="https://vilniustech.lt/" target="_blank" rel="noopener noreferrer">VILNIUS TECH</a> ir Participio projektas ir bendras tyrinėjimas.</p>
           <p>Čia surinkta <span id="aboutCount"></span> apie Rykantus: archyvų dokumentai ir nuotraukos, tekstai, moksliniai tyrimai, gyventojų balsai ir renginiai nuo 1619 m. iki šių dienų.</p>
-          <p class="p-meta">Spustelėk kortelę arba spausk „Keliauti“. Forma ir spalva rodo grupę: pašto ženklas reiškia archyvą, arka tekstą, šešiakampis tyrimą, diskas balsą, bilietas renginį. Pasuk ratuką atgal ir naujesni įrašai išblės.</p>
+          <p class="p-meta">Įrašai išdėlioti laiko ratu aplink laiko mašiną: nuo viršaus pagal laikrodžio rodyklę, nuo seniausio iki naujausio. Tempk, kad judintum, didink mygtukais + ir −, spustelėk įrašą, kad jį atvertum. Forma ir spalva rodo grupę: pašto ženklas reiškia archyvą, arka tekstą, šešiakampis tyrimą, diskas balsą, bilietas renginį.</p>
           <div class="p-actions"><button class="ok" type="button" data-close>Pradėti</button></div>
         </aside>
       </div>
     </div>
-    <div class="hud-mid">
-      <article class="panel" id="panel" aria-live="polite" hidden></article>
-      <nav class="kinds" id="kindsScene" aria-label="Įrašų grupės"></nav>
-    </div>
-    <div class="bar">
+  </div>
+  <div class="detail" id="detail" role="dialog" aria-labelledby="dTitle" hidden>
+    <figure class="d-fig" id="dFig"></figure>
+    <aside class="d-cap" id="dCap"></aside>
+    <span class="d-count" id="dCount"></span>
+    <button class="x d-close" id="dClose" type="button" aria-label="Uždaryti įrašą">&times;</button>
+    <button class="pill d-nav d-prev" id="dPrev" type="button" aria-label="Ankstesnis įrašas">&larr;</button>
+    <button class="pill d-nav d-next" id="dNext" type="button" aria-label="Vėlesnis įrašas">&rarr;</button>
+  </div>
+  <div class="dock" id="dock">
+    <div class="dock-row">
       <button class="pill pill-hot" id="travel" type="button" aria-pressed="false">Keliauti</button>
       <button class="pill" id="prev" type="button" aria-label="Ankstesnis įrašas">&larr;</button>
       <button class="pill" id="next" type="button" aria-label="Vėlesnis įrašas">&rarr;</button>
@@ -296,6 +288,15 @@ input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border: 0; bo
         <div class="ticks" id="ticks" aria-hidden="true"></div>
         <label class="sr" for="dial">Metų ratukas</label>
         <input type="range" id="dial" min="1600" max="2026" step="1" value="2026">
+      </div>
+    </div>
+    <div class="dock-row">
+      <label class="search"><span class="sr">Paieška</span><input id="q" type="search" placeholder="Ieškoti žodžių, vardų, vietų" autocomplete="off"></label>
+      <nav class="kinds" id="kindsScene" aria-label="Įrašų grupės"></nav>
+      <div class="zoom">
+        <button class="pill" id="zout" type="button" aria-label="Tolinti">&minus;</button>
+        <button class="pill" id="zfit" type="button">Visas</button>
+        <button class="pill" id="zin" type="button" aria-label="Artinti">+</button>
       </div>
     </div>
   </div>
@@ -308,13 +309,13 @@ input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border: 0; bo
       <h2 id="logTitle">Žurnalas</h2>
       <p>Visi laiko mašinos įrašai nuo seniausio. Pavadinimas atveria šaltinį naujame skirtuke.</p>
     </div>
-    <nav class="kinds kinds-log" id="kindsLog" aria-label="Įrašų grupės žurnale"></nav>
+    <nav class="kinds" id="kindsLog" aria-label="Įrašų grupės žurnale"></nav>
     <ol class="log" id="log"></ol>
   </section>
   <footer class="foot">
-    <p>Archyvų įrašai rasti Europeanoje (paieška Rykant*, 29 rezultatai) ir radzima.org, skenai iš epaveldas.lt. Spaudos straipsniai iš „Trakų žemės“, „Klevų alėjos“, „Vorutos“, LRT, 15min, l24.lt, „Kurier Wileński“, „Magazyn Wileński“ ir kitų leidinių, tinklaraščio įrašai ir 13 tinklalaidės „Rykantų pašto laiškai“ epizodų (2024 m. balandis-rugpjūtis) rasti internete. Moksliniai tyrimai rasti per Google Scholar, lituanistika.lt, eLABa ir žurnalų svetaines. Viskas patikrinta 2026-10-15.</p>
-    <p>Rykantų laiko mašina yra Rykantų pašto, Piliečių mokslo asociacijos, VILNIUS TECH ir Participio projektas.</p>
+    <p>Archyvų įrašai rasti Europeanoje, LIMIS, epaveldas.lt, EAIS, Kultūros vertybių registre, Polonoje, Internet Archive ir radzima.org; skenai iš epaveldas.lt, LIMIS ir Polonos. Spaudos straipsniai iš „Trakų žemės“, „Klevų alėjos“, „Vorutos“, LRT, 15min, l24.lt, „Kurier Wileński“, „Magazyn Wileński“ ir kitų leidinių, tinklaraščio įrašai ir 13 tinklalaidės „Rykantų pašto laiškai“ epizodų (2024 m. balandis-rugpjūtis) rasti internete. Moksliniai tyrimai rasti per Google Scholar, lituanistika.lt, eLABa ir žurnalų svetaines. Viskas patikrinta 2026-10-15.</p>
     <p>Licencijos nurodytos prie kiekvieno įrašo, todėl prieš naudodami pakartotinai jas patikrinkite. Įrašų be aiškios licencijos vaizdai nerodomi, pateikiama tik nuoroda.</p>
+    <p>Rykantų laiko mašina yra Rykantų pašto, Piliečių mokslo asociacijos, VILNIUS TECH ir Participio projektas.</p>
   </footer>
 </main>
 
@@ -325,6 +326,11 @@ input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border: 0; bo
 
   const SP = "https://open.spotify.com/episode/";
   const EU = "https://www.europeana.eu/item/";
+  const IA = "https://archive.org/details/";
+  const EA = "https://eais.archyvai.lt/repo-ext/view/";
+  const LI = "https://www.limis.lt/valuables/e/";
+  const EP = "https://www.epaveldas.lt/preview?id=";
+  const KV = "https://kvr.kpd.lt/#/static-heritage-detail/";
   const POD = "Tinklalaidė „Rykantų pašto laiškai“";
   const TIM = "Trakų istorijos muziejus";
   const SYN = "Nacionalinė biblioteka, Evangelikų reformatų sinodo archyvas";
@@ -334,26 +340,22 @@ input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border: 0; bo
   const TZ = "„Trakų žemė“";
 
   const KINDS = {
-    archyvas: { label: "Archyvai", about: "Archyvų ir muziejų dokumentai, brėžiniai ir nuotraukos nuo 1619 m. Skenai iš epaveldas.lt.",
-      bg: ["#0A2C80", "#1C0F5C"], ink: "#F2F5FF", soft: "#C9D6F7", year: ["#8FF5FF", "#B79CFF", "#FF8BE0", "#FFD98A"], edge: 0x8ff5ff, glass: 0xdfe8ff },
-    tekstas: { label: "Tekstai", about: "Romanas, kraštotyra, moksliniai straipsniai, lietuvių ir lenkų spauda, enciklopedija ir Rykantų pašto tinklaraštis.",
-      bg: ["#F3EEE2", "#DDD3BE"], ink: "#16204A", soft: "#5E5747", year: ["#0047AB", "#0047AB"], edge: 0xf3eee2, glass: 0xfff4e2 },
-    tyrimas: { label: "Tyrimai", about: "Moksliniai straipsniai, knygos, disertacijos ir šaltinių publikacijos, kuriose tiriami ar minimi Rykantai.",
-      bg: ["#F6D58A", "#D99A3E"], ink: "#2B1A07", soft: "#6B4513", year: ["#7A2E0E", "#7A2E0E"], edge: 0xffd98a, glass: 0xfff0cc },
-    balsas: { label: "Balsai", about: "Tinklalaidė „Rykantų pašto laiškai“: 13 epizodų, kuriuose gyventojai pasakoja apie kaimą, bendruomenę ir paštą (2024 m.).",
-      bg: ["#13704A", "#062A1C"], ink: "#EFFFF4", soft: "#A9DDBE", year: ["#7CF5A6", "#D8FF8A"], edge: 0x7cf5a6, glass: 0xd9ffe8 },
-    renginys: { label: "Renginiai", about: "Kaimo šventės ir sukaktys, festivaliai, koncertai, ekskursija ir LRT PROTOTO žaidimas apie Rykantus.",
-      bg: ["#9A2367", "#3D0A3F"], ink: "#FFF1F8", soft: "#F3BDD9", year: ["#FFB3D9", "#FFD98A"], edge: 0xffb3d9, glass: 0xffe3f1 }
+    archyvas: { label: "Archyvai", about: "Archyvų ir muziejų dokumentai, nuotraukos, brėžiniai ir žemėlapiai nuo 1619 m." },
+    tekstas: { label: "Tekstai", about: "Romanas, kraštotyra, lietuvių ir lenkų spauda, enciklopedijos ir Rykantų pašto tinklaraštis." },
+    tyrimas: { label: "Tyrimai", about: "Moksliniai straipsniai, knygos, disertacijos ir šaltinių publikacijos, kuriose tiriami ar minimi Rykantai." },
+    balsas: { label: "Balsai", about: "Tinklalaidė „Rykantų pašto laiškai“: 13 epizodų, kuriuose gyventojai pasakoja apie kaimą, bendruomenę ir paštą (2024 m.)." },
+    renginys: { label: "Renginiai", about: "Kaimo šventės ir sukaktys, festivaliai, koncertai, ekskursija ir LRT PROTOTO žaidimas apie Rykantus." }
   };
   const KIND_ORDER = ["archyvas", "tekstas", "tyrimas", "balsas", "renginys"];
+  const AR = {"img/bulhak.jpg": 0.7, "img/buracas.jpg": 1.402, "img/deanery1.jpg": 0.645, "img/drawing1.jpg": 0.728, "img/drawing2.jpg": 0.73, "img/druckus.jpg": 0.696, "img/highway1954.jpg": 1.542, "img/inventory.jpg": 0.649, "img/kolkhoz.jpg": 0.829, "img/lacki1635.jpg": 0.618, "img/leningrad.jpg": 0.697, "img/negative.jpg": 1.557, "img/neris1.jpg": 1.431, "img/paslaitis.jpg": 0.751, "img/przylanski.jpg": 0.611, "img/register.jpg": 0.361, "img/residents1.jpg": 0.621, "img/talwosz1620a.jpg": 0.666, "img/talwosz1623.jpg": 0.628, "img/talwosz1628.jpg": 0.625, "img/tolvaisa.jpg": 0.678, "img/volost.jpg": 0.82, "img/wigmap.jpg": 1.092};
 
   const ITEMS = [
     /* Archyvai */
     { id: "tolvaisa", kind: "archyvas", year: 1619, date: "1619-04-29", type: "Laiškas", title: "Adomo Tolvaišos laiškas kun. Pogoželskiui", holder: SYN, lang: "", licence: "Viešasis domenas", img: "img/tolvaisa.jpg",
-      notes: "Tolvaiša (Talwoisz) rašo Vilniaus evangelikų reformatų pamokslininkui apie Vilniaus akademijos studentų jėzuitų ruošiamą bažnyčios užpuolimą ir savo pastangas jį sutrukdyti. Tolvaišų giminė valdė Rykantus ir XVI a. pabaigoje pastatė mūrinę bažnyčią.",
+      notes: "Laiškas parašytas Rykantuose. Tolvaiša (Talwoisz) rašo Vilniaus evangelikų reformatų pamokslininkui apie Vilniaus akademijos studentų jėzuitų ruošiamą bažnyčios užpuolimą ir savo pastangas jį sutrukdyti. Tolvaišų giminė valdė Rykantus ir XVI a. pabaigoje pastatė mūrinę bažnyčią.",
       links: [["Europeana įrašas", EU + "2021803/C10000541124"]] },
     { id: "przylanski", kind: "archyvas", year: 1635, date: "1635-06-17", type: "Laiškas", title: "Kun. Jono Pšylanskio laiškas Vilniaus evangelikų reformatų sinodui", holder: SYN, lang: "lenkų k.", licence: "Viešasis domenas", img: "img/przylanski.jpg",
-      notes: "Du lapai. Pranešama apie Rykantų evangelikų reformatų bažnyčios globėjos mirtį.",
+      notes: "Du lapai. Pranešama apie Rykantų evangelikų reformatų bažnyčios globėjos mirtį. Pagal datas tai Marina Tolvaišienė.",
       links: [["Europeana įrašas", EU + "2021803/C10000677092"], ["epaveldas.lt", "https://www.epaveldas.lt/preview?id=C10000677092"]] },
     { id: "register", kind: "archyvas", year: 1718, date: "1718-1731", type: "Metrikų knyga", title: "Trakų parapijos gimimo ir santuokos metrikų knyga", holder: TIM, lang: "", licence: "CC BY 4.0", img: "img/register.jpg",
       notes: "1718-1725 m. gimimo ir 1718-1731 m. santuokos metrikos, įrištos į senesnės 1700-1702 m. knygos viršelius. Įrašuose minimi Rykantai.",
@@ -378,7 +380,7 @@ input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border: 0; bo
       links: [["Europeana įrašas", EU + "2021803/KPCPBF6Ap1b2056"]] },
     { id: "negative", kind: "archyvas", year: 1958, date: "1958-02-15", type: "Negatyvas", title: "Kalnelis prie Rykantų", holder: TIM, lang: "", licence: "CC BY-NC-ND 4.0", img: "img/negative.jpg",
       notes: "Fotografavo Michailas Tinfovičius. Tame pačiame rinkinyje yra antras kalnelio vaizdas ir „Plentas prie Rykantų“.",
-      links: [["Europeana įrašas", EU + "2021802/LIMIS_380025440"]] },
+      links: [["1 kadras", EU + "2021802/LIMIS_380025440"], ["2 kadras", EU + "2021802/LIMIS_380027439"]] },
     { id: "monuments", kind: "archyvas", year: 1978, date: "1978", type: "Archyvo byla", title: "Trakų rajono kultūros paminklai, tarp jų Rykantų bažnyčia", holder: VRVA, lang: "", licence: "Viešasis domenas",
       notes: "Paminklų restauravimo projektavimo instituto byla, 32 lapai. Joje ir Dusmenų bei Onuškio bažnyčios, Užtrakio ir Abromiškių dvarai.",
       links: [["Europeana įrašas", EU + "2021801/VRVA_1019_11_258"]] },
@@ -401,7 +403,7 @@ input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border: 0; bo
     /* Tekstai */
     { id: "tolstoy", kind: "tekstas", year: 1869, date: "1865-1869", type: "Romanas", title: "„Karas ir taika“, 9 knyga, 4 skyrius", holder: "Levas Tolstojus", lang: "rusų k.", licence: "Viešasis domenas",
       notes: "1812 m. caro pasiuntinys Balašovas auštant pasiekia prancūzų forpostus prie Rykantų kaimo ir yra vedamas pas Miuratą. Lietuvos šaltiniai tais metais mini raitelių susirėmimus prie kaimo.",
-      links: [["Tekstas anglų k.", "https://americanliterature.com/author/leo-tolstoy/book/war-and-peace/book-nine-1812-chapter-iv"], ["1812 m. Lietuvoje", "http://www.praeitiespaslaptys.lt/karu-istorija/1812-m-karo-musiai-lietuvoje/"]] },
+      links: [["Tekstas anglų k.", "https://americanliterature.com/author/leo-tolstoy/book/war-and-peace/book-nine-1812-chapter-iv"], ["Pirmasis leidimas", IA + "bub_gb_XPkXT_uV5JsC"], ["1812 m. Lietuvoje", "http://www.praeitiespaslaptys.lt/karu-istorija/1812-m-karo-musiai-lietuvoje/"]] },
     { id: "vilnija", kind: "tekstas", year: 2010, date: "2010", type: "Kraštotyra", title: "Rykantai „Vilnijos vartuose“", holder: "Barbara Jocienė, Trakų viešosios bibliotekos Rykantų filialas", lang: "", licence: "",
       notes: "Kaimo istorija su 25 šaltinių sąrašu: dominikonų rezidencija, plytos ir kalkės dominikonams, 1850 m. dvaras su 12 kaimų, 1920 m. kovos, 1936 m. mokykla, 2005 m. kryžius.",
       links: [["Vilnijos vartai", "https://www.vilnijosvartai.lt/vietoves/rykantai/"]] },
@@ -473,7 +475,7 @@ input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border: 0; bo
       links: [["15min.lt", "https://www.15min.lt/gyvenimas/naujiena/keliones/tarp-vilniaus-ir-kauno-automobiliu-idomiausios-lankytinos-vietos-1630-1356090"]] },
     { id: "kurier-2020", kind: "tekstas", year: 2020, date: "2020-11-19", type: "Straipsnis", title: "Nowy odcinek „Wileńszczyzny w obiektywie”: tym razem o Rykontach", holder: "„Kurier Wileński“", lang: "lenkų k.", licence: "",
       notes: "Apie „YouTube“ laidos epizodą. Istorikas Tomasz Bożerocki primena „Karą ir taiką“ ir 1812 m. sudegintą kaimą, archyvaras Albert Wołk gyvenvietės pradžią sieja su X-XI a. ir tarpukariu rastais pilkapiais.",
-      links: [["Kurier Wileński", "https://kurierwilenski.lt/2020/11/19/nowy-odcinek-wilenszczyzny-w-obiektywie-tym-razem-o-rykontach/"]] },
+      links: [["Kurier Wileński", "https://kurierwilenski.lt/2020/11/19/nowy-odcinek-wilenszczyzny-w-obiektywie-tym-razem-o-rykontach/"], ["YouTube", "https://www.youtube.com/watch?v=3A4AjIZLXec"]] },
     { id: "verbos-2021", kind: "tekstas", year: 2021, date: "2021-03-26", type: "Straipsnis", title: "Tradicinės verbos", holder: "Jolanta Zakarevičiūtė, " + TZ, lang: "", licence: "",
       notes: "Rykantų gyventoja tautodailininkė Irena Pomarnacka, kurios vilnietiškos verbos turi tautinio paveldo sertifikatą. 2019 m. jos šeima augino apie 600 jurginų kerų.",
       links: [["Trakų žemė", "https://traku-zeme.lt/tradicines-verbos/"], ["Tyrimas 2015", "https://www.vdu.lt/cris/bitstreams/a9983fd2-21f7-4833-8999-b6555d42f894/download"]] },
@@ -509,7 +511,7 @@ input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border: 0; bo
       links: [["Trakų žemė", "https://traku-zeme.lt/rykantu-sokejai-tarptautiniame-festivalyje-prahoje-garsino-traku-krasta-ir-lietuva/"]] },
     { id: "library-2026", kind: "tekstas", year: 2026, date: "2026-09-07", type: "Straipsnis", title: "Trakų rajono savivaldybės viešosios bibliotekos padalinių sukaktys", holder: "Jolanta Zakarevičiūtė, " + TZ, lang: "", licence: "",
       notes: "Rykantų bibliotekai 85 metai. Ji pradėjo veikti 1941 m. Užukulpyje, po karo veikė Lentvaryje, nuo 1960 m. Kariotiškėse, o 2007 m. persikėlė į Rykantus. 1976-2004 m. joje dirbo E. Krylova, nuo 2009 m. vyresnioji bibliotekininkė yra Barbara Jocienė.",
-      links: [["Trakų žemė", "https://traku-zeme.lt/traku-rajono-savivaldybes-viesosios-bibliotekos-padaliniu-sukaktys/"]] },
+      links: [["Trakų žemė", "https://traku-zeme.lt/traku-rajono-savivaldybes-viesosios-bibliotekos-padaliniu-sukaktys/"], ["Rykantų biblioteka", "https://www.trakubiblioteka.lt/lt/visos-naujienos/rykantu-bibliotekoje-paroda-lietuviu-kalbos-dienoms/6453"]] },
 
 
     /* Tyrimai */
@@ -523,23 +525,23 @@ input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border: 0; bo
       notes: "Išnašoje Trakų kaštelionas Mikalojus Talvošas (mirė 1600 m.) įvardijamas kaip Rykantų ir Szylany evangelikų bažnyčių globėjas.",
       links: [["rcin.org.pl", "https://rcin.org.pl/ihpan/Content/41435/PDF/WA303_21453_A512-7-1962-OiR_Wasilewski.pdf"]] },
     { id: "dialects", kind: "tyrimas", year: 1994, date: "1994, 2016", type: "Kalbotyra", title: "Rykantai tarmių tyrimuose", holder: "K. Morkūnas, „Lietuvių kalbotyros klausimai“ 34; K. Rutkovska", lang: "", licence: "",
-      notes: "Rykantai yra tarp lietuvių tarmių tyrimo vietų, nagrinėjant priedzūkio ribas. K. Rutkovskos Lietuvos lenkų tarmių tyrime (2016) Rykantai yra ekspedicijų vietovė Nr. 576.",
-      links: [["Morkūnas 1994", "http://journals.lki.lt/actalinguisticalithuanica/article/download/1465/1559"]] },
+      notes: "J. Basanavičius (1906) Rykantus mini tirdamas lenkų kalbą Lietuvos bažnyčiose, Z. Zinkevičius (1992) lietuvių kalbos plotą veda iki Neries ties Kariotiškėmis, Bražuole ir Rykantais. Rykantai yra ir tarp lietuvių tarmių tyrimo vietų, nagrinėjant priedzūkio ribas. K. Rutkovskos Lietuvos lenkų tarmių tyrime (2016) Rykantai yra ekspedicijų vietovė Nr. 576.",
+      links: [["Morkūnas 1994", "http://journals.lki.lt/actalinguisticalithuanica/article/download/1465/1559"], ["Basanavičius 1906", IA + "basanavicius-apie-lenku-kalba-1906"], ["Lebedys 1976", IA + "lietuviu-kalba-16-17-a.-viesajame-gyvenime-1976"], ["Salys 1983", IA + "salys-rastai-t.-2-1983"], ["Zinkevičius 1992", IA + "zinkevicius.-.-lki.-5.-bendrines.kalbos.iskilimas.-1992.-lt"]] },
     { id: "svidinskaite-2000", kind: "tyrimas", year: 2000, date: "2000", type: "Etnologija", title: "Šventinta ugnis ir jos vartojimas. Liaudiškasis požiūris (Trakų dekanatas. XX a.)", holder: "D. Svidinskaitė, LKMA metraštis 16", lang: "", licence: "",
       notes: "Rykantų parapija yra tarp tirtųjų. 1910-1930 m. gimę pateikėjai pasakoja, kaip Didįjį šeštadienį šventinta ugnis nešama namo, ir kaip buvo deginami sovietų valdžios liepti nupjauti kryžiai.",
       links: [["Lituanistika", "https://www.lituanistika.lt/content/15495"]] },
     { id: "hoards", kind: "tyrimas", year: 2005, date: "2005-2012", type: "Numizmatika", title: "Rykantų lobiai numizmatikos tyrimuose", holder: "E. Remecas, I. Kaplūnaitė, Z. Duksa", lang: "", licence: "",
-      notes: "1957 m. rastas Rykantų lobis įtrauktas į paskutinių Vytauto kaldintų monetų lobių sąrašą. Aprašomas ir XV a. antrojo ketvirčio lietuviškų monetų lobis, o Z. Duksa abejoja „Rykantų II“ lobio datavimu 1665 m.",
-      links: [["Remecas 2005", "https://www.lb.lt/uploads/documents/docs/publications/remecas_4.pdf"], ["Kaplūnaitė 2009", "https://epublications.vu.lt/object/elaba:1930983/1930983.pdf"], ["Duksa 2012", "https://www.lituanistika.lt/content/38266"]] },
+      notes: "1957 m. prie Rykantų-Paneriškių kelio rastas lobis: 79 Vytauto denarai (apie 1413-1430 m.) saugomi Trakų istorijos muziejuje, indas ir dalis monetų prarasti. Lobis įtrauktas į paskutinių Vytauto kaldintų monetų lobių sąrašą. Aprašomas ir XV a. antrojo ketvirčio lietuviškų monetų lobis, o Z. Duksa abejoja „Rykantų II“ lobio datavimu 1665 m.",
+      links: [["Remecas 2005", "https://www.lb.lt/uploads/documents/docs/publications/remecas_4.pdf"], ["Kaplūnaitė 2009", "https://epublications.vu.lt/object/elaba:1930983/1930983.pdf"], ["Duksa 2012", "https://www.lituanistika.lt/content/38266"], ["Tautavičius 2000", IA + "lietuvos-archeologijos-bibliografija-1782-1998-2000"]] },
     { id: "landscape", kind: "tyrimas", year: 2005, date: "2005-2024", type: "Geografija", title: "Rykantų bažnyčia kultūriniame kraštovaizdyje", holder: "F. Kavoliutė, D. Liutikas", lang: "", licence: "",
       notes: "Rykantai priskiriami vietoms, kur XVI a. bažnyčios stovi seniai ir nepertraukiamai gyvenamuose kraštovaizdžio branduoliuose. Piligrimystės vietų žemėlapyje jie pažymėti Nr. 36.",
       links: [["Kavoliutė 2005", "https://gamtostyrimai.lt/wp-content/uploads/2022/06/267_d11ec64f2f7c74c4a73712ba99e99716.pdf"], ["Liutikas 2005", "https://gamtostyrimai.lt/wp-content/uploads/2022/06/263_927cde37b6c1449cb5a986646221afdb.pdf"], ["Liutikas 2024", "https://lstc.lt/wp-content/uploads/2025/05/lkma-metrastis_t47_p343-382_Liutikas.pdf"]] },
     { id: "war-1944", kind: "tyrimas", year: 2008, date: "2008-2023", type: "Karo istorija", title: "1943-1944 m. įvykiai prie Rykantų", holder: "T. Balbus, V. Martišius, V. Stravinskienė", lang: "", licence: "",
-      notes: "1943 m. Armija Krajova puolė pagalbinės policijos postą Rykantuose. 1944 m. liepą vokiečių Vilniaus įgula prasiveržė Rykantų kryptimi.",
-      links: [["Balbus 2012", "https://www.zurnalai.vu.lt/gr/article/download/37702/35429/99672"], ["Martišius 2008", "https://www.vdu.lt/cris/bitstreams/339be087-8cfb-4ff3-a8a8-670e7bcc77e9/download"], ["Stravinskienė 2023", "https://gs.elaba.lt/object/elaba:180534479/180534479.pdf"]] },
+      notes: "1943 m. Armija Krajova puolė pagalbinės policijos postą Rykantuose. 1944 m. liepą vokiečių Vilniaus įgula prasiveržė Rykantų kryptimi, o sovietų pajėgos pasiekė Rykantus pietrytiniame Neries krante.",
+      links: [["Balbus 2012", "https://www.zurnalai.vu.lt/gr/article/download/37702/35429/99672"], ["Martišius 2008", "https://www.vdu.lt/cris/bitstreams/339be087-8cfb-4ff3-a8a8-670e7bcc77e9/download"], ["Stravinskienė 2023", "https://gs.elaba.lt/object/elaba:180534479/180534479.pdf"], ["Glantz 2004", IA + "belorussia-1944-the-soviet-general-staff-study-david-m-glantz-2004"]] },
     { id: "church-art", kind: "tyrimas", year: 2010, date: "2010-2022", type: "Dailėtyra", title: "Bažnyčios paveikslai ir paramentai tyrimuose", holder: "R. Norkutė, M. Kuodienė, R. Nazaraitė, S. Stonytė", lang: "", licence: "",
       notes: "XVIII a. pabaigos Švč. Trejybės paveikslas, XVIII a. šv. Dominyko paveikslas, Čenstakavos Madonos paveikslas (dubliuotas, restauruotas 2015 m.) ir XX a. pradžios arnotas, saugomas Bažnytinio paveldo muziejuje (BT-225).",
-      links: [["Norkutė 2010", "https://www.vdu.lt/cris/bitstreams/94ca7b75-6383-42a4-96e9-aec6588b972d/download"], ["Kuodienė 2021", "https://www.lndm.lt/wp-content/uploads/2023/06/T23_12-Marija-Kuodien%C4%97_83-87p.pdf"], ["Nazaraitė 2022", "https://gs.elaba.lt/object/elaba:133065217/133065217.pdf"], ["Stonytė 2017", "https://gs.elaba.lt/object/elaba:22758466/22758466.pdf"]] },
+      links: [["Norkutė 2010", "https://www.vdu.lt/cris/bitstreams/94ca7b75-6383-42a4-96e9-aec6588b972d/download"], ["Kuodienė 2021", "https://www.lndm.lt/wp-content/uploads/2023/06/T23_12-Marija-Kuodien%C4%97_83-87p.pdf"], ["Nazaraitė 2022", "https://gs.elaba.lt/object/elaba:133065217/133065217.pdf"], ["Stonytė 2017", "https://gs.elaba.lt/object/elaba:22758466/22758466.pdf"], ["Dailininkų žodynas", IA + "lietuvos-dailininku-zodynas-t.-1-2005"]] },
     { id: "architecture", kind: "tyrimas", year: 2011, date: "2011-2024", type: "Architektūra", title: "Rykantų bažnyčia architektūros tyrimuose", holder: "V. Levandauskas, P. Birecki, A. S. Czyż, A. Stankiewicz", lang: "", licence: "",
       notes: "Apatinėse sienose įmūryti didesni nei 1 m akmenys. Bažnyčia priskiriama retesnėms mūrinėms LDK kalvinistų šventovėms, lyginama su kanauninkų reguliariųjų bažnyčia (kontraforsai, žvaigždiniai skliautai) ir ankstyvosiomis salinėmis bažnyčiomis, cituojama 1784 m. vizitacija.",
       links: [["Levandauskas 2011", "https://www.vdu.lt/cris/bitstreams/766fa3c8-c1da-4424-966d-cc1ff240970b/download"], ["Birecki 2015", "https://apcz.umk.pl/AUNC_ZiK/article/view/AUNC_ZiK.2015.005"], ["Czyż 2024", "https://aaav.vda.lt/journal/article/view/248"], ["Stankiewicz 2024", "https://www.vdu.lt/cris/bitstreams/c352f638-5894-4266-9c5f-b5b326ce861a/download"]] },
@@ -551,7 +553,7 @@ input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border: 0; bo
       links: [["Lituanistika", "https://www.lituanistika.lt/content/44714"]] },
     { id: "war-1920", kind: "tyrimas", year: 2012, date: "2012, 2018", type: "Karo istorija", title: "1920 m. spalio kovos dėl Rykantų", holder: "G. Surgailis, „Karo archyvas“ 27; V. Rakutis", lang: "", licence: "CC BY 4.0",
       notes: "1920 m. spalio 15 d. lenkai puolė frontu Bevandenė-Semeniškės-Rykantai, ir 3-iasis pėstininkų pulkas pasitraukė iš Rykantų. Spalio 16 d. artilerija apšaudė Balčiūnų ir Rykantų kaimus, 3-ioji kuopa puolė Rykantus iš pietų, bet šarvuotojo traukinio ugnis kuopas atstūmė. Nuo 1921 m. demarkacijos linija saugota nuo Rūdiškių iki Rykantų.",
-      links: [["Surgailis 2012", "https://www.journals.lka.lt/journal/ka/article/814/file/pdf"], ["Rakutis 2018", "http://www.paneveziomuziejus.lt/files/krasto_istorija/Rakutis%204%20pestininku%20pulko%202018.pdf"]] },
+      links: [["Surgailis 2012", "https://www.journals.lka.lt/journal/ka/article/814/file/pdf"], ["Rakutis 2018", "http://www.paneveziomuziejus.lt/files/krasto_istorija/Rakutis%204%20pestininku%20pulko%202018.pdf"], ["Ališauskas 1972", IA + "alisauskas-kovos-del-nepriklausomybes-1918-20-1972"], ["Rukša 1981", IA + "ruksa-kovos-t.-2-1981"]] },
     { id: "kicinska-2012", kind: "tyrimas", year: 2012, date: "2012", type: "Šaltinio publikacija", title: "Rosa Bogu Y Ludziom Mila Y Przyiemna: wizerunek Marcybelli Anny Hlebowiczównej Ogińskiej", holder: "U. Kicińska, „Rocznik Lubelskiego Towarzystwa Genealogicznego“ 4", lang: "lenkų k.", licence: "",
       notes: "Skelbiamas Marcibelės Onos Oginskienės testamentas: jos vyras amžiams nupirko dvarus „Rykonty wielkie i małe“ dominikonų išlaikymui.",
       links: [["rocznik.ltg.pl", "https://rocznik.ltg.pl/wp-content/uploads/2018/07/Kicinska.pdf"]] },
@@ -562,8 +564,8 @@ input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border: 0; bo
       notes: "Pateikėja apie tarpukario demarkacijos liniją: „Rykantai, čia buvo rubežius“.",
       links: [["VU", "https://epublications.vu.lt/object/elaba:17657663/17657663.pdf"]] },
     { id: "archaeology", kind: "tyrimas", year: 2012, date: "2012, 2022", type: "Archeologija", title: "Sausių pilkapynas ir 2022 m. tyrimai bažnyčioje", holder: "J. Balčiūnas, A. Strazdas; „Archeologiniai tyrinėjimai Lietuvoje“", lang: "", licence: "",
-      notes: "2011 m. Sausių-Bevandeniškių II pilkapyne rasti keturi I tūkstantmečio vidurio ir antrosios pusės pilkapiai, 2012 m. jie įrašyti į registrą. 2022 m. rugsėjo 27 d. išduotas leidimas Nr. 351 archeologiniams tyrimams Rykantų bažnyčioje (D. Ostrauskienė).",
-      links: [["Lituanistika", "https://www.lituanistika.lt/content/110494"], ["Leidimai 2022", "http://atl.lad.lt/2022/606-627.pdf"]] },
+      notes: "Jau 1898 m. rašyta apie pilkapius Rykantų kaimo miške. Sausių (Maišinės) pilkapyne apie 100 VIII-X a. pilkapių, kasinėta 1934, 1937, 1955 ir 1965 m. 2011 m. Sausių-Bevandeniškių II pilkapyne rasti keturi I tūkstantmečio vidurio ir antrosios pusės pilkapiai, 2012 m. jie įrašyti į registrą. 2022 m. rugsėjo 27 d. išduotas leidimas Nr. 351 archeologiniams tyrimams Rykantų bažnyčioje (D. Ostrauskienė).",
+      links: [["Lituanistika", "https://www.lituanistika.lt/content/110494"], ["Leidimai 2022", "http://atl.lad.lt/2022/606-627.pdf"], ["VLE: Sausių pilkapynas", "https://www.vle.lt/straipsnis/sausiu-pilkapynas/"]] },
     { id: "thesium-2017", kind: "tyrimas", year: 2017, date: "2017", type: "Botanika", title: "Notes on the enigmatic Thesium linophyllon and report on Thesium ramosum in Lithuania", holder: "Z. Gudžinskas, E. Žalneravičius, „Botanica Lithuanica“ 23(2)", lang: "anglų k.", licence: "",
       notes: "Ant geležinkelio šlaito Rykantuose rastas Thesium augalas, galbūt retas T. ramosum. 2006-2007 m. jo nebepavyko rasti.",
       links: [["Botanica Lithuanica", "https://botanicalithuanica.gamtc.lt/administravimas/uploads/04_botanica_lituanica2017_no2_gudzinskas_zalnieravicius_6015114f1b389.pdf"]] },
@@ -591,9 +593,146 @@ input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border: 0; bo
     { id: "barge-1786", kind: "tyrimas", year: 2026, date: "2026", type: "Mokslinis straipsnis", title: "1786 m. byla dėl apiplėšto strugo", holder: "R. Bedulskis, „Lietuvos istorijos metraštis“ 2026/1", lang: "", licence: "",
       notes: "1786 m. kovo 31 d. per potvynį Neryje nutrūko prie Žaliojo tilto pririštas naujas strugas, ir srovė jį nunešė iki Trakų dominikonų Rykantų valdai priklausiusių Vosyliukų ir Semeniukų. Teisme Vilniaus suolininkas Danielius Hertelis bylinėjosi su dominikonais dėl Rykantų ir aplinkinių kaimų valstiečių išardyto ir apvogto strugo.",
       links: [["eLABa", "https://gs.elaba.lt/object/elaba:320099709/320099709.pdf"]] },
-    { id: "bulhak-1930", kind: "archyvas", year: 1930, date: "apie 1930", type: "Nuotrauka", title: "Rykantų Švč. Trejybės bažnyčia, fotografavo Janas Bulhakas", holder: "S. Lorentz, „Między Warszawą a Wilnem“ (2022), nuotraukų priedas", lang: "", licence: "",
-      notes: "Priedo nuotrauka Nr. 53, paimta iš Polonos. Viena seniausių žinomų bažnyčios nuotraukų.",
-      links: [["UwB repozitorija", "https://repozytorium.uwb.edu.pl/jspui/handle/11320/19604"]] },
+    { id: "bulhak-1930", kind: "archyvas", year: 1930, date: "apie 1930", type: "Nuotrauka", title: "Kościół w Rykontach, fotografavo Janas Bulhakas", holder: "Lenkijos nacionalinė biblioteka, Polona", lang: "", licence: "Viešasis domenas", img: "img/bulhak.jpg",
+      notes: "Vilniaus fotografo Jano Bulhako (1876-1950) nuotrauka: bažnyčia prieš 1931-1932 m. restauravimą. Ji įdėta ir į S. Lorentzo raštų rinkinio (2022) nuotraukų priedą.",
+      links: [["Polona", "https://polona.pl/preview/e7d95829-dffb-4f11-b944-0773b25252c7"], ["UwB repozitorija", "https://repozytorium.uwb.edu.pl/jspui/handle/11320/19604"]] },
+
+
+    /* Iš „Artefact database“ */
+    { id: "talwosz-1620", kind: "archyvas", year: 1620, date: "1620-09", type: "Laiškai", title: "Adomo Tolvaišos laiškai K. Radvilai ir K. Kęstortienei", holder: SYN, lang: "lenkų k.", licence: "Viešasis domenas", img: "img/talwosz1620a.jpg",
+      notes: "Žemaičių kaštelionas Adomas Tolvaiša rašo iš Rykantų ir Vilniaus apie Gėluvos evangelikų reformatų bažnyčios sudeginimą ir kviečia bylą spręsti su vyskupu Kiška.",
+      links: [["Laiškai K. Radvilai", EU + "2021803/C10000032262"], ["Laiškai K. Kęstortienei", EU + "2021803/C10000032264"]] },
+    { id: "talwosz-1623", kind: "archyvas", year: 1623, date: "1623-01-10", type: "Testamentas", title: "Adomo Tolvaišos testamentas", holder: SYN, lang: "lenkų k.", licence: "Viešasis domenas", img: "img/talwosz1623.jpg",
+      notes: "Žmonai Marušai Radziminskai palieka Plembergo, Šilėnų, Paparčių, Dainavos, Rykantų ir Vaidotiškių dvarus Trakų paviete ir 3 000 zlotų.",
+      links: [["Europeana įrašas", EU + "2021803/C10000466125"], ["Manuscriptorium", EU + "92004/object_LNMMBVF93_1339____4COQV90"]] },
+    { id: "talwosz-1628", kind: "archyvas", year: 1628, date: "1628-01-20", type: "Testamentas", title: "Antrasis Adomo Tolvaišos testamentas", holder: SYN, lang: "lenkų k.", licence: "Viešasis domenas", img: "img/talwosz1628.jpg",
+      notes: "Rykantus ir dar šešis Trakų pavieto dvarus iki gyvos galvos palieka žmonai Marinai, o po jos dukrai Joanai Lackai.",
+      links: [["Europeana įrašas", EU + "2021803/C10000466129"]] },
+    { id: "lacki-1635", kind: "archyvas", year: 1635, date: "1635-04-04", type: "Aktai", title: "Teodoro ir Izabelės Lackių aktai", holder: SYN, lang: "lenkų k.", licence: "Viešasis domenas", img: "img/lacki1635.jpg",
+      notes: "Anūkai užleidžia savo dalis Šilėnuose Marinai Tolvaišienei. Aktai išduoti Rykantuose.",
+      links: [["Europeana įrašas", EU + "2021803/C10000466137"]] },
+    { id: "familysearch", kind: "archyvas", year: 1798, date: "1798-1914", type: "Metrikų knygos", title: "Rykantų parapijos metrikų knygos", holder: "FamilySearch, originalai LVIA", lang: "lenkų, rusų k.", licence: "",
+      notes: "Trakų dekanato metrikų knygų mikrofilmuose yra Rykantų gimimai, santuokos ir mirtys nuo 1798 iki 1914 m. Pačioje parapijoje saugomos knygos nuo 1944 m.",
+      links: [["FamilySearch", "https://www.familysearch.org/search/catalog/2317996"], ["Forumo gija", "https://forum.rodygrodzienskie.pl/index.php?topic=842.0"]] },
+    { id: "lcva-church", kind: "archyvas", year: 1880, date: "1880-1919", type: "Nuotrauka", title: "Rykantų Švč. Trejybės bažnyčia, Trakų apskritis", holder: "LCVA, FX/9/P-15093; negatyvas Kaišiadorių muziejuje", lang: "", licence: "Viešasis domenas",
+      notes: "Priskiriama Adomui Daukšai. Seniausia rasta bažnyčios nuotrauka, originalus stiklo negatyvas saugomas Kaišiadorių muziejuje.",
+      links: [["EAIS", EA + "320815128"]] },
+    { id: "parish-fond", kind: "archyvas", year: 1915, date: "1915-1925", type: "Archyvo fondas", title: "Rykantų Švč. Trejybės Romos katalikų bažnyčios fondas", holder: "LVIA, f. 1783", lang: "lenkų, rusų k.", licence: "",
+      notes: "Pačios parapijos dokumentai nuo vokiečių okupacijos iki lenkų laikotarpio. Literatūroje dar necituoti, skaitomi skaitykloje.",
+      links: [["EAIS", EA + "264332"]] },
+    { id: "howitzers-1920", kind: "archyvas", year: 1920, date: "1920-10", type: "Nuotraukos", title: "Lietuvos artilerija tarp Rykantų ir Vievio", holder: "Vytauto Didžiojo karo muziejus; LCVA", lang: "", licence: "",
+      notes: "2-osios baterijos dvi vokiškos 10,5 cm lengvosios lauko haubicos, viena užmaskuota, paruoštose pozicijose prie Rykantų. Antroje LCVA nuotraukoje 1-oji haubicų baterija tame pačiame fronte.",
+      links: [["LIMIS", LI + "805446/190000060727380"], ["LCVA", EA + "320835049"]] },
+    { id: "school-files", kind: "archyvas", year: 1924, date: "1924-1939", type: "Mokyklos bylos", title: "Rykonty pradžios mokyklos inspekcijos bylos", holder: "LCVA, f. 173", lang: "lenkų k.", licence: "",
+      notes: "Vienkomplektės, vėliau I laipsnio pradžios mokyklos pastato brėžiniai, mokytojai ir patikrinimai iki 1936 m. mokyklos pastato ir karo. 1926 m. švietimo biuletenis mini „Rykonty 1 kl.“ mokyklą.",
+      links: [["1924-1936", EA + "267473889"], ["1935-1939", EA + "267577183"], ["Biuletenis 1926", IA + "jbc.bj.uj.edu.pl.NDIGCZAS019456_67821000"]] },
+    { id: "wig-1936", kind: "archyvas", year: 1936, date: "1936", type: "Žemėlapis", title: "Topografinis lapas „Rykonty“, Pas 30 Słup 40-A", holder: "Wojskowy Instytut Geograficzny; Polona", lang: "lenkų k.", licence: "Viešasis domenas", img: "img/wigmap.jpg",
+      notes: "Kaimo vardu pavadintas 1:25 000 žemėlapio lapas: kiekviena sodyba, keliai ir stotis.",
+      links: [["Polona", "https://polona.pl/preview/025bd92d-b115-45d9-b6dd-0cb09bc058f4"]] },
+    { id: "buracas", kind: "archyvas", year: 1940, date: "XX a. 3-4 deš. arba 1940", type: "Negatyvai", title: "Balio Buračo nuotraukos: Rykantų pirkia, prieangis ir langai", holder: "Vytauto Didžiojo karo muziejus; LCVA", lang: "", licence: "CC BY-NC-ND 4.0", img: "img/buracas.jpg",
+      notes: "Etnografas Balys Buračas fotografavo Rykantų trobas ir jų puošybą. Muziejus datuoja XX a. 3-4 deš., bet tada Rykantai priklausė Lenkijai, todėl tikėtina 1940 m. Tai vienintelės žinomos kaimo namų nuotraukos iki 1954 m.",
+      links: [["Pirkia", LI + "805446/876098269"], ["Prieangis", LI + "805446/878042783"], ["Langas 1", LI + "805446/879781707"], ["Langas 2", LI + "805446/879782795"], ["LCVA atspaudas", EA + "320831111"]] },
+    { id: "church-1946", kind: "archyvas", year: 1946, date: "1946-03-29, 1946-04-05", type: "Dokumentai", title: "Rykantų klebonas išvyksta į Lenkiją", holder: "Bažnytinio paveldo muziejus", lang: "lietuvių, lenkų k.", licence: "",
+      notes: "Kurija skiria kun. Kazimierą Kulaką laikinai administruoti Rykantų parapiją, kol klebonas Joseph Alchimowicz išvyks į Lenkiją. Kitame rašte: „dėl Rykantų reikalų bus sprendžiama pagal esamas aplinkybes“.",
+      links: [["Paskyrimas", LI + "806133/977959137"], ["Kurijos raštas", LI + "806133/977956382"]] },
+    { id: "post-stamps", kind: "archyvas", year: 1950, date: "XX a. 5 deš., 1950", type: "Pašto spaudai", title: "Rykantų pašto spaudai", holder: TIM, lang: "", licence: "",
+      notes: "Du bronziniai paties Rykantų pašto spaudai: ankstesnis „RYKANTAI No“ ir 1950 m. „RYKANTAI LIT. SSR. N.“.",
+      links: [["„RYKANTAI No“", LI + "805412/160000007029959"], ["„RYKANTAI LIT. SSR. N.“", LI + "805412/160000007029839"]] },
+    { id: "aerial-1952", kind: "archyvas", year: 1952, date: "1952", type: "Aerofotonuotraukos", title: "Rykantų aerofotonuotraukos", holder: "Vilniaus regioninis valstybės archyvas, f. 1035", lang: "", licence: "Viešasis domenas",
+      notes: "Trys aerofotografavimo negatyvai su užrašu „Rykantai“: visas kaimas iš viršaus prieš kolektyvizacijos pertvarkas.",
+      links: [["Л-52-106", EA + "272778208"], ["Л-52-107", EA + "272778209"], ["Л-52-108", EA + "272778210"]] },
+    { id: "highway-1954", kind: "archyvas", year: 1954, date: "1954-06-05", type: "Negatyvas", title: "Plentas prie Rykantų, kolūkis „Vilija“", holder: TIM, lang: "", licence: "CC BY-NC-ND 4.0", img: "img/highway1954.jpg",
+      notes: "Fotografavo Michailas Tinfovičius. Seniausia internete rasta datuota šios vietos nuotrauka.",
+      links: [["Europeana įrašas", EU + "2021802/LIMIS_373995478"]] },
+    { id: "kpd-1968", kind: "archyvas", year: 1968, date: "1968-1969", type: "Fotodokumentacija", title: "Bažnyčios interjeras 1968-1969 m.", holder: "Kultūros paveldo departamento biblioteka, f. 41, ap. 3", lang: "", licence: "CC BY-SA",
+      notes: "18 nuotraukų: Kryžiaus kelio stotys, Oginskių portretai, dominikonų šventieji, varpas, paveikslai ir arnotas tokie, kokie buvo prieš 1975 ir 1991 m. restauravimus.",
+      links: [["13 stotis", EP + "KPDPBF41Ap3Nr5330"], ["Oginskio portretas", EP + "KPDPBF41Ap3Nr5348"], ["Oginskienės portretas", EP + "KPDPBF41Ap3Nr5349"], ["Varpas", EP + "KPDPBF41Ap3Nr5514"], ["Marija su Kūdikiu", EP + "KPDPBF41Ap3Nr5507"]] },
+    { id: "paslaitis-1975", kind: "archyvas", year: 1975, date: "1975", type: "Piešiniai", title: "Rykantai: Arūno Eduardo Paslaičio piešiniai", holder: "Lietuvos nacionalinis muziejus", lang: "", licence: "CC BY-NC-ND 4.0", img: "img/paslaitis.jpg",
+      notes: "Tušas ir akvarelė. Architektas ir piešėjas A. E. Paslaitis fiksavo Lietuvos medinę architektūrą, čia du Rykantų vaizdai.",
+      links: [["1 piešinys", LI + "805191/1183140146"], ["2 piešinys", LI + "805191/1179417727"]] },
+    { id: "art-1978", kind: "archyvas", year: 1978, date: "1978-10-27, apie 1990", type: "Akvarelė, atvirukas", title: "Rykantų bažnyčia: Krištopaičio akvarelė ir atvirukas", holder: "Šiaulių „Aušros“ muziejus; Trakų istorijos muziejus", lang: "", licence: "",
+      notes: "Antano Krištopaičio akvarelė iš jo Lietuvos bažnyčių serijos ir Lietuvos kultūros fondo atvirukas „Rykantų bažnyčia. XVI-XVII a.“, išleistas 100 000 egz. tiražu.",
+      links: [["Akvarelė", LI + "805391/132671906"], ["Atvirukas", LI + "805412/390020537"]] },
+    { id: "kvr", kind: "archyvas", year: 1992, date: "1992-05-06", type: "Registras", title: "Kultūros vertybių registras: 19 objektų Rykantuose", holder: "Kultūros paveldo departamentas", lang: "", licence: "",
+      notes: "Bažnyčia (kodas 1023, nacionalinio reikšmingumo) datuojama XVI a. antrąja puse, fundatorius Adomas Mikalojus Talvošas, perstatyta XVII a. pirmojoje pusėje, remontuota XIX a. ir 1928-1933 m. Registre ir varpinė, sienų tapyba, du varpai (1754 ir 1827), arnotai, paveikslai ir kalvio darbo kryžius.",
+      links: [["Bažnyčia", KV + "c7777b8f-8bfc-4b6f-9e95-dc91b2df8564"], ["Kryžiaus kelias", KV + "ee9ef984-721b-466b-b5e3-660ac44e4fda"], ["Šv. Jurgis", KV + "d4c6e6ec-af98-48b0-9be8-04d0ca685746"], ["Oginskių portretai", KV + "4c07619f-09bb-41e4-855d-12bcf35ad271"], ["Varpas", KV + "102d9123-f471-4f14-bcb0-bc928717046f"]] },
+    { id: "druckus-1993", kind: "archyvas", year: 1993, date: "1993-07", type: "Dokumentas", title: "Andrius Dručkus apie Dariaus ir Girėno gimtųjų sodybų įamžinimą", holder: "Vytauto Didžiojo karo muziejus", lang: "", licence: "CC BY-NC-ND 4.0", img: "img/druckus.jpg",
+      notes: "Idėja įamžinti lakūnų gimtąsias sodybas gimė 1968 m. lapkričio 2 d. Rykantuose, kur per Vėlines susitiko Vilniaus ir Kauno kraštotyrininkai.",
+      links: [["LIMIS", LI + "805446/716256694"]] },
+    { id: "archive-files", kind: "archyvas", year: 1773, date: "1773-2003", type: "Archyvų bylos", title: "Neskaitmenintos Rykantų bylos archyvuose", holder: "VUB RS, LVIA, LMAVB RS, KPC, VRVA", lang: "", licence: "",
+      notes: "1773 m. inventorius ir 1784 m. vizitacija, 1819-1830 m. vizitacijos, 1849 m. parapijos kronika, 1886-1903 m. remonto bylos, 1920-1939 m. inventoriai ir vizitacijos, 1931-1934 m. freskų atradimo susirašinėjimas, 1973 m. bažnyčios komiteto byla, 1991-1998 m. ūkinės knygos. Skaitomos skaityklose.",
+      links: [["1973 m. byla", EA + "53808968"], ["Ūkinė knyga Nr. 18", EA + "267585549"], ["Ūkinė knyga Nr. 19", EA + "267585552"]] },
+
+    { id: "roads-1804", kind: "tekstas", year: 1804, date: "1804", type: "Kelių vadovas", title: "Ukazatel' dorog Rossiiskoi imperii, 3 dalis", holder: "Vistickis", lang: "rusų k.", licence: "Viešasis domenas",
+      notes: "„Рыконты м. Вилен.“: Rykantai kaip pašto stotis Vilniaus-Kauno kelyje.",
+      links: [["Internet Archive", IA + "UkazateldorogRossijskojimperiiCh350"]] },
+    { id: "sources-1812", kind: "tekstas", year: 1812, date: "1812-1940", type: "Spausdinti šaltiniai", title: "1812 m. Rykantai amžininkų šaltiniuose", holder: "„Kuryer Litewski“, Norovas, Bogdanovičius, Karpovas, Dundulis", lang: "lenkų, prancūzų, rusų k.", licence: "Viešasis domenas",
+      notes: "„Kuryer Litewski“ 1812-08-05 mini Rykantus kampanijos pranešime, atsiminimuose rašoma apie didįjį kelią į Rykantus. Pasak M. Bogdanovičiaus (1859), Miurato kavalerija nakvojo Rykantuose. B. Dundulis (1940) Balašovą prie prancūzų forpostų Rykantuose datuoja birželio 26 d. rytu.",
+      links: [["Kuryer Litewski", IA + "jbc.bj.uj.edu.pl.NDIGCZAS019494_68355597"], ["Mémoires 1817", IA + "bub_gb_fO5abef3-cgC"], ["Norov 1834", IA + "zapiskiopohodah1812i1813godovottarutins69"], ["Bogdanovich 1859", IA + "istorijaotechestvennojvojny1812godapodo6"], ["Karpov 1910", IA + "1807-1837-1910"], ["Dundulis 1940", IA + "dundulis-napoleon-et-lituanie-en-1812-1940"]] },
+    { id: "uprising-1831", kind: "tekstas", year: 1831, date: "1832-1940", type: "Spausdinti šaltiniai", title: "1831 m. sukilimas: tiltas per Nerį ties Rykantais", holder: "D. Dembińskis, H. Leeris, „Lietuviškoji enciklopedija“", lang: "vokiečių, rusų, lietuvių k.", licence: "Viešasis domenas",
+      notes: "Dembińskio atsiminimuose prie Rykantų kaimo per Nerį pastatytas tiltas. Po pralaimėjimo Panerių kalvose birželio 19 d. A. Gelgaudas traukėsi Žeimiai-Rykantai keliu.",
+      links: [["Dembiński 1832", IA + "bub_gb_NeUDAAAAYAAJ"], ["Leer 1898", IA + "obzorvonrossiot01leergoog"], ["Liet. enciklopedija 1940", IA + "lietuviskoji-enciklopedija-t.-8-1940"]] },
+    { id: "gazetteers", kind: "tekstas", year: 1848, date: "1848-1912", type: "Žinynai", title: "Rykantai XIX a. žinynuose ir karo apžvalgose", holder: "Rusijos imperijos karo ir statistikos leidiniai, „Słownik geograficzny“", lang: "rusų, lenkų k.", licence: "Viešasis domenas",
+      notes: "Kelias iš Vilniaus per Rykantus ir pozicija Rykantuose (1848), kalvotas kelias nuo Rykantų iki Vievio (1861), maršrutas Vilnius-Rykantai-Jurbarkas (1877). XIX a. pab. Rykantai I turėjo 13 kiemų, 1912 m. vadinami miesteliu.",
+      links: [["1848", IA + "t9zapadnyeguberniich1418481849t35"], ["1861", IA + "materialydljageografiiistatistikirossii90"], ["1877", IA + "voennoeobozrenievilenskogovoennogookruga9"], ["1880-ieji", IA + "kamunikat-16918-1.djvu"], ["Słownik geograficzny", "https://dir.icm.edu.pl/Slownik_geograficzny/Tom_X/"], ["1912", IA + "vilenskijvremennikkn16vilna1907126"]] },
+    { id: "schematisms", kind: "tekstas", year: 1855, date: "1855-1939", type: "Šematizmai", title: "Rykantai Vilniaus vyskupijos šematizmuose", holder: "Vilniaus vyskupijos katalogai", lang: "lotynų, rusų k.", licence: "Viešasis domenas",
+      notes: "1855 m. filijoje kunigas Norbertas Sitkovskis, 1875 m. mūrinė bažnyčia datuojama „apie 1816 m.“, 1904 m. „pastatyta nežinia kada“. 1914 m. kunigas Adolfas Romeckis. Nuo 1922 m. Rykantai yra parapija, klebonai J. V. Sarosekas (1922), M. Samusionekas (1931-1933), V. Novickis (1935).",
+      links: [["1855", IA + "dlibra.kul.pl.34736_0002_300_70"], ["1875", IA + "dlibra.kul.pl.34740_0002"], ["1904", IA + "dlibra.kul.pl.34556_0002_300_20"], ["„Bielarus“ 1914", IA + "dlibra.kul.pl.29923_V-17413_Bielarus--H--2--nr-4"], ["1923", IA + "dlibra.kul.pl.34535_0002_15"], ["1935", IA + "dlibra.kul.pl.34547_0002"]] },
+    { id: "press-1920", kind: "tekstas", year: 1920, date: "1920-1937", type: "Spauda", title: "1920 m. mūšis dėl Rykantų amžininkų spaudoje", holder: "Lenkų, lietuvių ir rusų laikraščiai, M. Römerio dienoraštis", lang: "lenkų, rusų k.", licence: "Viešasis domenas",
+      notes: "1920 m. spalio 19-20 d. Lenkijos laikraščiai rašo apie įnirtingus puolimus prie Rykantų. Mykolas Römeris dienoraštyje vadina Rykantus miesteliu su geležinkelio stotimi. 85-ojo pulko istorija (1928) ir 1937 m. atsiminimai „Kurjer Wileński“.",
+      links: [["Kurjer Łódzki", IA + "bc.wbp.lodz.pl.Kurjer_Lodzki_1920_10_19_nr285a_84213"], ["Goniec Krakowski", IA + "jbc.bj.uj.edu.pl.DIGCZAS002087_1920_287"], ["Głos Litwy", EP + "C1B0004637807-1920-7"], ["Römer", IA + "romer-dzienniki-t.-28-1920-xi-1921-xii-mab-f.-138-b.-2254-transk."], ["85 pułk 1928", IA + "kpbc.umk.pl.Magazyn_182_10_HD_006_208019"], ["Kurjer Wileński 1937", IA + "jbc.bj.uj.edu.pl.NDIGCZAS001748_1937_278"]] },
+    { id: "post-1924", kind: "tekstas", year: 1924, date: "1924-1934", type: "Oficialus leidinys", title: "Rykantų pašto agentūra atidaryta 1924 m. birželio 15 d.", holder: "„Dziennik Urzędowy“ Pašto ir telegrafo direkcija", lang: "lenkų k.", licence: "Viešasis domenas",
+      notes: "Pašto agentūra „Rykonty ag.“ atidaryta 1924 m. birželio 15 d. Vėliau ji minima pašto agentūrų sąrašuose, o 1934 m. pašto vilkstinė kursuoja Lentvario-Rykantų linija.",
+      links: [["1924 Nr. 27", IA + "jbc.bj.uj.edu.pl.0028_NDIGCZAS018603_66327448"], ["1924 Nr. 29", IA + "jbc.bj.uj.edu.pl.0030_NDIGCZAS018603_66327450"], ["1934 spalis", IA + "jbc.bj.uj.edu.pl.NDIGCZAS018603_1934_66342527_68322833"]] },
+    { id: "border-1926", kind: "tekstas", year: 1926, date: "1926-1928", type: "Spauda", title: "Pasienio kaimas: Rykantai prie demarkacijos linijos", holder: "Lenkijos laikraščiai, „Kurjer Wileński“", lang: "lenkų k.", licence: "Viešasis domenas",
+      notes: "1926 m. pasienio incidentai Rykantų ruože, 1927 m. delegacija į Lietuvą važiuoja per Rykantus ir Vievį, 1927-1928 m. pranešimai apie išvarymus ir keturių Lenkijos piliečių pagrobimą. 1927 m. gegužę Rykantuose ir aplinkiniuose kaimuose vyko eisena su deglais ir dainomis.",
+      links: [["Gazeta Lwowska 1926", IA + "jbc.bj.uj.edu.pl.DIGCZAS002001_1926_129"], ["Rozwój 1927", IA + "bc.wbp.lodz.pl.Rozwoj_1927_nr30a_13476"], ["Kurjer Wileński 1927", IA + "jbc.bj.uj.edu.pl.NDIGCZAS001748_1927_104"], ["Robotnik 1927", IA + "jbc.bj.uj.edu.pl.NDIGCZAS018617_70321289"]] },
+    { id: "parish-news", kind: "tekstas", year: 1927, date: "1927-1938", type: "Biuletenis", title: "Rykantų parapija Vilniaus arkivyskupijos žiniose", holder: "„Wiadomości Archidiecezjalne Wileńskie“, „Głos Wileński“", lang: "lenkų, lotynų k.", licence: "Viešasis domenas",
+      notes: "Vyskupo vizitacija Rykantuose 1930 m. gegužės 2 ir 4 d., 1935 m. dekretai dėl Naujųjų Trakų ir Rykantų parapijų ribų, 1936 m. pastaba, kad mokyklos valdžia trukdo tikybos pamokoms Rykantuose.",
+      links: [["1927 Nr. 5", IA + "jbc.bj.uj.edu.pl.NDIGCZAS013040_1927_005"], ["Głos Wileński 1930", IA + "jbc.bj.uj.edu.pl.NDIGCZAS016219_1930_013"], ["1935", IA + "jbc.bj.uj.edu.pl.NDIGCZAS013040_1935"], ["1936 Nr. 24", IA + "jbc.bj.uj.edu.pl.NDIGCZAS013040_1936_024"]] },
+    { id: "kw-1933", kind: "tekstas", year: 1933, date: "1933-12-19", type: "Straipsnis", title: "Bažnytkaimis Rykantai prie Lietuvos sienos", holder: "„Kurjer Wileński“ Nr. 340", lang: "lenkų k.", licence: "Viešasis domenas",
+      notes: "Reportažas apie Rykantus prie Lietuvos sienos: smuklė, gyvenimas prieš karą ir po jo.",
+      links: [["Internet Archive", IA + "jbc.bj.uj.edu.pl.NDIGCZAS001748_1933_340"]] },
+    { id: "excursions-1935", kind: "tekstas", year: 1935, date: "1935-1938", type: "Spauda", title: "Iškylos į Rykantus", holder: "„Kurjer Wileński“, „Turysta w Polsce“", lang: "lenkų k.", licence: "Viešasis domenas",
+      notes: "Dviejų dienų slidinėjimo iškyla į Rykantus Lentvario geležinkelio linija (1935 m. gruodžio 30 d.), Rykantai turistinių maršrutų sąrašuose 1937-1938 m.",
+      links: [["Kurjer Wileński 1935", IA + "jbc.bj.uj.edu.pl.NDIGCZAS001748_1935_357"], ["Turysta 1937", IA + "jbc.bj.uj.edu.pl.NDIGCZAS015898_1937_007"], ["Turysta 1938", IA + "jbc.bj.uj.edu.pl.NDIGCZAS015898_1938_006"]] },
+    { id: "radio-1938", kind: "tekstas", year: 1938, date: "1937-1938", type: "Spauda", title: "Radijas kiekvienai Rykantų sodybai", holder: "„Kurjer Wileński“, „Głos Ziemi“", lang: "lenkų k.", licence: "Viešasis domenas",
+      notes: "1937 m. „gražiai įsikūrusių Rykantų“ pasienio sargybos postas gauna radijo imtuvą, 1938 m. pranešama apie visišką Rykantų kaimo radiofikaciją.",
+      links: [["Kurjer Wileński 1937", IA + "jbc.bj.uj.edu.pl.NDIGCZAS001748_1937_352"], ["Głos Ziemi 1938", IA + "jbc.bj.uj.edu.pl.NDIGCZAS011908_1938_047"]] },
+    { id: "road-1938", kind: "tekstas", year: 1938, date: "1938-1939", type: "Spauda", title: "Kelias į Kauną per Rykantus atvėrus sieną", holder: "„Kurjer Wileński“, „Naprzód“", lang: "lenkų k.", licence: "Viešasis domenas",
+      notes: "Po sienos atvėrimo 1938 m. rašoma apie Panerių-Rykantų-Zavišų kelią, o 1939 m. rugpjūtį, kad kelias į Lietuvos sostinę per Rykantus beveik nevažinėjamas.",
+      links: [["Kurjer Wileński 1938", IA + "jbc.bj.uj.edu.pl.NDIGCZAS001748_1938_278"], ["Naprzód 1939", IA + "jbc.bj.uj.edu.pl.NDIGCZAS014415_1939_225"]] },
+    { id: "zarysy-1939", kind: "tekstas", year: 1939, date: "1939", type: "Knyga", title: "Zarysy sztuki wileńskiej z przewodnikiem po zabytkach między Niemnem a Dźwiną", holder: "Internet Archive, Žemutinės Silezijos skaitmeninė biblioteka", lang: "lenkų k.", licence: "Viešasis domenas",
+      notes: "109 pav. „Rykonty pod Trokami“: bažnyčia 1939 m. Knyga spausdinta per Vilniaus bombardavimą.",
+      links: [["Internet Archive", IA + "dbc.wroc.pl.005136"]] },
+    { id: "ltpress-1939", kind: "tekstas", year: 1939, date: "1939-1940", type: "Spauda", title: "Rykantai lietuvių spaudoje grąžinus Vilniaus kraštą", holder: "„Lietuvos aidas“, „XX amžius“, „Lietuvos žinios“, „Trimitas“", lang: "", licence: "",
+      notes: "1939-1940 m. dienraščių numeriai, kuriuose minimi Rykantai, daugiausia apie Vilniaus krašto grąžinimą 1939 m. spalį ir 1940 m. birželį. Puslapį su paminėjimu reikia rasti epaveldo peržiūros paieška.",
+      links: [["Lietuvos aidas 1939 Nr. 645", EP + "C1B0003957107-1939-Nr645"], ["XX amžius 1939 Nr. 255", EP + "LIBIS000000127560-1939-Nr255"], ["Lietuvos žinios 1939-11-07", EP + "C1B0003192409-1939-Lapkr.7"], ["Trimitas 1939 Nr. 49", EP + "C1B0004663975-1939-Nr.49"]] },
+    { id: "goniec-1942", kind: "tekstas", year: 1942, date: "1942-1943", type: "Spauda", title: "Okupacijos metų skelbimai: „Telef. Rykonty 2“", holder: "„Goniec Codzienny“", lang: "lenkų k.", licence: "",
+      notes: "Vokiečių okupacijos dienraščio skelbimuose adresas „Rykonty“, telefonas „Rykonty 2“ ir pervežimai Rykantų-Vilniaus maršrutu.",
+      links: [["1942 Nr. 310", IA + "jbc.bj.uj.edu.pl.NDIGCZAS012177_1942_310"], ["1943 Nr. 559", IA + "jbc.bj.uj.edu.pl.NDIGCZAS012177_1943_559"]] },
+    { id: "emigre-1957", kind: "tekstas", year: 1957, date: "1957-1986", type: "Išeivijos leidiniai", title: "Rykantai išeivijos enciklopedijose ir žurnaluose", holder: "„Lituanus“, „Encyclopedia Lituanica“, B. Kviklys", lang: "anglų, lietuvių k.", licence: "",
+      notes: "„Lituanus“ (1957) mini XVI a. tapybą Rykantų bažnyčioje, B. Kviklys „Mūsų Lietuvoje“ (1964) aprašo nedidelį bažnytkaimį prie Kauno-Vilniaus kelio, o „Lietuvos bažnyčiose“ (1985) rašo, kad XIX a. antroje pusėje apylinkės buvo gerokai aplenkintos.",
+      links: [["Lituanus 1957", IA + "sim_lituanus_1957-06_3_2"], ["Mūsų Lietuva", IA + "musulietuva0001bron"], ["Encyclopedia Lituanica", IA + "encyclopedialitu0004unse_t7f1"], ["Lietuvos bažnyčios", IA + "kviklys-lietuvos-baznycios-t.-5.1-1985"]] },
+    { id: "oaks", kind: "tekstas", year: 1968, date: "1968, 1971", type: "Gamtos paminklai", title: "Saugomi ąžuolai: Paneriškių ir Bergo", holder: "„Vilnijos vartai“", lang: "", licence: "",
+      notes: "Paneriškių ąžuolas yra gamtos paminklas nuo 1968 m., o Bergo ąžuolas prie Vilniaus-Kauno magistralės 23 km nuo 1971 m., pavadintas gamtosaugininko Viktoro Bergo vardu.",
+      links: [["Vilnijos vartai", "https://www.vilnijosvartai.lt/vietoves/rykantai/"]] },
+    { id: "guides-2002", kind: "tekstas", year: 2002, date: "2002-2009", type: "Kelionių vadovai", title: "Rykantai kelionių vadovuose ir enciklopedijose", holder: "R. Semaška, G. Jankevičiūtė, M. Jackiewicz", lang: "lietuvių, anglų, lenkų k.", licence: "",
+      notes: "Prie Rykantų įsikūręs Vilniaus aviacijos sporto klubo aerodromas. Anglų kalbos gidas primena 1555 m. minimą pirmąją medinę bažnyčią. M. Jackiewicziaus „Vilniaus krašto enciklopedijoje“ yra straipsnis apie Rykantus.",
+      links: [["Semaška 2002", IA + "semaska.-.-po.-lietuva.-2002.-lt"], ["Jankevičiūtė 2006", IA + "lithuaniaguide0000jank"], ["Jackiewicz 2009", IA + "jackiewicz-ezw-t.-7-duchowienstwo-i-swiatynie-2009"]] },
+
+    { id: "medieval", kind: "tyrimas", year: 1996, date: "1996", type: "Šaltinių publikacija", title: "Rykantai viduramžių šaltiniuose", holder: "J. Ochmańskis, N. Vėlius", lang: "", licence: "",
+      notes: "J. Ochmańskis mini „žvejų kaimą Rykantai, esantį už trijų mylių nuo Vilniaus“. N. Vėliaus „Baltų religijos ir mitologijos šaltiniuose“ kryžiuočių kelių aprašymo vardas „Rinkant“ siejamas su Rykantais.",
+      links: [["Ochmański", IA + "ochmanskis-senoji-lietuva-1996"], ["Vėlius", IA + "baltu-religijos-ir-mitologijos-saltiniai-t.-1-1996"]] },
+    { id: "early-protestant", kind: "tyrimas", year: 1968, date: "1968-2009", type: "Žinynai", title: "Viena ankstyviausių protestantų bažnyčių", holder: "LKMA metraštis, „Lithuania: An Encyclopedic Survey“, „Grove Dictionary of Art“", lang: "lietuvių, anglų k.", licence: "",
+      notes: "Reformatų bažnyčių sąrašuose Rykantai įrašyti su 1555 m. data. „Grove“ meno žodynas: viena ankstyviausių protestantų bažnyčių yra nedidelė bažnyčia Rykantuose (apie 1555 m.).",
+      links: [["LKMA 1968", IA + "t.-4-1968"], ["Encyclopedic Survey", IA + "lithuaniaencyclo0000jona"], ["Grove 1996", IA + "grovedictionaryo0019jane"]] },
+    { id: "reformation", kind: "tyrimas", year: 1999, date: "1999-2023", type: "Monografijos", title: "Rykantų reformatų bažnyčia Reformacijos tyrimuose", holder: "I. Lukšaitė, D. Ragauskienė", lang: "lietuvių, vokiečių k.", licence: "",
+      notes: "I. Lukšaitė aprašo Tolvaišų įkurtą Rykantų reformatų bažnyčią, D. Ragauskienė Rykantus įtraukia į reformatų bendruomenių ir jų dvasininkų sąrašą.",
+      links: [["Lukšaitė 1999", IA + "luksaite-reformacija-ldk-ir-mazojoje-lietuvoje-1999"], ["Lukšaitė 2017", IA + "luksaite-reformation-2017"], ["Ragauskienė 2023", IA + "isbn_9786090707463"]] },
+    { id: "hydro", kind: "tyrimas", year: 1993, date: "1993-1994", type: "Gamtos mokslai", title: "Rykantų eksperimentinė hidrologijos stotis", holder: "„Water Resources“, „GeoJournal“", lang: "anglų k.", licence: "",
+      notes: "Tyrimai Rykantų eksperimentinėje stotyje prie kaimo ir Neries slėnio profilis ties Rykantais.",
+      links: [["Water Resources 1993", IA + "water-resources_1993-06_20_3"], ["GeoJournal 1994", IA + "sim_geojournal_1994-05_33_1"]] },
 
     /* Balsai */
     { id: "pod-jociene", kind: "balsas", year: 2024, date: "2024-04-03", type: "Tinklalaidė", title: "Barbara Jocienė apie Rykantus", holder: POD, lang: "", licence: "",
@@ -639,15 +778,195 @@ input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border: 0; bo
   };
   const ORDER = ITEMS.slice().sort((a, b) => sortKey(a) - sortKey(b));
   const N = ORDER.length;
+  const BY_ID = Object.fromEntries(ORDER.map(i => [i.id, i]));
   const num = item => String(ORDER.indexOf(item) + 1).padStart(2, "0");
   const plural = n => (n % 10 === 1 && n % 100 !== 11) ? "įrašas" : (n % 10 >= 2 && (n % 100 < 10 || n % 100 >= 20)) ? "įrašai" : "įrašų";
   const TODAY = new Date().getFullYear();
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const $ = s => document.querySelector(s);
-  const stageEl = $("#scene"), canvas = $("#gl"), tip = $("#tip");
-  const panel = $("#panel"), yearEl = $("#year"), dial = $("#dial");
+  const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  const stage = $("#scene"), world = $("#world"), tip = $("#tip"), dock = $("#dock");
+  const yearEl = $("#year"), dial = $("#dial"), detail = $("#detail");
   const linkHTML = item => item.links.map(([l, h]) => `<a href="${h}" target="_blank" rel="noopener noreferrer">${l} ↗</a>`).join("");
   const kdot = k => `<i class="kdot kd-${k}" style="--c:var(--k-${k})"></i>`;
+  const yrText = item => item.year == null ? "Be datos" : String(item.year);
+  function rng(seed) {
+    let s = 2166136261;
+    for (const c of seed) s = Math.imul(s ^ c.charCodeAt(0), 16777619) >>> 0;
+    return () => { s = (Math.imul(s, 1664525) + 1013904223) >>> 0; return s / 4294967296; };
+  }
+
+  /* ---------- Scraps ---------- */
+  function scrapInner(item) {
+    const yr = yrText(item), yc = item.year == null ? " is-text" : "";
+    if (item.kind === "archyvas" && item.img) return `<img src="${item.img}" alt="" draggable="false"><span class="yr-tag">${yr}</span>`;
+    if (item.kind === "balsas") {
+      const r = rng(item.id), bars = Array.from({ length: 11 }, () => `<i style="height:${4 + Math.round(r() * 12)}px"></i>`).join("");
+      return `<span class="s-year${yc}">${yr}</span><span class="s-title">${esc(item.title.split(" ")[0])}</span><span class="bars">${bars}</span>`;
+    }
+    return `<span class="s-type">${esc(item.type)}</span><span class="s-year${yc}">${yr}</span><span class="s-title">${esc(item.title)}</span>`;
+  }
+  function baseSize(item, r) {
+    const f = 0.88 + r() * 0.34;
+    switch (item.kind) {
+      case "archyvas": {
+        if (!item.img) return [150 * f, 116 * f];
+        const ar = AR[item.img] || 0.7;
+        let w = 176 * f, h = w / ar;
+        if (h > 290) { h = 290; w = h * ar; }
+        return [w + 16, h + 16];
+      }
+      case "tekstas": return [150 * f, 182 * f];
+      case "tyrimas": return [176 * f, 152 * f];
+      case "balsas": return [118 * f, 118 * f];
+      default: return [172 * f, 108 * f];
+    }
+  }
+
+  /* ---------- Time ring layout ---------- */
+  let WW = 3400, WH = 2100, CX = 1700, CY = 1050, R0 = 300, portraitWorld = false;
+  const scraps = new Map(), sizes = new Map();
+  ORDER.forEach(item => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = `scrap k-${item.kind}${item.kind === "archyvas" && !item.img ? " no-img" : ""}`;
+    b.dataset.id = item.id;
+    b.setAttribute("aria-label", `${item.date}, ${item.type}: ${item.title}`);
+    b.innerHTML = `<span class="sc">${scrapInner(item)}</span>`;
+    world.appendChild(b);
+    scraps.set(item, b);
+    sizes.set(item, baseSize(item, rng(item.id + "s")));
+  });
+  const tickEls = [];
+  function layout() {
+    portraitWorld = stage.clientWidth / Math.max(1, stage.clientHeight) < 0.85;
+    if (portraitWorld) { WW = 1900; WH = 3300; R0 = 270; } else { WW = 3400; WH = 2100; R0 = 300; }
+    CX = WW / 2; CY = WH / 2;
+    world.style.width = WW + "px"; world.style.height = WH + "px";
+    const ax = portraitWorld ? 1 : 1.45, ay = portraitWorld ? 1.55 : 1;
+    const rIn = R0 + 50, rOut = Math.min((WW / 2 - 110) / ax, (WH / 2 - 110) / ay);
+    const span = Math.PI * 2 * 0.94, start = -Math.PI / 2 + Math.PI * 0.03;
+    const P = ORDER.map((item, k) => {
+      const r = rng(item.id + "p");
+      const th = start + span * (k + 0.5) / N;
+      const rad = rIn + Math.pow(r(), 0.75) * (rOut - rIn);
+      const [w, h] = sizes.get(item).map(v => portraitWorld ? v * 0.92 : v);
+      return { item, w, h, x: CX + Math.cos(th) * rad * ax, y: CY + Math.sin(th) * rad * ay, rot: (r() - 0.5) * 7 };
+    });
+    for (let it = 0; it < 90; it++) {
+      for (let i = 0; i < P.length; i++) {
+        const a = P[i];
+        for (let j = i + 1; j < P.length; j++) {
+          const b = P[j];
+          const ox = (a.w + b.w) / 2 * 0.92 - Math.abs(a.x - b.x), oy = (a.h + b.h) / 2 * 0.92 - Math.abs(a.y - b.y);
+          if (ox > 0 && oy > 0) {
+            if (ox < oy) { const d = (a.x < b.x ? -1 : 1) * ox / 2; a.x += d; b.x -= d; }
+            else { const d = (a.y < b.y ? -1 : 1) * oy / 2; a.y += d; b.y -= d; }
+          }
+        }
+        const dx = (a.x - CX) / ax, dy = (a.y - CY) / ay, dd = Math.hypot(dx, dy) || 1;
+        const minR = R0 + Math.max(a.w, a.h) * 0.45;
+        if (dd < minR) { a.x = CX + dx / dd * minR * ax; a.y = CY + dy / dd * minR * ay; }
+        a.x = Math.min(WW - a.w / 2 - 20, Math.max(a.w / 2 + 20, a.x));
+        a.y = Math.min(WH - a.h / 2 - 20, Math.max(a.h / 2 + 20, a.y));
+      }
+    }
+    P.forEach(p => {
+      const b = scraps.get(p.item);
+      b.style.left = (p.x - p.w / 2) + "px"; b.style.top = (p.y - p.h / 2) + "px";
+      b.style.width = p.w + "px"; b.style.height = p.h + "px";
+      b.style.transform = `rotate(${p.rot.toFixed(2)}deg)`;
+    });
+    tickEls.forEach(t => t.remove()); tickEls.length = 0;
+    [1619, 1800, 1900, 1950, 2000, 2020].forEach(Y => {
+      const k = ORDER.findIndex(i => i.year != null && i.year >= Y);
+      if (k < 0) return;
+      const th = start + span * (k + 0.5) / N, rr = R0 + 22;
+      const t = document.createElement("span");
+      t.className = "tick"; t.textContent = Y;
+      t.style.left = (CX + Math.cos(th) * rr * ax) + "px"; t.style.top = (CY + Math.sin(th) * rr * ay) + "px";
+      world.appendChild(t); tickEls.push(t);
+    });
+  }
+
+  /* ---------- Pan and zoom ---------- */
+  const view = { s: 1, tx: 0, ty: 0 };
+  let fitS = 1;
+  const applyView = () => { world.style.transform = `translate(${view.tx}px, ${view.ty}px) scale(${view.s})`; };
+  function fit() {
+    const w = stage.clientWidth, h = stage.clientHeight, top = 64, bottom = dock.offsetHeight + 28;
+    const ah = Math.max(200, h - top - bottom);
+    fitS = Math.min((w - 24) / WW, ah / WH);
+    view.s = fitS; view.tx = (w - WW * fitS) / 2; view.ty = top + (ah - WH * fitS) / 2;
+    applyView();
+  }
+  function zoomAt(cx, cy, f) {
+    const s2 = Math.min(fitS * 7, Math.max(fitS * 0.8, view.s * f));
+    view.tx = cx - (cx - view.tx) * (s2 / view.s); view.ty = cy - (cy - view.ty) * (s2 / view.s); view.s = s2;
+    applyView();
+  }
+  const centre = () => [stage.clientWidth / 2, (stage.clientHeight - dock.offsetHeight) / 2 + 20];
+  $("#zin").addEventListener("click", () => zoomAt(...centre(), 1.5));
+  $("#zout").addEventListener("click", () => zoomAt(...centre(), 1 / 1.5));
+  $("#zfit").addEventListener("click", fit);
+  stage.addEventListener("wheel", e => {
+    if (!e.ctrlKey || !detail.hidden) return;
+    e.preventDefault();
+    const r = stage.getBoundingClientRect();
+    zoomAt(e.clientX - r.left, e.clientY - r.top, Math.exp(-e.deltaY * 0.01));
+  }, { passive: false });
+  const ptrs = new Map();
+  let dragMoved = false, downAt = null, pinch = null;
+  const blocked = t => t.closest(".dock, .about-wrap, .detail, h1");
+  stage.addEventListener("pointerdown", e => {
+    if (blocked(e.target) || e.button > 0) return;
+    ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (ptrs.size === 1) { dragMoved = false; downAt = { x: e.clientX, y: e.clientY }; }
+    if (ptrs.size === 2) {
+      const [a, b] = [...ptrs.values()];
+      pinch = { d: Math.hypot(a.x - b.x, a.y - b.y), s: view.s };
+    }
+  });
+  stage.addEventListener("pointermove", e => {
+    const p = ptrs.get(e.pointerId);
+    if (!p) return;
+    const dx = e.clientX - p.x, dy = e.clientY - p.y;
+    p.x = e.clientX; p.y = e.clientY;
+    if (ptrs.size === 2 && pinch) {
+      const [a, b] = [...ptrs.values()], r = stage.getBoundingClientRect();
+      const d = Math.hypot(a.x - b.x, a.y - b.y);
+      zoomAt((a.x + b.x) / 2 - r.left, (a.y + b.y) / 2 - r.top, (pinch.s * d / pinch.d) / view.s);
+      dragMoved = true;
+      return;
+    }
+    if (!dragMoved && downAt && Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y) > 6) {
+      dragMoved = true; stage.classList.add("is-dragging"); tip.hidden = true;
+      try { stage.setPointerCapture(e.pointerId); } catch (err) {}
+    }
+    if (dragMoved) { view.tx += dx; view.ty += dy; applyView(); }
+  });
+  const endPtr = e => { ptrs.delete(e.pointerId); if (ptrs.size < 2) pinch = null; if (!ptrs.size) stage.classList.remove("is-dragging"); };
+  stage.addEventListener("pointerup", endPtr);
+  stage.addEventListener("pointercancel", endPtr);
+  world.addEventListener("click", e => {
+    const b = e.target.closest(".scrap");
+    if (!b || dragMoved) return;
+    select(BY_ID[b.dataset.id]);
+  });
+  world.addEventListener("pointerover", e => {
+    const b = e.target.closest(".scrap");
+    if (!b || e.pointerType === "touch" || dragMoved) return;
+    const item = BY_ID[b.dataset.id];
+    tip.textContent = `${item.date} · ${item.title}`;
+    tip.hidden = false;
+  });
+  world.addEventListener("pointermove", e => {
+    if (tip.hidden) return;
+    const r = stage.getBoundingClientRect();
+    tip.style.left = Math.min(e.clientX - r.left, r.width - 300) + "px";
+    tip.style.top = (e.clientY - r.top) + "px";
+  });
+  world.addEventListener("pointerout", e => { if (!e.relatedTarget || !e.relatedTarget.closest || !e.relatedTarget.closest(".scrap")) tip.hidden = true; });
 
   /* ---------- Year readout ---------- */
   let shownYear = TODAY, rollId = 0;
@@ -658,7 +977,7 @@ input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border: 0; bo
     const from = shownYear;
     shownYear = to;
     if (reduce || from === to) { yearEl.textContent = to; return; }
-    const t0 = performance.now(), d = 1100;
+    const t0 = performance.now(), d = 900;
     (function step(n) {
       if (id !== rollId) return;
       const p = Math.min(1, (n - t0) / d), e = 1 - Math.pow(1 - p, 4);
@@ -667,27 +986,36 @@ input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border: 0; bo
     })(t0);
   }
 
-  /* ---------- Groups ---------- */
-  let focusKind = null;
-  const pool = () => focusKind ? ORDER.filter(i => i.kind === focusKind) : ORDER;
+  /* ---------- Filters: group, search, dial ---------- */
+  let focusKind = null, query = "", dialYear = TODAY;
+  const norm = s => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+  const HAY = new Map(ORDER.map(i => [i, norm([i.title, i.holder, i.notes, i.type, i.date, i.lang].join(" "))]));
+  const matches = i => (!focusKind || i.kind === focusKind) && (!query || HAY.get(i).includes(query));
+  const pool = () => ORDER.filter(matches);
   const countOf = k => ORDER.filter(i => i.kind === k).length;
+  function applyFilters() {
+    ORDER.forEach(i => {
+      const b = scraps.get(i), ok = matches(i);
+      b.classList.toggle("is-dim", !ok);
+      b.classList.toggle("is-future", ok && i.year != null && i.year > dialYear);
+      b.tabIndex = ok ? 0 : -1;
+    });
+    document.querySelectorAll(".log li").forEach(li => { li.hidden = !matches(BY_ID[li.dataset.id]); });
+  }
   function renderChips(el) {
-    const all = `<button class="kchip" type="button" data-kind="" aria-pressed="true"><i></i>Visi <span>${N}</span></button>`;
-    el.innerHTML = all + KIND_ORDER.map(k =>
-      `<button class="kchip" type="button" data-kind="${k}" aria-pressed="false" title="${KINDS[k].about}" style="--c:var(--k-${k})"><i></i>${KINDS[k].label} <span>${countOf(k)}</span></button>`).join("");
+    el.innerHTML = `<button class="kchip" type="button" data-kind="" aria-pressed="true"><i></i>Visi <span>${N}</span></button>` + KIND_ORDER.map(k =>
+      `<button class="kchip" type="button" data-kind="${k}" aria-pressed="false" title="${esc(KINDS[k].about)}" style="--c:var(--k-${k})"><i></i>${KINDS[k].label} <span>${countOf(k)}</span></button>`).join("");
     el.addEventListener("click", e => { const b = e.target.closest(".kchip"); if (b) setFocus(b.dataset.kind || null); });
   }
   function setFocus(k) {
     focusKind = k && k !== focusKind ? k : null;
     document.querySelectorAll(".kchip").forEach(b => b.setAttribute("aria-pressed", String((b.dataset.kind || null) === focusKind)));
-    document.querySelectorAll(".log li").forEach(li => { li.hidden = !!focusKind && li.dataset.kind !== focusKind; });
     stopTravel();
-    if (GL) GL.focus(focusKind);
-    if (current && focusKind && current.kind !== focusKind) select(null);
+    applyFilters();
   }
+  $("#q").addEventListener("input", e => { query = norm(e.target.value.trim()); stopTravel(); applyFilters(); });
 
-  /* ---------- Panel ---------- */
-  /* Record panel opens when a card is picked; the Apie pop-up opens once per viewer and from its button */
+  /* ---------- Apie ---------- */
   const INTRO_KEY = "rykantai-intro-seen";
   const introSeen = () => { try { return localStorage.getItem(INTRO_KEY) === "1"; } catch (e) { return false; } };
   const markIntroSeen = () => { try { localStorage.setItem(INTRO_KEY, "1"); } catch (e) {} };
@@ -697,60 +1025,72 @@ input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border: 0; bo
   function closeAbout() { about.hidden = true; infoBtn.setAttribute("aria-expanded", "false"); markIntroSeen(); }
   infoBtn.addEventListener("click", () => { if (about.hidden) openAbout(); else closeAbout(); });
   about.addEventListener("click", e => { if (e.target.closest("[data-close]")) closeAbout(); });
-  function closePanel() { panel.hidden = true; panel.innerHTML = ""; }
-  function itemPanel(item) {
-    panel.hidden = false;
-    panel.style.setProperty("--pk", `var(--k-${item.kind})`);
-    panel.innerHTML = `
-      <div class="p-top"><span class="tag">${kdot(item.kind)}Įrašas ${num(item)} / ${N} · ${item.type}</span><button class="x" type="button" data-home aria-label="Uždaryti įrašą">&times;</button></div>
-      <p class="p-meta">${item.date}${item.lang ? " · " + item.lang : ""}</p>
-      <h2 class="p-title">${item.title}</h2>
-      <p class="p-holder">${item.holder}</p>
-      <p>${item.notes}</p>
-      ${item.img ? `<p class="p-meta">Skenas: epaveldas.lt per Europeana</p>` : ""}
-      <div class="p-links"><span class="chip">${item.licence || "Licencija: žr. įrašą"}</span>${linkHTML(item)}</div>`;
-  }
-  panel.addEventListener("click", e => { if (e.target.closest("[data-home]")) select(null); });
-  document.addEventListener("keydown", e => {
-    if (e.key !== "Escape") return;
-    if (!about.hidden) closeAbout(); else if (current) select(null);
-  });
 
-  /* ---------- Selection and dial ---------- */
+  /* ---------- Detail ---------- */
   let current = null, GL = null;
-  function setDial(y) {
-    dial.value = y;
-    if (GL) GL.setDial(y);
+  function openDetail(item) {
+    const fig = $("#dFig"), cap = $("#dCap");
+    detail.style.setProperty("--pk", `var(--k-${item.kind})`);
+    if (item.img) fig.innerHTML = `<img src="${item.img}" alt="${esc(item.title)}">`;
+    else {
+      const [w, h] = sizes.get(item), k = Math.min(2.2, 420 / Math.max(w, h));
+      fig.innerHTML = `<div class="scrap k-${item.kind}${item.kind === "archyvas" ? " no-img" : ""}" style="width:${w * k}px;height:${h * k}px"><span class="sc" style="width:${w}px;height:${h}px;transform:scale(${k});transform-origin:0 0">${scrapInner(item)}</span></div>`;
+    }
+    cap.innerHTML = `
+      <div class="p-top"><span class="tag">${kdot(item.kind)}${esc(item.type)}</span></div>
+      <p class="p-meta">${esc(item.date)}${item.lang ? " · " + esc(item.lang) : ""}</p>
+      <h2 class="p-title" id="dTitle">${esc(item.title)}</h2>
+      <p class="d-holder">${esc(item.holder)}</p>
+      <p>${esc(item.notes)}</p>
+      <div class="d-links"><span class="chip">${esc(item.licence || "Licencija: žr. įrašą")}</span>${linkHTML(item)}</div>`;
+    const P = pool(), idx = P.indexOf(item);
+    $("#dCount").textContent = idx >= 0 ? `${idx + 1} / ${P.length}` : `${num(item)} / ${N}`;
+    detail.hidden = false;
   }
   function select(item, fromTravel) {
     if (!fromTravel) stopTravel();
+    if (current) scraps.get(current).classList.remove("is-sel");
     current = item;
     if (item) {
       if (!about.hidden) closeAbout();
-      itemPanel(item);
+      scraps.get(item).classList.add("is-sel");
+      openDetail(item);
       rollYear(item.year);
-      if (item.year != null) setDial(item.year); else if (GL) GL.setDial(TODAY);
+      if (item.year != null) dial.value = item.year;
+      if (GL) GL.pulse();
     } else {
-      closePanel();
-      rollYear(TODAY);
-      setDial(TODAY);
+      detail.hidden = true;
+      rollYear(dialYear);
     }
-    if (GL) GL.select(item);
     document.querySelectorAll(".log li").forEach(li => li.classList.toggle("is-active", !!item && li.dataset.id === item.id));
   }
-  dial.addEventListener("input", () => {
-    const y = +dial.value;
-    stopTravel();
-    rollId++;
-    shownYear = y;
-    yearEl.classList.remove("is-text");
-    yearEl.textContent = y;
-    if (GL) GL.setDial(y);
+  const stepBy = d => {
+    const P = pool();
+    if (!P.length) return;
+    let i = current ? P.indexOf(current) : -1;
+    i = i < 0 ? (d > 0 ? 0 : P.length - 1) : (i + d + P.length) % P.length;
+    select(P[i]);
+  };
+  $("#dClose").addEventListener("click", () => select(null));
+  $("#dPrev").addEventListener("click", () => stepBy(-1));
+  $("#dNext").addEventListener("click", () => stepBy(1));
+  $("#prev").addEventListener("click", () => stepBy(-1));
+  $("#next").addEventListener("click", () => stepBy(1));
+  detail.addEventListener("click", e => { if (e.target === detail) select(null); });
+  document.addEventListener("keydown", e => {
+    if (e.target.matches && e.target.matches("input")) return;
+    if (e.key === "Escape") { if (!about.hidden) closeAbout(); else if (current) select(null); }
+    if (!detail.hidden && e.key === "ArrowRight") stepBy(1);
+    if (!detail.hidden && e.key === "ArrowLeft") stepBy(-1);
   });
-  dial.addEventListener("change", () => {
-    const y = +dial.value;
-    const hit = pool().filter(i => i.year != null && i.year <= y).pop();
-    if (hit) select(hit);
+
+  /* ---------- Dial and travel ---------- */
+  dial.addEventListener("input", () => {
+    dialYear = +dial.value;
+    stopTravel();
+    rollId++; shownYear = dialYear;
+    yearEl.classList.remove("is-text"); yearEl.textContent = dialYear;
+    applyFilters();
   });
   const ticks = $("#ticks");
   ORDER.forEach(i => {
@@ -760,7 +1100,6 @@ input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border: 0; bo
     t.style.background = `var(--k-${i.kind})`;
     ticks.appendChild(t);
   });
-
   const travelBtn = $("#travel");
   let timer = null;
   function stopTravel() {
@@ -772,6 +1111,7 @@ input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border: 0; bo
   travelBtn.addEventListener("click", () => {
     if (timer) { stopTravel(); return; }
     const P = pool();
+    if (!P.length) return;
     let i = current ? P.indexOf(current) + 1 : 0;
     if (i <= 0 || i >= P.length) i = 0;
     const step = () => { select(P[i], true); i++; if (i >= P.length) stopTravel(); };
@@ -780,44 +1120,35 @@ input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border: 0; bo
     travelBtn.setAttribute("aria-pressed", "true");
     step();
   });
-  const stepBy = d => {
-    const P = pool();
-    let i = current ? P.indexOf(current) : -1;
-    i = i < 0 ? (d > 0 ? 0 : P.length - 1) : Math.max(0, Math.min(P.length - 1, i + d));
-    select(P[i]);
-  };
-  $("#prev").addEventListener("click", () => stepBy(-1));
-  $("#next").addEventListener("click", () => stepBy(1));
 
   /* ---------- Logbook ---------- */
   const log = $("#log");
   ORDER.forEach(item => {
     const li = document.createElement("li");
     li.dataset.id = item.id;
-    li.dataset.kind = item.kind;
     li.innerHTML = `
       <span class="log-n">${num(item)}</span>
-      <span class="log-date">${item.date}</span>
+      <span class="log-date">${esc(item.date)}</span>
       <div class="log-main">
-        <span class="log-title"><a href="${item.links[0][1]}" target="_blank" rel="noopener noreferrer">${item.title}</a></span>
-        <span class="log-holder">${kdot(item.kind)}${item.type} · ${item.holder}${item.lang ? " · " + item.lang : ""}</span>
-        <span class="log-notes">${item.notes}</span>
-        ${item.links.length > 1 ? `<span class="p-links">${linkHTML(item)}</span>` : ""}
+        <span class="log-title"><a href="${item.links[0][1]}" target="_blank" rel="noopener noreferrer">${esc(item.title)}</a></span>
+        <span class="log-holder">${kdot(item.kind)}${esc(item.type)} · ${esc(item.holder)}${item.lang ? " · " + esc(item.lang) : ""}</span>
+        <span class="log-notes">${esc(item.notes)}</span>
+        ${item.links.length > 1 ? `<span class="d-links">${linkHTML(item)}</span>` : ""}
       </div>
       <div class="log-side">
         ${item.img ? `<img class="log-img" src="${item.img}" alt="" loading="lazy">` : ""}
-        <span class="chip">${item.licence || "Licencija: žr. įrašą"}</span>
-        <button class="pill" type="button">Įkelti</button>
+        <span class="chip">${esc(item.licence || "Licencija: žr. įrašą")}</span>
+        <button class="pill" type="button">Atverti</button>
       </div>`;
     const b = li.querySelector(".log-side button");
-    b.setAttribute("aria-label", `Įkelti „${item.title}“ į laiko mašiną`);
-    b.addEventListener("click", () => { select(item); stageEl.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" }); });
+    b.setAttribute("aria-label", `Atverti „${item.title}“ laiko mašinoje`);
+    b.addEventListener("click", () => { select(item); stage.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" }); });
     log.appendChild(li);
   });
   renderChips($("#kindsScene"));
   renderChips($("#kindsLog"));
 
-  /* ---------- WebGL scene ---------- */
+  /* ---------- WebGL: the chrome blob, pinned to the centre of the ring ---------- */
   const NOISE = `
 vec3 mod289(vec3 x){return x-floor(x*(1.0/289.0))*289.0;}
 vec4 mod289(vec4 x){return x-floor(x*(1.0/289.0))*289.0;}
@@ -847,7 +1178,6 @@ vec3 blobDisplace(vec3 p){
   float d=snoise(n*1.1+vec3(0.0,uTime*0.22,uTime*0.13))*0.75+snoise(n*2.3-vec3(uTime*0.17))*0.3;
   return p+n*d*uAmp;
 }`;
-
   function envTexture(T) {
     const c = document.createElement("canvas");
     c.width = 1024; c.height = 512;
@@ -868,154 +1198,8 @@ vec3 blobDisplace(vec3 p){
     t.colorSpace = T.SRGBColorSpace;
     return t;
   }
-
-  function wrap(g, text, x, y, maxW, lh, maxLines) {
-    const words = text.split(" "), lines = [];
-    let line = "";
-    for (const w of words) {
-      const test = line ? line + " " + w : w;
-      if (g.measureText(test).width > maxW && line) { lines.push(line); line = w; } else line = test;
-    }
-    if (line) lines.push(line);
-    if (lines.length > maxLines) { lines.length = maxLines; lines[maxLines - 1] = lines[maxLines - 1].replace(/\s*\S*$/, "") + "…"; }
-    lines.forEach((l, i) => g.fillText(l, x, y + i * lh));
-    return lines.length;
-  }
-
-  /* Card outlines in canvas pixels: archive = postage stamp, text = church-window arch, voice = disc, event = ticket */
-  const CW = 460, CH = 575;
-  const TEXQ = window.innerWidth < 700 ? 0.6 : 0.8;
-  function stampPts() {
-    const m = 14, r = 9, pts = [];
-    const edge = (ax, ay, bx, by, nx, ny) => {
-      const len = Math.hypot(bx - ax, by - ay), n = Math.max(2, Math.round(len / 30)), seg = len / n, ux = (bx - ax) / len, uy = (by - ay) / len;
-      for (let k = 0; k < n; k++) {
-        const s0 = k * seg, c = s0 + seg / 2;
-        pts.push([ax + ux * s0, ay + uy * s0]);
-        for (let a = 0; a <= 8; a++) { const t = Math.PI * a / 8, along = c - r * Math.cos(t), d = r * Math.sin(t); pts.push([ax + ux * along + nx * d, ay + uy * along + ny * d]); }
-      }
-    };
-    edge(m, m, CW - m, m, 0, 1); edge(CW - m, m, CW - m, CH - m, -1, 0); edge(CW - m, CH - m, m, CH - m, 0, -1); edge(m, CH - m, m, m, 1, 0);
-    return pts;
-  }
-  function archPts() {
-    const m = 14, x0 = m, x1 = CW - m, y1 = CH - m, rad = (x1 - x0) / 2, cx = CW / 2, cy = m + rad, rb = 22, pts = [[x0, y1 - rb], [x0, cy]];
-    for (let a = 0; a <= 48; a++) { const t = Math.PI + Math.PI * a / 48; pts.push([cx + rad * Math.cos(t), cy + rad * Math.sin(t)]); }
-    pts.push([x1, y1 - rb]);
-    for (let a = 0; a <= 8; a++) { const t = Math.PI * a / 16; pts.push([x1 - rb + rb * Math.cos(t), y1 - rb + rb * Math.sin(t)]); }
-    for (let a = 0; a <= 8; a++) { const t = Math.PI / 2 + Math.PI * a / 16; pts.push([x0 + rb + rb * Math.cos(t), y1 - rb + rb * Math.sin(t)]); }
-    return pts;
-  }
-  function discPts() { const pts = []; for (let a = 0; a < 96; a++) { const t = a / 96 * Math.PI * 2; pts.push([CW / 2 + 216 * Math.cos(t), CH / 2 + 216 * Math.sin(t)]); } return pts; }
-  function ticketPts() {
-    const m = 14, x0 = m, y0 = m, x1 = CW - m, y1 = CH - m, rc = 26, rn = 20, yn = CH - 130, pts = [];
-    const arc = (cx, cy, r, a0, a1, n = 10) => { for (let k = 0; k <= n; k++) { const t = a0 + (a1 - a0) * k / n; pts.push([cx + r * Math.cos(t), cy + r * Math.sin(t)]); } };
-    arc(x0 + rc, y0 + rc, rc, Math.PI, Math.PI * 1.5); arc(x1 - rc, y0 + rc, rc, Math.PI * 1.5, Math.PI * 2);
-    arc(x1, yn, rn, -Math.PI / 2, -Math.PI * 1.5, 14);
-    arc(x1 - rc, y1 - rc, rc, 0, Math.PI / 2); arc(x0 + rc, y1 - rc, rc, Math.PI / 2, Math.PI);
-    arc(x0, yn, rn, Math.PI / 2, -Math.PI / 2, 14);
-    return pts;
-  }
-  function hexPts() { const m = 14, a = 74; return [[m + a, m], [CW - m - a, m], [CW - m, CH / 2], [CW - m - a, CH - m], [m + a, CH - m], [m, CH / 2]]; }
-  const SHAPES = { archyvas: stampPts(), tekstas: archPts(), tyrimas: hexPts(), balsas: discPts(), renginys: ticketPts() };
-  function tracePath(g, pts) { g.beginPath(); g.moveTo(pts[0][0], pts[0][1]); for (let i = 1; i < pts.length; i++) g.lineTo(pts[i][0], pts[i][1]); g.closePath(); }
-  function maskCanvas(kind) {
-    const c = document.createElement("canvas"); c.width = CW / 2; c.height = CH / 2;
-    const g = c.getContext("2d"); g.fillStyle = "#000"; g.fillRect(0, 0, c.width, c.height);
-    g.scale(0.5, 0.5); tracePath(g, SHAPES[kind]); g.fillStyle = "#fff"; g.fill();
-    return c;
-  }
-
-  function drawCard(item, c) {
-    const K = KINDS[item.kind], W = CW, H = CH, shape = SHAPES[item.kind];
-    c.width = Math.round(W * TEXQ); c.height = Math.round(H * TEXQ);
-    const g = c.getContext("2d");
-    g.setTransform(TEXQ, 0, 0, TEXQ, 0, 0);
-    g.clearRect(0, 0, W, H);
-    const yearFill = g.createLinearGradient(0, 0, W, H);
-    K.year.forEach((col, i) => yearFill.addColorStop(K.year.length === 1 ? 0 : i / (K.year.length - 1), col));
-    const mono = (w, s) => `${w} ${s}px "JetBrains Mono", ui-monospace, monospace`;
-    const disp = s => `700 ${s}px Unbounded, "Arial Black", sans-serif`;
-    const sans = s => `600 ${s}px "Instrument Sans", Arial, sans-serif`;
-    const fit = (txt, max, maxW, min, mk) => { let s = max; g.font = mk(s); while (g.measureText(txt).width > maxW && s > min) { s -= 2; g.font = mk(s); } return s; };
-    const yr = item.year == null ? "Be datos" : String(item.year);
-    const typeTxt = item.type.toUpperCase();
-
-    g.save();
-    tracePath(g, shape); g.clip();
-    const bg = g.createLinearGradient(0, 0, W, H);
-    bg.addColorStop(0, K.bg[0]); bg.addColorStop(1, K.bg[1]);
-    g.fillStyle = bg; g.fillRect(0, 0, W, H);
-    g.textBaseline = "top";
-
-    if (item.kind === "balsas") {
-      const cx = W / 2, cy = H / 2;
-      g.strokeStyle = "rgba(255,255,255,0.06)"; g.lineWidth = 1.5;
-      for (let r = 60; r < 212; r += 9) { g.beginPath(); g.arc(cx, cy, r, 0, Math.PI * 2); g.stroke(); }
-      g.textAlign = "center";
-      g.fillStyle = K.soft; fit(typeTxt, 18, 200, 12, s => mono(500, s)); g.fillText(typeTxt, cx, 100);
-      const ys = fit(yr, 84, 270, 40, disp); g.fillStyle = yearFill; g.fillText(yr, cx, 128 + (84 - ys) / 2);
-      g.font = sans(28); g.fillStyle = K.ink; wrap(g, item.title, cx, 236, 320, 34, 4);
-      let s = 7; for (const ch of item.id) s = (s * 31 + ch.charCodeAt(0)) % 997;
-      g.fillStyle = yearFill;
-      const n = 13, bw = 7, gap = 5, x0 = cx - (n * (bw + gap) - gap) / 2, base = 440;
-      for (let i = 0; i < n; i++) { s = (s * 37 + 11) % 997; const bh = 6 + (s % 30); g.fillRect(x0 + i * (bw + gap), base - bh, bw, bh); }
-      g.font = mono(500, 17); g.fillStyle = K.soft; g.fillText(`${num(item)} / ${N}`, cx, 456);
-      g.textAlign = "left";
-    } else if (item.kind === "tyrimas") {
-      const cx = W / 2;
-      g.textAlign = "center"; g.fillStyle = K.soft;
-      g.font = mono(500, 17); g.fillText(`${num(item)} / ${N}`, cx, 40);
-      fit(typeTxt, 17, 280, 12, s => mono(500, s)); g.fillText(typeTxt, cx, 66);
-      const ys = fit(yr, 92, 320, 40, disp); g.fillStyle = yearFill; g.fillText(yr, cx, 92 + (92 - ys) / 2);
-      g.fillStyle = K.ink; g.fillRect(48, 200, W - 96, 2);
-      g.textAlign = "left"; g.font = sans(29); wrap(g, item.title, 48, 214, W - 96, 37, 5);
-      g.textAlign = "center"; g.font = mono(400, 16); g.fillStyle = K.soft; wrap(g, item.holder, cx, H - 112, 300, 21, 2);
-      g.textAlign = "left";
-    } else if (item.kind === "tekstas") {
-      const cx = W / 2;
-      g.fillStyle = "rgba(22,32,74,0.07)";
-      for (let y = 282; y < H - 40; y += 40) g.fillRect(48, y, W - 96, 1);
-      g.textAlign = "center"; g.fillStyle = K.soft;
-      g.font = mono(500, 17); g.fillText(`${num(item)} / ${N}`, cx, 46);
-      fit(typeTxt, 18, 280, 12, s => mono(500, s)); g.fillText(typeTxt, cx, 74);
-      const ys = fit(yr, 96, 340, 40, disp); g.fillStyle = yearFill; g.fillText(yr, cx, 106 + (96 - ys) / 2);
-      g.textAlign = "left";
-      g.fillStyle = K.ink; g.fillRect(48, 224, W - 96, 2); g.fillRect(48, 229, W - 96, 1);
-      g.font = sans(30); wrap(g, item.title, 48, 246, W - 96, 38, 5);
-      g.font = mono(400, 17); g.fillStyle = K.soft; wrap(g, item.holder, 48, H - 84, W - 96, 22, 2);
-    } else {
-      const ticket = item.kind === "renginys";
-      g.fillStyle = K.soft; g.font = mono(500, 20); g.fillText(`${num(item)} / ${N}`, 40, 40);
-      const ts = fit(typeTxt, 20, W - 80 - 110, 12, s => mono(500, s));
-      g.textAlign = "right"; g.fillText(typeTxt, W - 40, 40 + (20 - ts) / 2); g.textAlign = "left";
-      if (item._img) {
-        const fx = 36, fy = 78, fw = W - 72, fh = 290;
-        g.fillStyle = "rgba(0,8,32,0.45)"; g.fillRect(fx, fy, fw, fh);
-        const im = item._img, sc = Math.min(fw / im.width, fh / im.height), iw = im.width * sc, ih = im.height * sc;
-        g.drawImage(im, fx + (fw - iw) / 2, fy + (fh - ih) / 2, iw, ih);
-        g.strokeStyle = "rgba(255,255,255,0.35)"; g.lineWidth = 1; g.strokeRect(fx + 0.5, fy + 0.5, fw - 1, fh - 1);
-        const ys = fit(yr, 66, W - 72, 36, disp); g.fillStyle = yearFill; g.fillText(yr, 36, 384 + (66 - ys) / 2);
-        g.font = sans(25); g.fillStyle = K.ink; wrap(g, item.title, 38, 466, W - 76, 30, 2);
-      } else {
-        const ys = fit(yr, 112, W - 76, 44, disp); g.fillStyle = yearFill; g.fillText(yr, 36, 96 + (112 - ys) / 2);
-        g.font = sans(31); g.fillStyle = K.ink; wrap(g, item.title, 38, 246, W - 76, 39, ticket ? 4 : 5);
-        g.font = mono(400, 17); g.fillStyle = K.soft;
-        if (ticket) {
-          const yn = H - 130;
-          g.strokeStyle = "rgba(255,241,248,0.5)"; g.lineWidth = 2; g.setLineDash([9, 8]);
-          g.beginPath(); g.moveTo(44, yn); g.lineTo(W - 44, yn); g.stroke(); g.setLineDash([]);
-          wrap(g, item.holder, 38, yn + 26, W - 76, 22, 2);
-        } else wrap(g, item.holder, 38, H - 86, W - 76, 22, 2);
-      }
-    }
-    g.restore();
-    tracePath(g, shape);
-    g.lineWidth = 3; g.strokeStyle = item.kind === "tekstas" ? "rgba(22,32,74,0.45)" : item.kind === "tyrimas" ? "rgba(43,26,7,0.4)" : "rgba(255,255,255,0.55)"; g.stroke();
-  }
-
   function initGL() {
-    const T = window.THREE;
+    const T = window.THREE, canvas = $("#gl");
     const renderer = new T.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: "high-performance" });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     renderer.setClearColor(0x000000, 0);
@@ -1023,6 +1207,7 @@ vec3 blobDisplace(vec3 p){
     renderer.toneMappingExposure = 1.05;
     const scene = new T.Scene();
     const camera = new T.PerspectiveCamera(38, 1, 0.1, 200);
+    camera.position.set(0, 0, 12);
     const pmrem = new T.PMREMGenerator(renderer);
     const envSrc = envTexture(T);
     scene.environment = pmrem.fromEquirectangular(envSrc).texture;
@@ -1030,13 +1215,8 @@ vec3 blobDisplace(vec3 p){
     const key = new T.DirectionalLight(0xffffff, 1.4); key.position.set(-4, 6, 6); scene.add(key);
     const pink = new T.PointLight(0xff6ad5, 40, 40); pink.position.set(4.5, -3, 3.5); scene.add(pink);
     const cyan = new T.PointLight(0x6af0ff, 40, 40); cyan.position.set(-5, 2.5, -1); scene.add(cyan);
-
-    /* Chrome blob */
     const uni = { uTime: { value: 0 }, uAmp: { value: 0.3 } };
-    const blobMat = new T.MeshPhysicalMaterial({
-      color: 0xffffff, metalness: 1, roughness: 0.1, clearcoat: 1, clearcoatRoughness: 0.06,
-      iridescence: 1, iridescenceIOR: 1.8, iridescenceThicknessRange: [120, 900], envMapIntensity: 1.7
-    });
+    const blobMat = new T.MeshPhysicalMaterial({ color: 0xffffff, metalness: 1, roughness: 0.1, clearcoat: 1, clearcoatRoughness: 0.06, iridescence: 1, iridescenceIOR: 1.8, iridescenceThicknessRange: [120, 900], envMapIntensity: 1.7 });
     blobMat.onBeforeCompile = sh => {
       sh.uniforms.uTime = uni.uTime;
       sh.uniforms.uAmp = uni.uAmp;
@@ -1057,222 +1237,74 @@ vec3 objectTangent = vec3(tangent.xyz);
     };
     const blob = new T.Mesh(new T.IcosahedronGeometry(1.7, 40), blobMat);
     scene.add(blob);
-
-    /* Stars */
     const dotC = document.createElement("canvas"); dotC.width = dotC.height = 32;
     const dg = dotC.getContext("2d"), rg = dg.createRadialGradient(16, 16, 0, 16, 16, 16);
     rg.addColorStop(0, "rgba(255,255,255,1)"); rg.addColorStop(0.4, "rgba(255,255,255,0.6)"); rg.addColorStop(1, "rgba(255,255,255,0)");
     dg.fillStyle = rg; dg.fillRect(0, 0, 32, 32);
-    const nStars = 1400, sp = new Float32Array(nStars * 3);
+    const nStars = 1200, sp = new Float32Array(nStars * 3);
     for (let i = 0; i < nStars; i++) {
       const u = Math.random() * 2 - 1, a = Math.random() * Math.PI * 2, r = 22 + Math.random() * 40, s = Math.sqrt(1 - u * u);
-      sp[i * 3] = r * s * Math.cos(a); sp[i * 3 + 1] = r * u; sp[i * 3 + 2] = r * s * Math.sin(a) - 10;
+      sp[i * 3] = r * s * Math.cos(a); sp[i * 3 + 1] = r * u; sp[i * 3 + 2] = r * s * Math.sin(a) - 30;
     }
     const sg = new T.BufferGeometry(); sg.setAttribute("position", new T.BufferAttribute(sp, 3));
-    const stars = new T.Points(sg, new T.PointsMaterial({ size: 0.28, map: new T.CanvasTexture(dotC), transparent: true, depthWrite: false, opacity: 0.9, sizeAttenuation: true }));
+    const stars = new T.Points(sg, new T.PointsMaterial({ size: 0.28, map: new T.CanvasTexture(dotC), transparent: true, depthWrite: false, opacity: 0.85, sizeAttenuation: true }));
     scene.add(stars);
-
-    /* Glass */
-    const glass = (opacity, color = 0xdfe8ff, alphaMap = null) => new T.MeshPhysicalMaterial({
-      color, alphaMap, metalness: 0.2, roughness: 0.06, transparent: true, opacity, side: T.DoubleSide, depthWrite: false,
-      iridescence: 1, iridescenceIOR: 1.5, iridescenceThicknessRange: [200, 700], envMapIntensity: 2.4
-    });
-    const edgeMat = (op, color = 0xffffff) => new T.LineBasicMaterial({ color, transparent: true, opacity: op, depthWrite: false, blending: T.AdditiveBlending });
-
-    const orbiters = [];
-    function addOrbit(obj, o) { o.obj = obj; o.pos = new T.Vector3(); o.eul = new T.Euler(); orbiters.push(o); scene.add(obj); return o; }
-
-    /* Record cards: each on its own orbit, four rings at different speeds, coloured and shaped by group */
-    const BASE = 0.74, FW = 0.94, FH = 1.175;
-    let glFocus = null, dialYear = TODAY;
-    const maxAniso = renderer.capabilities.getMaxAnisotropy();
-    const faceGeo = new T.PlaneGeometry(FW, FH);
-    const rimGeo = new T.PlaneGeometry(FW * 1.06, FH * 1.06);
-    const masks = {}, outlines = {};
-    KIND_ORDER.forEach(k => {
-      masks[k] = new T.CanvasTexture(maskCanvas(k));
-      outlines[k] = new T.BufferGeometry().setFromPoints(SHAPES[k].map(([x, y]) => new T.Vector3((x / CW - 0.5) * FW * 1.03, (0.5 - y / CH) * FH * 1.03, 0.012)));
-    });
-    const hitMeshes = [], cards = [];
-    ORDER.forEach((item, i) => {
-      const K = KINDS[item.kind];
-      const grp = new T.Group();
-      const cv = document.createElement("canvas");
-      drawCard(item, cv);
-      const tex = new T.CanvasTexture(cv); tex.colorSpace = T.SRGBColorSpace; tex.anisotropy = maxAniso;
-      const faceMat = new T.MeshBasicMaterial({ map: tex, toneMapped: false, alphaTest: 0.5 });
-      const face = new T.Mesh(faceGeo, faceMat);
-      const frame = new T.Mesh(rimGeo, glass(0.24, K.glass, masks[item.kind]));
-      frame.position.z = -0.02;
-      const edges = new T.LineLoop(outlines[item.kind], edgeMat(0.85, K.edge));
-      grp.add(frame, face, edges);
-      const ring = i % 6;
-      const o = addOrbit(grp, {
-        card: true, item, cv, tex, faceMat, edges, frame, edgeBase: new T.Color(K.edge),
-        R: [2.8, 3.4, 4.0, 4.6, 5.2, 5.8][ring], th0: (i / N) * Math.PI * 2 + ring * 0.7, w: [0.11, 0.098, 0.086, 0.075, 0.066, 0.058][ring],
-        tx: (i % 2 ? 1 : -1) * (0.12 + ring * 0.07), tz: ((i * 37) % 11 - 5) * 0.04, ph: i * 1.7, scale: BASE, ghost: false
-      });
-      frame.userData.card = o;
-      hitMeshes.push(frame);
-      cards.push(o);
-    });
-
-    /* Decorative glass shapes, kept outside the card rows */
-    const deco = [
-      [new T.OctahedronGeometry(0.5), 6.1, 0.4, -0.05, 0.3],
-      [new T.BoxGeometry(0.66, 0.66, 0.66), 6.8, 2.2, 0.04, -0.4],
-      [new T.TorusGeometry(0.4, 0.13, 32, 80), 5.9, 3.6, 0.05, 0.5, true],
-      [new T.IcosahedronGeometry(0.42), 7.3, 4.6, -0.03, -0.2],
-      [new T.TetrahedronGeometry(0.5), 6.4, 5.6, 0.06, 0.6],
-      [new T.TorusGeometry(0.24, 0.08, 24, 64), 6.0, 2.9, 0.08, 0.2, true]
-    ];
-    const ringMat = new T.MeshPhysicalMaterial({ color: 0xffffff, metalness: 1, roughness: 0.12, iridescence: 1, iridescenceIOR: 1.9, iridescenceThicknessRange: [150, 850], envMapIntensity: 1.8 });
-    const decoGlass = glass(0.22);
-    deco.forEach(([geo, R, th0, w, tx, solid], i) => {
-      const grp = new T.Group();
-      if (solid) grp.add(new T.Mesh(geo, ringMat));
-      else { grp.add(new T.Mesh(geo, decoGlass)); grp.add(new T.LineSegments(new T.EdgesGeometry(geo), edgeMat(0.9))); }
-      addOrbit(grp, { card: false, R, th0, w, tx, tz: (i % 3 - 1) * 0.15, ph: i * 2.3, spin: 0.2 + (i % 4) * 0.12, yOff: 0 });
-    });
-
-    /* Layout */
-    let portrait = false, dist = 11.5;
-    const look = new T.Vector3();
     function resize() {
-      const w = stageEl.clientWidth, h = stageEl.clientHeight;
-      renderer.setSize(w, h, false);
-      camera.aspect = w / h;
-      portrait = camera.aspect < 0.85;
-      camera.fov = portrait ? 50 : 38;
-      dist = portrait ? 15 : 11.5;
-      look.set(0, portrait ? -1.4 : -0.2, 0);
+      renderer.setSize(stage.clientWidth, stage.clientHeight, false);
+      camera.aspect = stage.clientWidth / Math.max(1, stage.clientHeight);
       camera.updateProjectionMatrix();
-      orbiters.forEach(o => o.eul.set(portrait ? 1.15 + o.tx * 0.4 : o.tx, 0, o.tz));
     }
     resize();
-    new ResizeObserver(resize).observe(stageEl);
-
-    function orbitPos(o, t, out) {
-      const th = o.th0 + o.w * t;
-      out.set(o.R * Math.cos(th), 0, o.R * Math.sin(th)).applyEuler(o.eul);
-      if (portrait) out.x *= 0.6;
-      out.y += Math.sin(t * 0.5 + o.ph) * 0.12;
-      return out;
-    }
-
-    /* Interaction */
-    const ray = new T.Raycaster(), ndc = new T.Vector2();
-    let hovered = null, selected = null, mx = 0, my = 0;
-    function pick(x, y) {
-      const r = canvas.getBoundingClientRect();
-      ndc.set(((x - r.left) / r.width) * 2 - 1, -((y - r.top) / r.height) * 2 + 1);
-      ray.setFromCamera(ndc, camera);
-      const hit = ray.intersectObjects(hitMeshes, false)[0];
-      return hit ? hit.object.userData.card : null;
-    }
-    canvas.addEventListener("pointermove", e => {
-      const r = stageEl.getBoundingClientRect();
-      mx = ((e.clientX - r.left) / r.width) * 2 - 1;
-      my = ((e.clientY - r.top) / r.height) * 2 - 1;
-      if (e.pointerType === "touch") return;
-      hovered = pick(e.clientX, e.clientY);
-      canvas.style.cursor = hovered ? "pointer" : "";
-      if (hovered) {
-        tip.hidden = false;
-        tip.textContent = `${hovered.item.date} · ${hovered.item.title}`;
-        tip.style.left = Math.min(e.clientX - r.left, r.width - 300) + "px";
-        tip.style.top = (e.clientY - r.top) + "px";
-      } else tip.hidden = true;
-    });
-    canvas.addEventListener("pointerleave", () => { hovered = null; tip.hidden = true; mx = my = 0; });
-    canvas.addEventListener("click", e => { const c = pick(e.clientX, e.clientY); if (c) select(c.item); });
-
+    new ResizeObserver(resize).observe(stage);
     let visible = true;
-    new IntersectionObserver(es => { visible = es[0].isIntersecting; }).observe(stageEl);
-
-    /* Loop */
-    const tmp = new T.Vector3(), dock = new T.Vector3(), white = new T.Color(0xffffff), dim = new T.Color(0x3a4a7a);
+    new IntersectionObserver(es => { visible = es[0].isIntersecting; }).observe(stage);
     let time = 0, last = performance.now(), ampTarget = 0.3;
+    const visH = 2 * camera.position.z * Math.tan((camera.fov / 2) * Math.PI / 180);
     function frame(now) {
       const dt = Math.min(0.05, (now - last) / 1000);
       last = now;
       if (visible) {
         if (!reduce) time += dt;
-        const k = 1 - Math.exp(-dt * 4);
         uni.uTime.value = time;
         uni.uAmp.value += (ampTarget - uni.uAmp.value) * (1 - Math.exp(-dt * 2.5));
         ampTarget += (0.3 - ampTarget) * (1 - Math.exp(-dt * 1.5));
+        const w = stage.clientWidth, h = stage.clientHeight, k = visH / h;
+        const sx = view.tx + CX * view.s, sy = view.ty + CY * view.s;
+        blob.position.set((sx - w / 2) * k, -(sy - h / 2) * k, 0);
+        blob.scale.setScalar(R0 * view.s * 0.8 * k / 1.7);
         blob.rotation.y = time * 0.08;
         blob.rotation.x = Math.sin(time * 0.1) * 0.2;
         stars.rotation.y = time * 0.006;
-        camera.position.x += (mx * 0.7 - camera.position.x) * k;
-        camera.position.y += (-my * 0.45 + 0.3 - camera.position.y) * k;
-        camera.position.z = dist;
-        camera.lookAt(look);
-        dock.set(0, portrait ? 0.9 : 0.05, portrait ? 6.6 : 6.3);
-        for (const o of orbiters) {
-          orbitPos(o, time, tmp);
-          if (o.card && o === selected) tmp.copy(dock);
-          if (!o.started) { o.pos.copy(tmp); o.started = true; }
-          o.pos.lerp(tmp, k);
-          o.obj.position.copy(o.pos);
-          if (o.card) {
-            o.ghost = (!!glFocus && o.item.kind !== glFocus) || (o.item.year != null && o.item.year > dialYear);
-            o.obj.quaternion.copy(camera.quaternion);
-            const wob = o === selected ? 0.1 : 0.3;
-            o.obj.rotateY(Math.sin(time * 0.6 + o.ph) * wob);
-            o.obj.rotateX(Math.sin(time * 0.45 + o.ph) * wob * 0.4);
-            const target = o === selected ? 1.25 : o.ghost ? 0.45 : o === hovered ? BASE * 1.18 : BASE;
-            o.scale += (target - o.scale) * k;
-            o.obj.scale.setScalar(o.scale);
-            o.faceMat.color.lerp(o.ghost ? dim : white, k);
-            o.edges.material.color.lerp(o === selected || o === hovered ? white : o.edgeBase, k);
-            o.edges.material.opacity += ((o.ghost ? 0.12 : 0.85) - o.edges.material.opacity) * k;
-          } else {
-            o.obj.rotation.x = time * o.spin;
-            o.obj.rotation.y = time * o.spin * 0.7;
-          }
-        }
         renderer.render(scene, camera);
       }
       requestAnimationFrame(frame);
     }
     requestAnimationFrame(frame);
-
-    return {
-      select(item) {
-        selected = item ? cards.find(c => c.item === item) : null;
-        if (selected) ampTarget = 0.62;
-      },
-      setDial(y) { dialYear = y; },
-      focus(kind) { glFocus = kind; },
-      redraw(item) { cards.forEach(c => { if (!item || c.item === item) { drawCard(c.item, c.cv); c.tex.needsUpdate = true; } }); }
-    };
+    return { pulse() { ampTarget = 0.62; } };
   }
 
   /* ---------- Boot ---------- */
-  closePanel();
-  if (!introSeen()) openAbout();
+  layout();
+  fit();
+  applyFilters();
   yearEl.textContent = TODAY;
   dial.max = Math.max(2026, TODAY);
   dial.value = TODAY;
   try { if (window.THREE) GL = initGL(); } catch (err) { console.error(err); GL = null; }
-  if (!GL) stageEl.classList.add("no-gl");
-  ITEMS.forEach(item => {
-    if (!item.img) return;
-    const im = new Image();
-    im.onload = () => { item._img = im; if (GL) GL.redraw(item); };
-    im.src = item.img;
-  });
-  if (GL && document.fonts) {
-    const LT = "ąčęėįšųūžĄČĘĖĮŠŲŪŽ„“0123456789";
-    Promise.all([
-      document.fonts.load('700 118px Unbounded', LT),
-      document.fonts.load('600 33px "Instrument Sans"', LT),
-      document.fonts.load('500 21px "JetBrains Mono"', LT),
-      document.fonts.load('400 18px "JetBrains Mono"', LT)
-    ]).then(() => GL.redraw()).catch(() => {});
+  if (!GL) {
+    stage.classList.add("no-gl");
+    const fb = $("#blobfb");
+    const placeFb = () => { fb.style.left = (view.tx + CX * view.s) + "px"; fb.style.top = (view.ty + CY * view.s) + "px"; fb.style.width = (R0 * view.s * 1.6) + "px"; };
+    placeFb();
+    new MutationObserver(placeFb).observe(world, { attributes: true, attributeFilter: ["style"] });
   }
+  let wasPortrait = portraitWorld;
+  new ResizeObserver(() => {
+    const p = stage.clientWidth / Math.max(1, stage.clientHeight) < 0.85;
+    if (p !== wasPortrait) { wasPortrait = p; layout(); }
+    fit();
+  }).observe(stage);
+  if (!introSeen()) openAbout();
 })();
 </script>
 </body>
