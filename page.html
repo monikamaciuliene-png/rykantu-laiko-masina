@@ -242,7 +242,25 @@ input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border: 0; bo
 .r-year.is-text { font-size: clamp(34px, 4.4vw, 56px); }
 .r-title { pointer-events: auto; max-width: 100%; font: 500 14px var(--f-body); color: var(--ink); background: rgba(0, 11, 38, 0.72); border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .r-title:hover { border-color: #8FF5FF; color: #8FF5FF; }
-#pause { margin-left: auto; }
+#pause { margin-left: auto; display: none; }
+.mode-stream #pause { display: inline-block; }
+.scene:not(.mode-stream) .scanline { display: none; }
+.views { display: inline-flex; padding: 3px; gap: 2px; border: 1px solid var(--line); border-radius: 999px; background: rgba(0, 11, 38, 0.5); }
+.vbtn { font-family: var(--f-mono); font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft); background: transparent; border: 0; border-radius: 999px; padding: 7px 12px; cursor: pointer; }
+.vbtn:hover { color: var(--ink); }
+.vbtn[aria-checked="true"] { background: var(--ink); color: var(--cobalt-deep); }
+.r-clear { pointer-events: auto; font: 500 11px var(--f-mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-soft); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 4px 10px; cursor: pointer; }
+.r-clear:hover { color: #8FF5FF; border-color: #8FF5FF; }
+
+/* Collage view: a canvas bigger than the screen, dragged around */
+.mode-scatter .world { inset: auto; left: 0; top: 0; will-change: transform; }
+.mode-scatter .scrap.is-far { opacity: 0.22; }
+
+/* Grid view: every artefact, oldest first, scrolled */
+.mode-grid { cursor: default; }
+.mode-grid .world { inset: 72px 0 var(--dock-h, 150px) 0; overflow-y: auto; overflow-x: hidden; display: flex; flex-wrap: wrap; align-content: flex-start; justify-content: center; gap: 30px 24px; padding: 34px max(24px, 4vw) 48px; touch-action: pan-y; }
+.mode-grid .scrap { position: relative; transform: none !important; }
+.mode-grid #gl, .mode-grid .blobfb, .mode-grid .readout { display: none !important; }
 #pause[aria-pressed="true"] { background: var(--ink); color: var(--cobalt-deep); }
 
 /* Display face: Instrument Serif has one weight, so no faux bold */
@@ -286,6 +304,7 @@ h1 { font-weight: 400; font-style: italic; font-size: clamp(30px, 3.6vw, 46px); 
     <span class="r-label">Laiko mašina rodo</span>
     <span class="r-year" id="rYear">1619</span>
     <button class="r-title" id="rTitle" type="button" hidden></button>
+    <button class="r-clear" id="rClear" type="button" hidden>Rodyti visus metus</button>
   </div>
   <div class="scanline" id="scanline" aria-hidden="true"></div>
   <div class="hud">
@@ -298,7 +317,7 @@ h1 { font-weight: 400; font-style: italic; font-size: clamp(30px, 3.6vw, 46px); 
           <h2 class="p-title" id="aboutTitle">Rykantų laiko mašina</h2>
           <p>Tai <a href="https://www.rykantupastas.lt/" target="_blank" rel="noopener noreferrer">Rykantų pašto</a>, Piliečių mokslo asociacijos, <a href="https://vilniustech.lt/" target="_blank" rel="noopener noreferrer">VILNIUS TECH</a> ir Participio projektas ir bendras tyrinėjimas.</p>
           <p>Čia surinkta <span id="aboutCount"></span> apie Rykantus: archyvų dokumentai ir nuotraukos, tekstai, moksliniai tyrimai, gyventojų balsai ir renginiai nuo 1619 m. iki šių dienų.</p>
-          <p class="p-meta">Artefaktai teka pro laiko mašiną nuo seniausių iki naujausių. Burbulas yra laiko mašina: po juo matai, kokius metus ji rodo ir kuris artefaktas pro ją praplaukia. Tempk į šonus arba braukyk, kad keliautum laiku, užvesk pelę ant artefakto, kad srautas sustotų, spustelėk, kad atvertum. Forma ir spalva rodo grupę: pašto ženklas reiškia archyvą, laikraščio iškarpa tekstą, šešiakampis tyrimą, diskas balsą, bilietas renginį.</p>
+          <p class="p-meta">Yra trys vaizdai. Koliažas: artefaktai išbarstyti, tempk, kad judintum, o užvedus pelę burbulas, laiko mašina, juos perskaito ir parodo metus. Metų ratukas paryškina artefaktus, artimus pasirinktiems metams. Tinklelis: visi artefaktai nuo seniausio iki naujausio. Srautas: artefaktai teka pro laiko mašiną. Spustelėk artefaktą, kad atvertum. Forma ir spalva rodo grupę: pašto ženklas reiškia archyvą, laikraščio iškarpa tekstą, šešiakampis tyrimą, diskas balsą, bilietas renginį.</p>
           <div class="p-actions"><button class="ok" type="button" data-close>Pradėti</button></div>
         </aside>
       </div>
@@ -314,6 +333,11 @@ h1 { font-weight: 400; font-style: italic; font-size: clamp(30px, 3.6vw, 46px); 
   </div>
   <div class="dock" id="dock">
     <div class="dock-row">
+      <div class="views" id="views" role="radiogroup" aria-label="Vaizdas">
+        <button class="vbtn" type="button" role="radio" data-mode="scatter" aria-checked="true">Koliažas</button>
+        <button class="vbtn" type="button" role="radio" data-mode="grid" aria-checked="false">Tinklelis</button>
+        <button class="vbtn" type="button" role="radio" data-mode="stream" aria-checked="false">Srautas</button>
+      </div>
       <button class="pill" id="prev" type="button" aria-label="Ankstesnis artefaktas" title="Ankstesnis artefaktas">&larr;</button>
       <button class="pill" id="next" type="button" aria-label="Kitas artefaktas" title="Kitas artefaktas">&rarr;</button>
       <div class="dialwrap">
@@ -907,7 +931,7 @@ h1 { font-weight: 400; font-style: italic; font-size: clamp(30px, 3.6vw, 46px); 
     geom.cy = (geom.top + geom.bottom) / 2;
   }
   const baseScale = () => Math.max(0.5, Math.min(1, (geom.bottom - geom.top) / 620));
-  const playhead = () => [geom.cx, geom.cy];
+  const playhead = () => mode === "scatter" ? [pan.tx + SC.cx, pan.ty + SC.cy] : [geom.cx, geom.cy];
   const blobRadius = () => Math.max(46, Math.min(stage.clientWidth * 0.1, (geom.bottom - geom.top) * 0.19));
   function yearAt(p) {
     p = mod(p, L);
@@ -929,13 +953,14 @@ h1 { font-weight: 400; font-style: italic; font-size: clamp(30px, 3.6vw, 46px); 
     });
     return bd <= maxPx ? best : null;
   }
-  const goTo = item => { flow.target = flow.pos + wrapD(meta.get(item).x - flow.pos); };
+  const goTo = item => { if (mode === "stream") flow.target = flow.pos + wrapD(meta.get(item).x - flow.pos); };
   function goToYear(y) {
     let k = ORDER.findIndex(i => i.year != null && i.year >= y);
     if (k < 0) k = ORDER.length - 1;
     flow.target = flow.pos + wrapD(XS[k] - flow.pos);
   }
   function nudge(dir) {
+    if (mode !== "stream") { stepBy(dir); return; }
     let best = null, bd = Infinity;
     pool().forEach(item => { const d = wrapD(meta.get(item).x - flow.pos) * dir; if (d > 8 && d < bd) { bd = d; best = item; } });
     if (best) { stopTravel(); goTo(best); }
@@ -985,29 +1010,133 @@ h1 { font-weight: 400; font-style: italic; font-size: clamp(30px, 3.6vw, 46px); 
   }
   function startFlow() {
     new IntersectionObserver(es => { flowVisible = es[0].isIntersecting; }).observe(stage);
-    (function loop(now) { if (flowVisible) flowStep(now); else lastT = now; requestAnimationFrame(loop); })(performance.now());
+    (function loop(now) {
+      if (flowVisible && mode === "stream") flowStep(now);
+      else { lastT = now; if (flowVisible && mode === "scatter") scatterStep(); }
+      requestAnimationFrame(loop);
+    })(performance.now());
   }
+
+  /* ---------- Views: collage, grid, stream ---------- */
+  const VIEW_KEY = "rykantai-view";
+  let mode = "scatter";
+  try { const v = localStorage.getItem(VIEW_KEY); if (v === "grid" || v === "stream" || v === "scatter") mode = v; } catch (e) {}
+  const SC = { w: 0, h: 0, cx: 0, cy: 0, s: 0.7, pos: new Map() };
+  const pan = { tx: 0, ty: 0 };
+  const rClear = $("#rClear");
+  let tuneYear = null, hoverItem = null;
+  function layoutScatter() {
+    updateGeom();
+    const W = stage.clientWidth, band = geom.bottom - geom.top;
+    SC.s = Math.max(0.5, Math.min(0.82, band / 760));
+    SC.w = Math.max(W * 1.7, 1700); SC.h = Math.max(band * 1.9, 1200);
+    SC.cx = SC.w / 2; SC.cy = SC.h / 2;
+    const R = blobRadius() * 1.5;
+    const P = ORDER.map(item => {
+      const r = rng(item.id + "sc"), [w, h] = sizes.get(item), k = SC.s * meta.get(item).depth;
+      return { item, w: w * k, h: h * k, x: 80 + r() * (SC.w - 160), y: 60 + r() * (SC.h - 120) };
+    });
+    for (let it = 0; it < 80; it++) {
+      for (let i = 0; i < P.length; i++) {
+        const a = P[i];
+        for (let j = i + 1; j < P.length; j++) {
+          const b = P[j];
+          const ox = (a.w + b.w) / 2 * 0.86 - Math.abs(a.x - b.x), oy = (a.h + b.h) / 2 * 0.86 - Math.abs(a.y - b.y);
+          if (ox > 0 && oy > 0) {
+            if (ox < oy) { const d = (a.x < b.x ? -1 : 1) * ox / 2; a.x += d; b.x -= d; }
+            else { const d = (a.y < b.y ? -1 : 1) * oy / 2; a.y += d; b.y -= d; }
+          }
+        }
+        const dx = a.x - SC.cx, dy = a.y - SC.cy, dd = Math.hypot(dx, dy) || 1, minR = R + Math.max(a.w, a.h) * 0.5;
+        if (dd < minR) { a.x = SC.cx + dx / dd * minR; a.y = SC.cy + dy / dd * minR; }
+        a.x = Math.min(SC.w - a.w / 2 - 20, Math.max(a.w / 2 + 20, a.x));
+        a.y = Math.min(SC.h - a.h / 2 - 20, Math.max(a.h / 2 + 20, a.y));
+      }
+    }
+    P.forEach(p => SC.pos.set(p.item, p));
+    world.style.width = SC.w + "px"; world.style.height = SC.h + "px";
+    pan.tx = W / 2 - SC.cx; pan.ty = geom.top + band / 2 - SC.cy;
+    ORDER.forEach(item => {
+      const p = SC.pos.get(item), el = scraps.get(item), m = meta.get(item), k = SC.s * m.depth;
+      el.hidden = false; el.style.opacity = ""; el.style.zIndex = "";
+      el.style.transform = `translate3d(${(p.x - p.w / 2).toFixed(1)}px, ${(p.y - p.h / 2).toFixed(1)}px, 0) rotate(${m.rot}deg) scale(${k.toFixed(3)})`;
+    });
+    applyPan();
+  }
+  function applyPan() {
+    const W = stage.clientWidth;
+    pan.tx = Math.min(W * 0.35, Math.max(W * 0.65 - SC.w, pan.tx));
+    pan.ty = Math.min(geom.top + 40, Math.max(geom.bottom - 40 - SC.h, pan.ty));
+    world.style.transform = `translate3d(${pan.tx.toFixed(1)}px, ${pan.ty.toFixed(1)}px, 0)`;
+  }
+  function applyTune() {
+    ORDER.forEach(item => {
+      const far = tuneYear != null && (item.year == null || Math.abs(item.year - tuneYear) > 12);
+      scraps.get(item).classList.toggle("is-far", far);
+    });
+  }
+  function nearestByYear(y) {
+    let best = null, bd = Infinity;
+    pool().forEach(i => { if (i.year == null) return; const d = Math.abs(i.year - y); if (d < bd) { bd = d; best = i; } });
+    return best;
+  }
+  function scatterStep() {
+    const item = hoverItem || (tuneYear != null ? nearestByYear(tuneYear) : null);
+    const yt = hoverItem ? yrText(hoverItem) : tuneYear != null ? String(tuneYear) : "1619-2026";
+    if (yt !== lastYearTxt) { rYear.textContent = yt; rYear.classList.toggle("is-text", yt.length > 4); lastYearTxt = yt; }
+    if (item !== readItem) { readItem = item; rTitle.textContent = item ? item.title : ""; rTitle.hidden = !item; }
+    if (rClear.hidden !== (tuneYear == null)) rClear.hidden = tuneYear == null;
+    if (!GL) { const [cx, cy] = playhead(), fb = $("#blobfb"); fb.style.left = cx + "px"; fb.style.top = cy + "px"; fb.style.width = (blobRadius() * 2) + "px"; }
+  }
+  rClear.addEventListener("click", () => { tuneYear = null; applyTune(); dial.value = dial.max; });
+  function setMode(m) {
+    mode = m;
+    try { localStorage.setItem(VIEW_KEY, m); } catch (e) {}
+    stage.classList.remove("mode-scatter", "mode-grid", "mode-stream");
+    stage.classList.add("mode-" + m);
+    document.querySelectorAll(".vbtn").forEach(b => b.setAttribute("aria-checked", String(b.dataset.mode === m)));
+    world.setAttribute("aria-label", m === "grid" ? "Artefaktų tinklelis" : m === "stream" ? "Artefaktų srautas" : "Artefaktų koliažas");
+    lastYearTxt = ""; readItem = undefined; hoverItem = null; hoverEl = null; flow.hover = false; tip.hidden = true;
+    world.style.transform = ""; world.style.width = ""; world.style.height = ""; world.scrollTop = 0;
+    ORDER.forEach(item => { const el = scraps.get(item); el.hidden = false; el.style.transform = ""; el.style.opacity = ""; el.style.zIndex = ""; });
+    rClear.hidden = true;
+    if (m !== "scatter") { tuneYear = null; applyTune(); }
+    if (m === "scatter") layoutScatter();
+    if (m === "grid") stage.style.setProperty("--dock-h", (dock.offsetHeight + 28) + "px");
+  }
+  $("#views").addEventListener("click", e => { const b = e.target.closest(".vbtn"); if (b && b.dataset.mode !== mode) setMode(b.dataset.mode); });
+  let resizeTimer = null;
+  new ResizeObserver(() => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
+      if (mode === "scatter") layoutScatter();
+      if (mode === "grid") stage.style.setProperty("--dock-h", (dock.offsetHeight + 28) + "px");
+    }, 160);
+  }).observe(stage);
 
   /* ---------- Drag, swipe and hover ---------- */
   const ptrs = new Map();
   let dragMoved = false, downAt = null;
   const blocked = t => t.closest(".dock, .about-wrap, .detail, h1, .r-title");
   stage.addEventListener("pointerdown", e => {
-    if (blocked(e.target) || e.button > 0) return;
-    ptrs.set(e.pointerId, { x: e.clientX });
+    if (mode === "grid" || blocked(e.target) || e.button > 0) return;
+    ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
     dragMoved = false; downAt = { x: e.clientX, y: e.clientY };
   });
   stage.addEventListener("pointermove", e => {
     const p = ptrs.get(e.pointerId);
     if (!p) return;
-    const dx = e.clientX - p.x;
-    p.x = e.clientX;
-    if (!dragMoved && Math.abs(e.clientX - downAt.x) > 6) {
-      dragMoved = true; flow.drag = true; flow.target = null; stopTravel();
+    const dx = e.clientX - p.x, dy = e.clientY - p.y;
+    p.x = e.clientX; p.y = e.clientY;
+    const moved = mode === "stream" ? Math.abs(e.clientX - downAt.x) : Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y);
+    if (!dragMoved && moved > 6) {
+      dragMoved = true; flow.drag = mode === "stream"; flow.target = null; stopTravel();
       stage.classList.add("is-dragging"); tip.hidden = true;
       try { stage.setPointerCapture(e.pointerId); } catch (err) {}
     }
-    if (dragMoved) flow.pos -= dx / baseScale();
+    if (!dragMoved) return;
+    if (mode === "stream") flow.pos -= dx / baseScale();
+    else { pan.tx += dx; pan.ty += dy; applyPan(); }
   });
   const endPtr = e => {
     if (!ptrs.delete(e.pointerId)) return;
@@ -1017,8 +1146,9 @@ h1 { font-weight: 400; font-style: italic; font-size: clamp(30px, 3.6vw, 46px); 
   stage.addEventListener("pointercancel", endPtr);
   stage.addEventListener("wheel", e => {
     const dx = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : (e.shiftKey ? e.deltaY : 0);
-    if (!dx || !detail.hidden) return;
+    if (mode === "grid" || !dx || !detail.hidden) return;
     e.preventDefault();
+    if (mode === "scatter") { pan.tx -= dx; applyPan(); return; }
     flow.target = null; flow.pos += dx / baseScale(); idleUntil = performance.now() + 1500;
   }, { passive: false });
   world.addEventListener("click", e => {
@@ -1031,6 +1161,7 @@ h1 { font-weight: 400; font-style: italic; font-size: clamp(30px, 3.6vw, 46px); 
     if (!b || e.pointerType === "touch" || dragMoved) return;
     flow.hover = true; hoverEl = b;
     const item = BY_ID[b.dataset.id];
+    if (mode === "scatter" && hoverItem !== item) { hoverItem = item; if (GL) GL.pulse(); }
     tip.textContent = `${item.date} · ${item.title}`;
     tip.hidden = false;
   });
@@ -1041,7 +1172,7 @@ h1 { font-weight: 400; font-style: italic; font-size: clamp(30px, 3.6vw, 46px); 
     tip.style.top = (e.clientY - r.top) + "px";
   });
   world.addEventListener("pointerout", e => {
-    if (!e.relatedTarget || !e.relatedTarget.closest || !e.relatedTarget.closest(".scrap")) { tip.hidden = true; flow.hover = false; hoverEl = null; }
+    if (!e.relatedTarget || !e.relatedTarget.closest || !e.relatedTarget.closest(".scrap")) { tip.hidden = true; flow.hover = false; hoverEl = null; hoverItem = null; }
   });
   $("#pause").addEventListener("click", e => {
     flow.paused = !flow.paused;
@@ -1148,7 +1279,15 @@ h1 { font-weight: 400; font-style: italic; font-size: clamp(30px, 3.6vw, 46px); 
   /* ---------- Dial and travel ---------- */
   dial.addEventListener("pointerdown", () => { dialActive = true; });
   window.addEventListener("pointerup", () => { dialActive = false; });
-  dial.addEventListener("input", () => { stopTravel(); goToYear(+dial.value); });
+  dial.addEventListener("input", () => {
+    const y = +dial.value;
+    if (mode === "stream") goToYear(y);
+    else if (mode === "scatter") { tuneYear = y; applyTune(); }
+    else {
+      const it = ORDER.find(i => i.year != null && i.year >= y) || ORDER[ORDER.length - 1];
+      world.scrollTo({ top: Math.max(0, scraps.get(it).offsetTop - 40), behavior: reduce ? "auto" : "smooth" });
+    }
+  });
   const ticks = $("#ticks");
   ORDER.forEach(i => {
     if (i.year == null) return;
@@ -1301,7 +1440,7 @@ vec3 objectTangent = vec3(tangent.xyz);
     function frame(now) {
       const dt = Math.min(0.05, (now - last) / 1000);
       last = now;
-      if (visible) {
+      if (visible && mode !== "grid") {
         if (!reduce) time += dt;
         uni.uTime.value = time;
         uni.uAmp.value += (ampTarget - uni.uAmp.value) * (1 - Math.exp(-dt * 2.5));
@@ -1326,6 +1465,7 @@ vec3 objectTangent = vec3(tangent.xyz);
   dial.max = Math.max(2026, TODAY);
   try { if (window.THREE) GL = initGL(); } catch (err) { console.error(err); GL = null; }
   if (!GL) stage.classList.add("no-gl");
+  setMode(mode);
   startFlow();
   if (!introSeen()) openAbout();
 })();
