@@ -2,9 +2,9 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Unbounded:wght@500;700;900&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Schibsted+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
 <style>
-/* Layout: cobalt field with the chrome blob at the centre; every record is a scrap in a time ring around it (clockwise 1619 to 2026), pan and zoom; a picked scrap opens large beside a caption box; filter dock at the bottom; logbook below */
+/* Layout: cobalt field; artefacts stream right to left through the chrome blob, the time machine, which reads out the year and the artefact passing through it; drag or swipe to travel; a picked scrap opens large beside a caption box; filter dock at the bottom; logbook below */
 :root {
   --cobalt: #0047AB;
   --cobalt-glow: #2A6BE0;
@@ -24,8 +24,8 @@
   --k-tyrimas: #B79CFF;
   --k-balsas: #FF8BE0;
   --k-renginys: #FFC2A8;
-  --f-display: "Unbounded", "Arial Black", system-ui, sans-serif;
-  --f-body: "Instrument Sans", "Helvetica Neue", Arial, sans-serif;
+  --f-display: "Instrument Serif", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+  --f-body: "Schibsted Grotesk", "Helvetica Neue", Arial, sans-serif;
   --f-mono: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
   color-scheme: dark;
 }
@@ -49,15 +49,14 @@ a:hover { color: #8FF5FF; }
   background: radial-gradient(ellipse 70% 62% at 50% 48%, var(--cobalt-glow) 0%, var(--cobalt) 45%, #00307F 78%, var(--cobalt-deep) 100%);
 }
 .scene.is-dragging { cursor: grabbing; }
-#gl { position: absolute; inset: 0; z-index: 0; width: 100%; height: 100%; display: block; pointer-events: none; }
-.blobfb { display: none; position: absolute; z-index: 0; width: 200px; aspect-ratio: 1; border-radius: 46% 54% 52% 48% / 50% 44% 56% 50%; background: conic-gradient(from 20deg, #8FF5FF, #B79CFF, #FF8BE0, #FFD98A, #8FF5FF); box-shadow: inset -30px -40px 80px rgba(0, 10, 60, 0.75), inset 24px 24px 60px rgba(255, 255, 255, 0.45); transform: translate(-50%, -50%); pointer-events: none; }
+#gl { position: absolute; inset: 0; z-index: 2; width: 100%; height: 100%; display: block; pointer-events: none; }
+.blobfb { display: none; position: absolute; z-index: 2; width: 200px; aspect-ratio: 1; border-radius: 46% 54% 52% 48% / 50% 44% 56% 50%; background: conic-gradient(from 20deg, #8FF5FF, #B79CFF, #FF8BE0, #FFD98A, #8FF5FF); box-shadow: inset -30px -40px 80px rgba(0, 10, 60, 0.75), inset 24px 24px 60px rgba(255, 255, 255, 0.45); transform: translate(-50%, -50%); pointer-events: none; }
 .no-gl .blobfb { display: block; }
 
-.world { position: absolute; left: 0; top: 0; z-index: 1; transform-origin: 0 0; will-change: transform; }
-.tick { position: absolute; transform: translate(-50%, -50%); font-family: var(--f-mono); font-size: 22px; letter-spacing: 0.08em; color: var(--ink-soft); opacity: 0.75; white-space: nowrap; pointer-events: none; }
+.world { position: absolute; inset: 0; z-index: 1; }
 
 /* Scraps */
-.scrap { position: absolute; display: block; margin: 0; padding: 0; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; transition: opacity 0.35s, filter 0.35s; }
+.scrap { position: absolute; left: 0; top: 0; display: block; margin: 0; padding: 0; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; transform-origin: 0 0; will-change: transform; }
 .scrap .sc { position: relative; width: 100%; height: 100%; transition: transform 0.25s; animation: drift var(--dur, 8s) ease-in-out var(--delay, 0s) infinite; }
 @keyframes drift {
   0%, 100% { translate: 0 0; rotate: 0deg; }
@@ -68,7 +67,6 @@ a:hover { color: #8FF5FF; }
 .scrap:hover { z-index: 4; }
 .scrap:hover .sc { transform: scale(1.08) rotate(-1.5deg); }
 .scrap.is-dim { opacity: 0.1; pointer-events: none; }
-.scrap.is-future { opacity: 0.22; filter: grayscale(0.8); }
 .scrap.is-sel { z-index: 5; }
 .scrap:focus-visible { outline: none; }
 .scrap.is-sel::after, .scrap:focus-visible::after { content: ""; position: absolute; inset: -12px; border: 4px solid #8FF5FF; border-radius: 14px; pointer-events: none; }
@@ -234,7 +232,34 @@ input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border: 0; bo
 .foot { color: var(--ink-soft); font-size: 14px; display: grid; gap: 6px; max-width: 72ch; }
 .foot p { margin: 0; }
 
+/* The time machine's readout under the blob */
+.readout { position: absolute; top: 14px; left: 50%; z-index: 3; transform: translateX(-50%); display: grid; justify-items: center; gap: 4px; text-align: center; pointer-events: none; width: min(420px, calc(100% - 300px)); }
+.scanline { position: absolute; left: 50%; z-index: 1; width: 2px; transform: translateX(-50%); background: linear-gradient(to bottom, #8FF5FF, #B79CFF 35%, #FF8BE0 68%, #FFD98A); opacity: 0.55; pointer-events: none; box-shadow: 0 0 14px rgba(143, 245, 255, 0.6); }
+
+.r-label { font-family: var(--f-mono); font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-soft); }
+.r-year { font-family: var(--f-display); font-weight: 400; font-size: clamp(52px, 6vw, 88px); line-height: 0.92; background: var(--holo); -webkit-background-clip: text; background-clip: text; color: transparent; font-variant-numeric: tabular-nums; }
+.r-year.is-text { font-size: clamp(34px, 4.4vw, 56px); }
+.r-title { pointer-events: auto; max-width: 100%; font: 500 14px var(--f-body); color: var(--ink); background: rgba(0, 11, 38, 0.72); border: 1px solid var(--line); border-radius: 999px; padding: 6px 14px; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.r-title:hover { border-color: #8FF5FF; color: #8FF5FF; }
+#pause { margin-left: auto; }
+#pause[aria-pressed="true"] { background: var(--ink); color: var(--cobalt-deep); }
+
+/* Display face: Instrument Serif has one weight, so no faux bold */
+h1 { font-weight: 400; font-style: italic; font-size: clamp(30px, 3.6vw, 46px); letter-spacing: 0; }
+.s-year, .p-title, .log-head h2, .d-count { font-weight: 400; letter-spacing: 0; }
+.s-year { font-size: 40px; }
+.s-year.is-text { font-size: 22px; }
+.k-tyrimas .s-year { font-size: 34px; }
+.k-balsas .s-year { font-size: 27px; }
+.k-renginys .s-year { font-size: 31px; }
+.p-title { font-size: 27px; line-height: 1.12; }
+.d-cap .p-title { font-size: 29px; }
+.log-head h2 { font-size: clamp(38px, 5.4vw, 60px); }
+.log-title { font-family: var(--f-body); }
+
 @media (max-width: 700px) {
+  .readout { top: 60px; width: calc(100% - 32px); }
+  .r-year { font-size: 48px; }
   .dock { bottom: 10px; padding: 10px; gap: 8px; width: calc(100% - 20px); }
   .dialwrap { flex-basis: 100%; order: -1; }
   .zoom { margin-left: 0; }
@@ -255,7 +280,13 @@ input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border: 0; bo
 <section class="scene" id="scene" aria-label="Laiko mašina">
   <canvas id="gl" aria-hidden="true"></canvas>
   <div class="blobfb" id="blobfb" aria-hidden="true"></div>
-  <div class="world" id="world" role="group" aria-label="Įrašų kraštovaizdis"></div>
+  <div class="world" id="world" role="group" aria-label="Artefaktų srautas"></div>
+  <div class="readout" id="readout" aria-live="polite">
+    <span class="r-label">Laiko mašina rodo</span>
+    <span class="r-year" id="rYear">1619</span>
+    <button class="r-title" id="rTitle" type="button" hidden></button>
+  </div>
+  <div class="scanline" id="scanline" aria-hidden="true"></div>
   <div class="hud">
     <div class="hud-top">
       <h1>Rykantų laiko mašina</h1>
@@ -266,7 +297,7 @@ input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border: 0; bo
           <h2 class="p-title" id="aboutTitle">Rykantų laiko mašina</h2>
           <p>Tai <a href="https://www.rykantupastas.lt/" target="_blank" rel="noopener noreferrer">Rykantų pašto</a>, Piliečių mokslo asociacijos, <a href="https://vilniustech.lt/" target="_blank" rel="noopener noreferrer">VILNIUS TECH</a> ir Participio projektas ir bendras tyrinėjimas.</p>
           <p>Čia surinkta <span id="aboutCount"></span> apie Rykantus: archyvų dokumentai ir nuotraukos, tekstai, moksliniai tyrimai, gyventojų balsai ir renginiai nuo 1619 m. iki šių dienų.</p>
-          <p class="p-meta">Įrašai išdėlioti laiko ratu aplink laiko mašiną: nuo viršaus pagal laikrodžio rodyklę, nuo seniausio iki naujausio. Tempk, kad judintum, didink mygtukais + ir −, spustelėk įrašą, kad jį atvertum. Forma ir spalva rodo grupę: pašto ženklas reiškia archyvą, arka tekstą, šešiakampis tyrimą, diskas balsą, bilietas renginį.</p>
+          <p class="p-meta">Artefaktai teka pro laiko mašiną nuo seniausių iki naujausių. Burbulas yra laiko mašina: po juo matai, kokius metus ji rodo ir kuris artefaktas pro ją praplaukia. Tempk į šonus arba braukyk, kad keliautum laiku, užvesk pelę ant artefakto, kad srautas sustotų, spustelėk, kad atvertum. Forma ir spalva rodo grupę: pašto ženklas reiškia archyvą, arka tekstą, šešiakampis tyrimą, diskas balsą, bilietas renginį.</p>
           <div class="p-actions"><button class="ok" type="button" data-close>Pradėti</button></div>
         </aside>
       </div>
@@ -285,7 +316,6 @@ input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border: 0; bo
       <button class="pill pill-hot" id="travel" type="button" aria-pressed="false">Keliauti</button>
       <button class="pill" id="prev" type="button" aria-label="Ankstesnis įrašas">&larr;</button>
       <button class="pill" id="next" type="button" aria-label="Vėlesnis įrašas">&rarr;</button>
-      <output class="year" id="year" for="dial">2026</output>
       <div class="dialwrap">
         <div class="ticks" id="ticks" aria-hidden="true"></div>
         <label class="sr" for="dial">Metų ratukas</label>
@@ -295,11 +325,7 @@ input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border: 0; bo
     <div class="dock-row">
       <label class="search"><span class="sr">Paieška</span><input id="q" type="search" placeholder="Ieškoti žodžių, vardų, vietų" autocomplete="off"></label>
       <nav class="kinds" id="kindsScene" aria-label="Įrašų grupės"></nav>
-      <div class="zoom">
-        <button class="pill" id="zout" type="button" aria-label="Tolinti">&minus;</button>
-        <button class="pill" id="zfit" type="button">Visas</button>
-        <button class="pill" id="zin" type="button" aria-label="Artinti">+</button>
-      </div>
+      <button class="pill" id="pause" type="button" aria-pressed="false">Pauzė</button>
     </div>
   </div>
   <div class="tip" id="tip" hidden></div>
@@ -788,7 +814,7 @@ input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border: 0; bo
   const $ = s => document.querySelector(s);
   const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
   const stage = $("#scene"), world = $("#world"), tip = $("#tip"), dock = $("#dock");
-  const yearEl = $("#year"), dial = $("#dial"), detail = $("#detail");
+  const dial = $("#dial"), detail = $("#detail");
   const linkHTML = item => item.links.map(([l, h]) => `<a href="${h}" target="_blank" rel="noopener noreferrer">${l} ↗</a>`).join("");
   const kdot = k => `<i class="kdot kd-${k}" style="--c:var(--k-${k})"></i>`;
   const yrText = item => item.year == null ? "Be datos" : String(item.year);
@@ -825,10 +851,9 @@ input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border: 0; bo
     }
   }
 
-  /* ---------- Time ring layout ---------- */
-  let WW = 3400, WH = 2100, CX = 1700, CY = 1050, R0 = 300, portraitWorld = false;
-  const scraps = new Map(), sizes = new Map();
-  ORDER.forEach(item => {
+  /* ---------- Flow: artefacts stream through the time machine ---------- */
+  const scraps = new Map(), sizes = new Map(), meta = new Map();
+  ORDER.forEach((item, k) => {
     const b = document.createElement("button");
     b.type = "button";
     b.className = `scrap k-${item.kind}${item.kind === "archyvas" && !item.img ? " no-img" : ""}`;
@@ -841,121 +866,152 @@ input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border: 0; bo
     b.style.setProperty("--dr", ((wr() - 0.5) * 5).toFixed(2) + "deg");
     b.style.setProperty("--dur", (6 + wr() * 6).toFixed(2) + "s");
     b.style.setProperty("--delay", (-wr() * 12).toFixed(2) + "s");
+    const size = baseSize(item, rng(item.id + "s"));
+    b.style.width = size[0] + "px"; b.style.height = size[1] + "px";
     world.appendChild(b);
-    scraps.set(item, b);
-    sizes.set(item, baseSize(item, rng(item.id + "s")));
+    scraps.set(item, b); sizes.set(item, size);
+    const r = rng(item.id + "p");
+    meta.set(item, { x: 0, lane: ((k * 3) % 7 + r() * 0.85) / 7.85, depth: 0.8 + r() * 0.32, rot: ((r() - 0.5) * 7).toFixed(2) });
   });
-  const tickEls = [];
-  function layout() {
-    portraitWorld = stage.clientWidth / Math.max(1, stage.clientHeight) < 0.85;
-    if (portraitWorld) { WW = 1900; WH = 3300; R0 = 270; } else { WW = 3400; WH = 2100; R0 = 300; }
-    CX = WW / 2; CY = WH / 2;
-    world.style.width = WW + "px"; world.style.height = WH + "px";
-    const ax = portraitWorld ? 1 : 1.45, ay = portraitWorld ? 1.55 : 1;
-    const rIn = R0 + 50, rOut = Math.min((WW / 2 - 110) / ax, (WH / 2 - 110) / ay);
-    const span = Math.PI * 2 * 0.94, start = -Math.PI / 2 + Math.PI * 0.03;
-    const P = ORDER.map((item, k) => {
-      const r = rng(item.id + "p");
-      const th = start + span * (k + 0.5) / N;
-      const rad = rIn + Math.pow(r(), 0.75) * (rOut - rIn);
-      const [w, h] = sizes.get(item).map(v => portraitWorld ? v * 0.92 : v);
-      return { item, w, h, x: CX + Math.cos(th) * rad * ax, y: CY + Math.sin(th) * rad * ay, rot: (r() - 0.5) * 7 };
-    });
-    for (let it = 0; it < 90; it++) {
-      for (let i = 0; i < P.length; i++) {
-        const a = P[i];
-        for (let j = i + 1; j < P.length; j++) {
-          const b = P[j];
-          const ox = (a.w + b.w) / 2 * 0.92 - Math.abs(a.x - b.x), oy = (a.h + b.h) / 2 * 0.92 - Math.abs(a.y - b.y);
-          if (ox > 0 && oy > 0) {
-            if (ox < oy) { const d = (a.x < b.x ? -1 : 1) * ox / 2; a.x += d; b.x -= d; }
-            else { const d = (a.y < b.y ? -1 : 1) * oy / 2; a.y += d; b.y -= d; }
-          }
-        }
-        const dx = (a.x - CX) / ax, dy = (a.y - CY) / ay, dd = Math.hypot(dx, dy) || 1;
-        const minR = R0 + Math.max(a.w, a.h) * 0.45;
-        if (dd < minR) { a.x = CX + dx / dd * minR * ax; a.y = CY + dy / dd * minR * ay; }
-        a.x = Math.min(WW - a.w / 2 - 20, Math.max(a.w / 2 + 20, a.x));
-        a.y = Math.min(WH - a.h / 2 - 20, Math.max(a.h / 2 + 20, a.y));
+  const XS = [];
+  let L = 0;
+  (function placeAlongRiver() {
+    let x = 0, prev = null;
+    ORDER.forEach(item => {
+      if (prev) {
+        const gap = prev.year != null && item.year != null ? Math.min(240, Math.max(0, item.year - prev.year) * 1.8) : 50;
+        x += 64 + gap;
       }
+      meta.get(item).x = x; XS.push(x); prev = item;
+    });
+    L = x + 620;
+  })();
+  const mod = (v, m) => ((v % m) + m) % m;
+  const wrapD = d => mod(d + L / 2, L) - L / 2;
+  const flow = { pos: XS[Math.min(9, XS.length - 1)], target: null, paused: false, hover: false, drag: false, speed: reduce ? 0 : 30 };
+  const geom = { cx: 0, cy: 0, top: 0, bottom: 0 };
+  function updateGeom() {
+    const ro = document.getElementById("readout");
+    geom.cx = stage.clientWidth / 2;
+    geom.top = ro.offsetTop + ro.offsetHeight + 14;
+    geom.bottom = Math.max(geom.top + 220, stage.clientHeight - dock.offsetHeight - 30);
+    geom.cy = (geom.top + geom.bottom) / 2;
+  }
+  const baseScale = () => Math.max(0.5, Math.min(1, (geom.bottom - geom.top) / 620));
+  const playhead = () => [geom.cx, geom.cy];
+  const blobRadius = () => Math.max(46, Math.min(stage.clientWidth * 0.1, (geom.bottom - geom.top) * 0.19));
+  function yearAt(p) {
+    p = mod(p, L);
+    let lo = 0, hi = XS.length - 1;
+    if (p >= XS[hi]) return p - XS[hi] > (L - XS[hi]) / 2 ? ORDER[0].year : ORDER[hi].year;
+    while (lo < hi - 1) { const mid = (lo + hi) >> 1; if (XS[mid] <= p) lo = mid; else hi = mid; }
+    const a = ORDER[lo], b = ORDER[hi];
+    if (a.year == null) return null;
+    if (b.year == null) return a.year;
+    return Math.round(a.year + (b.year - a.year) * (p - XS[lo]) / ((XS[hi] - XS[lo]) || 1));
+  }
+  function nearestItem(maxPx) {
+    const s = baseScale();
+    let best = null, bd = Infinity;
+    ORDER.forEach(item => {
+      if (!matches(item)) return;
+      const d = Math.abs(wrapD(meta.get(item).x - flow.pos)) * s;
+      if (d < bd) { bd = d; best = item; }
+    });
+    return bd <= maxPx ? best : null;
+  }
+  const goTo = item => { flow.target = flow.pos + wrapD(meta.get(item).x - flow.pos); };
+  function goToYear(y) {
+    let k = ORDER.findIndex(i => i.year != null && i.year >= y);
+    if (k < 0) k = ORDER.length - 1;
+    flow.target = flow.pos + wrapD(XS[k] - flow.pos);
+  }
+  function nudge(dir) {
+    let best = null, bd = Infinity;
+    pool().forEach(item => { const d = wrapD(meta.get(item).x - flow.pos) * dir; if (d > 8 && d < bd) { bd = d; best = item; } });
+    if (best) { stopTravel(); goTo(best); }
+  }
+  const rYear = $("#rYear"), rTitle = $("#rTitle"), readout = $("#readout");
+  let readItem = null, lastYearTxt = "", hoverEl = null, dialActive = false;
+  rTitle.addEventListener("click", () => { if (readItem) select(readItem); });
+  const scan = $("#scanline");
+  function renderFlow() {
+    updateGeom();
+    const W = stage.clientWidth, s = baseScale(), [cx, cy] = playhead();
+    const top = geom.top, bottom = geom.bottom;
+    scan.style.top = (top - 8) + "px"; scan.style.height = (bottom - top + 16) + "px";
+    ORDER.forEach(item => {
+      const m = meta.get(item), el = scraps.get(item), [w, h] = sizes.get(item);
+      const d = wrapD(m.x - flow.pos), sx = cx + d * s;
+      const near = Math.exp(-Math.pow(d * s / (W * 0.2), 2));
+      const k = s * m.depth * (1 + 0.16 * near);
+      if (sx + w * k / 2 < -40 || sx - w * k / 2 > W + 40) { if (!el.hidden) el.hidden = true; return; }
+      if (el.hidden) el.hidden = false;
+      const y = top + m.lane * Math.max(30, bottom - top - h * k);
+      el.style.transform = `translate3d(${(sx - w * k / 2).toFixed(1)}px, ${y.toFixed(1)}px, 0) rotate(${m.rot}deg) scale(${k.toFixed(3)})`;
+      el.style.opacity = matches(item) ? (0.5 + 0.5 * near).toFixed(2) : "0.06";
+      el.style.zIndex = el === hoverEl ? "60" : item === current ? "55" : String(Math.round(near * 20 + m.depth * 4));
+    });
+    const yr = yearAt(flow.pos), yt = yr == null ? "Be datos" : String(yr);
+    if (yt !== lastYearTxt) {
+      rYear.textContent = yt; rYear.classList.toggle("is-text", yr == null); lastYearTxt = yt;
+      if (!dialActive && yr != null) dial.value = yr;
     }
-    P.forEach(p => {
-      const b = scraps.get(p.item);
-      b.style.left = (p.x - p.w / 2) + "px"; b.style.top = (p.y - p.h / 2) + "px";
-      b.style.width = p.w + "px"; b.style.height = p.h + "px";
-      b.style.transform = `rotate(${p.rot.toFixed(2)}deg)`;
-    });
-    tickEls.forEach(t => t.remove()); tickEls.length = 0;
-    [1619, 1800, 1900, 1950, 2000, 2020].forEach(Y => {
-      const k = ORDER.findIndex(i => i.year != null && i.year >= Y);
-      if (k < 0) return;
-      const th = start + span * (k + 0.5) / N, rr = R0 + 22;
-      const t = document.createElement("span");
-      t.className = "tick"; t.textContent = Y;
-      t.style.left = (CX + Math.cos(th) * rr * ax) + "px"; t.style.top = (CY + Math.sin(th) * rr * ay) + "px";
-      world.appendChild(t); tickEls.push(t);
-    });
+    const ni = nearestItem(W * 0.07 + 40);
+    if (ni !== readItem) { readItem = ni; rTitle.textContent = ni ? ni.title : ""; rTitle.hidden = !ni; }
+    const rB = blobRadius();
+    if (!GL) { const fb = $("#blobfb"); fb.style.left = cx + "px"; fb.style.top = cy + "px"; fb.style.width = (rB * 2) + "px"; }
+  }
+  let lastT = performance.now(), idleUntil = 0, flowVisible = true;
+  function flowStep(now) {
+    const dt = Math.min(0.05, (now - lastT) / 1000);
+    lastT = now;
+    if (flow.target != null && !flow.drag) {
+      flow.pos += (flow.target - flow.pos) * (1 - Math.exp(-dt * 3.2));
+      if (Math.abs(flow.target - flow.pos) < 0.5) { flow.pos = flow.target; flow.target = null; }
+    } else if (!flow.drag && !flow.hover && !flow.paused && detail.hidden && now > idleUntil) {
+      flow.pos += flow.speed * dt;
+    }
+    renderFlow();
+  }
+  function startFlow() {
+    new IntersectionObserver(es => { flowVisible = es[0].isIntersecting; }).observe(stage);
+    (function loop(now) { if (flowVisible) flowStep(now); else lastT = now; requestAnimationFrame(loop); })(performance.now());
   }
 
-  /* ---------- Pan and zoom ---------- */
-  const view = { s: 1, tx: 0, ty: 0 };
-  let fitS = 1;
-  const applyView = () => { world.style.transform = `translate(${view.tx}px, ${view.ty}px) scale(${view.s})`; };
-  function fit() {
-    const w = stage.clientWidth, h = stage.clientHeight, top = 64, bottom = dock.offsetHeight + 28;
-    const ah = Math.max(200, h - top - bottom);
-    fitS = Math.min((w - 24) / WW, ah / WH);
-    view.s = fitS; view.tx = (w - WW * fitS) / 2; view.ty = top + (ah - WH * fitS) / 2;
-    applyView();
-  }
-  function zoomAt(cx, cy, f) {
-    const s2 = Math.min(fitS * 7, Math.max(fitS * 0.8, view.s * f));
-    view.tx = cx - (cx - view.tx) * (s2 / view.s); view.ty = cy - (cy - view.ty) * (s2 / view.s); view.s = s2;
-    applyView();
-  }
-  const centre = () => [stage.clientWidth / 2, (stage.clientHeight - dock.offsetHeight) / 2 + 20];
-  $("#zin").addEventListener("click", () => zoomAt(...centre(), 1.5));
-  $("#zout").addEventListener("click", () => zoomAt(...centre(), 1 / 1.5));
-  $("#zfit").addEventListener("click", fit);
-  stage.addEventListener("wheel", e => {
-    if (!e.ctrlKey || !detail.hidden) return;
-    e.preventDefault();
-    const r = stage.getBoundingClientRect();
-    zoomAt(e.clientX - r.left, e.clientY - r.top, Math.exp(-e.deltaY * 0.01));
-  }, { passive: false });
+  /* ---------- Drag, swipe and hover ---------- */
   const ptrs = new Map();
-  let dragMoved = false, downAt = null, pinch = null;
-  const blocked = t => t.closest(".dock, .about-wrap, .detail, h1");
+  let dragMoved = false, downAt = null;
+  const blocked = t => t.closest(".dock, .about-wrap, .detail, h1, .r-title");
   stage.addEventListener("pointerdown", e => {
     if (blocked(e.target) || e.button > 0) return;
-    ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
-    if (ptrs.size === 1) { dragMoved = false; downAt = { x: e.clientX, y: e.clientY }; }
-    if (ptrs.size === 2) {
-      const [a, b] = [...ptrs.values()];
-      pinch = { d: Math.hypot(a.x - b.x, a.y - b.y), s: view.s };
-    }
+    ptrs.set(e.pointerId, { x: e.clientX });
+    dragMoved = false; downAt = { x: e.clientX, y: e.clientY };
   });
   stage.addEventListener("pointermove", e => {
     const p = ptrs.get(e.pointerId);
     if (!p) return;
-    const dx = e.clientX - p.x, dy = e.clientY - p.y;
-    p.x = e.clientX; p.y = e.clientY;
-    if (ptrs.size === 2 && pinch) {
-      const [a, b] = [...ptrs.values()], r = stage.getBoundingClientRect();
-      const d = Math.hypot(a.x - b.x, a.y - b.y);
-      zoomAt((a.x + b.x) / 2 - r.left, (a.y + b.y) / 2 - r.top, (pinch.s * d / pinch.d) / view.s);
-      dragMoved = true;
-      return;
-    }
-    if (!dragMoved && downAt && Math.hypot(e.clientX - downAt.x, e.clientY - downAt.y) > 6) {
-      dragMoved = true; stage.classList.add("is-dragging"); tip.hidden = true;
+    const dx = e.clientX - p.x;
+    p.x = e.clientX;
+    if (!dragMoved && Math.abs(e.clientX - downAt.x) > 6) {
+      dragMoved = true; flow.drag = true; flow.target = null; stopTravel();
+      stage.classList.add("is-dragging"); tip.hidden = true;
       try { stage.setPointerCapture(e.pointerId); } catch (err) {}
     }
-    if (dragMoved) { view.tx += dx; view.ty += dy; applyView(); }
+    if (dragMoved) flow.pos -= dx / baseScale();
   });
-  const endPtr = e => { ptrs.delete(e.pointerId); if (ptrs.size < 2) pinch = null; if (!ptrs.size) stage.classList.remove("is-dragging"); };
+  const endPtr = e => {
+    if (!ptrs.delete(e.pointerId)) return;
+    if (!ptrs.size) { flow.drag = false; stage.classList.remove("is-dragging"); idleUntil = performance.now() + 1500; }
+  };
   stage.addEventListener("pointerup", endPtr);
   stage.addEventListener("pointercancel", endPtr);
+  stage.addEventListener("wheel", e => {
+    const dx = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : (e.shiftKey ? e.deltaY : 0);
+    if (!dx || !detail.hidden) return;
+    e.preventDefault();
+    flow.target = null; flow.pos += dx / baseScale(); idleUntil = performance.now() + 1500;
+  }, { passive: false });
   world.addEventListener("click", e => {
     const b = e.target.closest(".scrap");
     if (!b || dragMoved) return;
@@ -964,6 +1020,7 @@ input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border: 0; bo
   world.addEventListener("pointerover", e => {
     const b = e.target.closest(".scrap");
     if (!b || e.pointerType === "touch" || dragMoved) return;
+    flow.hover = true; hoverEl = b;
     const item = BY_ID[b.dataset.id];
     tip.textContent = `${item.date} · ${item.title}`;
     tip.hidden = false;
@@ -974,28 +1031,17 @@ input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border: 0; bo
     tip.style.left = Math.min(e.clientX - r.left, r.width - 300) + "px";
     tip.style.top = (e.clientY - r.top) + "px";
   });
-  world.addEventListener("pointerout", e => { if (!e.relatedTarget || !e.relatedTarget.closest || !e.relatedTarget.closest(".scrap")) tip.hidden = true; });
-
-  /* ---------- Year readout ---------- */
-  let shownYear = TODAY, rollId = 0;
-  function rollYear(to) {
-    const id = ++rollId;
-    yearEl.classList.toggle("is-text", to == null);
-    if (to == null) { yearEl.textContent = "Be datos"; return; }
-    const from = shownYear;
-    shownYear = to;
-    if (reduce || from === to) { yearEl.textContent = to; return; }
-    const t0 = performance.now(), d = 900;
-    (function step(n) {
-      if (id !== rollId) return;
-      const p = Math.min(1, (n - t0) / d), e = 1 - Math.pow(1 - p, 4);
-      yearEl.textContent = Math.round(from + (to - from) * e);
-      if (p < 1) requestAnimationFrame(step);
-    })(t0);
-  }
+  world.addEventListener("pointerout", e => {
+    if (!e.relatedTarget || !e.relatedTarget.closest || !e.relatedTarget.closest(".scrap")) { tip.hidden = true; flow.hover = false; hoverEl = null; }
+  });
+  $("#pause").addEventListener("click", e => {
+    flow.paused = !flow.paused;
+    e.currentTarget.textContent = flow.paused ? "Tekėti" : "Pauzė";
+    e.currentTarget.setAttribute("aria-pressed", String(flow.paused));
+  });
 
   /* ---------- Filters: group, search, dial ---------- */
-  let focusKind = null, query = "", dialYear = TODAY;
+  let focusKind = null, query = "";
   const norm = s => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
   const HAY = new Map(ORDER.map(i => [i, norm([i.title, i.holder, i.notes, i.type, i.date, i.lang].join(" "))]));
   const matches = i => (!focusKind || i.kind === focusKind) && (!query || HAY.get(i).includes(query));
@@ -1005,7 +1051,6 @@ input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border: 0; bo
     ORDER.forEach(i => {
       const b = scraps.get(i), ok = matches(i);
       b.classList.toggle("is-dim", !ok);
-      b.classList.toggle("is-future", ok && i.year != null && i.year > dialYear);
       b.tabIndex = ok ? 0 : -1;
     });
     document.querySelectorAll(".log li").forEach(li => { li.hidden = !matches(BY_ID[li.dataset.id]); });
@@ -1062,13 +1107,11 @@ input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border: 0; bo
     if (item) {
       if (!about.hidden) closeAbout();
       scraps.get(item).classList.add("is-sel");
+      goTo(item);
       openDetail(item);
-      rollYear(item.year);
-      if (item.year != null) dial.value = item.year;
       if (GL) GL.pulse();
     } else {
       detail.hidden = true;
-      rollYear(dialYear);
     }
     document.querySelectorAll(".log li").forEach(li => li.classList.toggle("is-active", !!item && li.dataset.id === item.id));
   }
@@ -1082,8 +1125,8 @@ input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border: 0; bo
   $("#dClose").addEventListener("click", () => select(null));
   $("#dPrev").addEventListener("click", () => stepBy(-1));
   $("#dNext").addEventListener("click", () => stepBy(1));
-  $("#prev").addEventListener("click", () => stepBy(-1));
-  $("#next").addEventListener("click", () => stepBy(1));
+  $("#prev").addEventListener("click", () => nudge(-1));
+  $("#next").addEventListener("click", () => nudge(1));
   detail.addEventListener("click", e => { if (e.target === detail) select(null); });
   document.addEventListener("keydown", e => {
     if (e.target.matches && e.target.matches("input")) return;
@@ -1093,13 +1136,9 @@ input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border: 0; bo
   });
 
   /* ---------- Dial and travel ---------- */
-  dial.addEventListener("input", () => {
-    dialYear = +dial.value;
-    stopTravel();
-    rollId++; shownYear = dialYear;
-    yearEl.classList.remove("is-text"); yearEl.textContent = dialYear;
-    applyFilters();
-  });
+  dial.addEventListener("pointerdown", () => { dialActive = true; });
+  window.addEventListener("pointerup", () => { dialActive = false; });
+  dial.addEventListener("input", () => { stopTravel(); goToYear(+dial.value); });
   const ticks = $("#ticks");
   ORDER.forEach(i => {
     if (i.year == null) return;
@@ -1255,7 +1294,7 @@ vec3 objectTangent = vec3(tangent.xyz);
       sp[i * 3] = r * s * Math.cos(a); sp[i * 3 + 1] = r * u; sp[i * 3 + 2] = r * s * Math.sin(a) - 30;
     }
     const sg = new T.BufferGeometry(); sg.setAttribute("position", new T.BufferAttribute(sp, 3));
-    const stars = new T.Points(sg, new T.PointsMaterial({ size: 0.28, map: new T.CanvasTexture(dotC), transparent: true, depthWrite: false, opacity: 0.85, sizeAttenuation: true }));
+    const stars = new T.Points(sg, new T.PointsMaterial({ size: 0.28, map: new T.CanvasTexture(dotC), transparent: true, depthWrite: false, opacity: 0.55, sizeAttenuation: true }));
     scene.add(stars);
     function resize() {
       renderer.setSize(stage.clientWidth, stage.clientHeight, false);
@@ -1277,9 +1316,9 @@ vec3 objectTangent = vec3(tangent.xyz);
         uni.uAmp.value += (ampTarget - uni.uAmp.value) * (1 - Math.exp(-dt * 2.5));
         ampTarget += (0.3 - ampTarget) * (1 - Math.exp(-dt * 1.5));
         const w = stage.clientWidth, h = stage.clientHeight, k = visH / h;
-        const sx = view.tx + CX * view.s, sy = view.ty + CY * view.s;
+        const [sx, sy] = playhead();
         blob.position.set((sx - w / 2) * k, -(sy - h / 2) * k, 0);
-        blob.scale.setScalar(R0 * view.s * 0.8 * k / 1.7);
+        blob.scale.setScalar(blobRadius() * k / 1.7);
         blob.rotation.y = time * 0.08;
         blob.rotation.x = Math.sin(time * 0.1) * 0.2;
         stars.rotation.y = time * 0.006;
@@ -1292,26 +1331,11 @@ vec3 objectTangent = vec3(tangent.xyz);
   }
 
   /* ---------- Boot ---------- */
-  layout();
-  fit();
   applyFilters();
-  yearEl.textContent = TODAY;
   dial.max = Math.max(2026, TODAY);
-  dial.value = TODAY;
   try { if (window.THREE) GL = initGL(); } catch (err) { console.error(err); GL = null; }
-  if (!GL) {
-    stage.classList.add("no-gl");
-    const fb = $("#blobfb");
-    const placeFb = () => { fb.style.left = (view.tx + CX * view.s) + "px"; fb.style.top = (view.ty + CY * view.s) + "px"; fb.style.width = (R0 * view.s * 1.6) + "px"; };
-    placeFb();
-    new MutationObserver(placeFb).observe(world, { attributes: true, attributeFilter: ["style"] });
-  }
-  let wasPortrait = portraitWorld;
-  new ResizeObserver(() => {
-    const p = stage.clientWidth / Math.max(1, stage.clientHeight) < 0.85;
-    if (p !== wasPortrait) { wasPortrait = p; layout(); }
-    fit();
-  }).observe(stage);
+  if (!GL) stage.classList.add("no-gl");
+  startFlow();
   if (!introSeen()) openAbout();
 })();
 </script>
