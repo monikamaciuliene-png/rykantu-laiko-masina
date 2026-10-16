@@ -300,7 +300,28 @@ h1 { margin: 0; font-family: var(--f-display); font-weight: 700; font-size: clam
 .sp .st-list { display: block; columns: 3 330px; column-gap: 16px; }
 .sp .st-list[hidden], .sp .st[hidden] { display: none; }
 .sp .st { break-inside: avoid; margin: 0 0 16px; }
-@media (max-width: 700px) { .sp-in { padding: 18px 16px 60px; } .sp-flabel { min-width: 100%; } .st-band { height: 140px; } }
+/* Raktažodžiai: themes the records mention, overall and by century */
+.sp-words { position: relative; margin-top: 10px; padding: 24px 26px 22px; border-radius: 16px; background: radial-gradient(120% 120% at 20% 0%, #1F63D6 0, #0047AB 45%, #001E5C 100%); color: #F2F5FF; display: grid; gap: 12px; scroll-margin-top: 16px; --ink: #F2F5FF; --ink-soft: rgba(242, 245, 255, 0.74); --line: rgba(242, 245, 255, 0.18); }
+.sp-words .tag { color: #8FF5FF; }
+.sp-wt { margin: 0; font: 400 clamp(30px, 3.6vw, 44px)/1.05 var(--f-display); }
+.sp-wl { margin: 0; max-width: 46rem; font-size: 15px; line-height: 1.5; color: var(--ink-soft); }
+.kw-wrap { overflow-x: auto; }
+.kw { width: 100%; min-width: 520px; table-layout: fixed; border-collapse: separate; border-spacing: 3px; }
+.kw col.c-l { width: 26%; } .kw col.c-b { width: 24%; }
+.kw th, .kw td { padding: 0; }
+.kw thead th { font: 500 11px/1.25 var(--f-mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft); text-align: center; vertical-align: bottom; padding-bottom: 6px; }
+.kw thead th.l { text-align: left; }
+.kw thead small { display: block; margin-top: 2px; font-size: 10px; letter-spacing: 0; text-transform: none; opacity: 0.85; }
+.kw tbody th { text-align: left; font: 500 14px/1.2 var(--f-body); color: var(--ink); padding-right: 8px; }
+.kw-bar { display: flex; align-items: center; gap: 8px; height: 30px; }
+.kw-bar i { flex: 0 0 calc(var(--w) * (100% - 38px)); height: 8px; border-radius: 0 4px 4px 0; background: #8FF5FF; }
+.kw-bar b { font: 500 12px var(--f-mono); color: var(--ink); }
+.kw td.c { height: 30px; border-radius: 6px; text-align: center; font: 500 12px var(--f-mono); font-variant-numeric: tabular-nums; }
+.kw td.z { color: rgba(242, 245, 255, 0.35); box-shadow: inset 0 0 0 1px rgba(242, 245, 255, 0.1); }
+.kw tbody tr:hover th { color: #8FF5FF; }
+.kw-note { margin: 0; font: 12px/1.5 var(--f-mono); color: var(--ink-soft); max-width: 60rem; }
+.kw-tip { position: absolute; z-index: 3; pointer-events: none; padding: 6px 10px; border-radius: 8px; background: #F2F5FF; color: #071233; font: 500 12px/1.35 var(--f-mono); box-shadow: 0 8px 22px rgba(0, 8, 40, 0.35); white-space: nowrap; }
+@media (max-width: 700px) { .sp-in { padding: 18px 16px 60px; } .sp-flabel { min-width: 100%; } .st-band { height: 140px; } .sp-words { padding: 18px 12px 16px; } .kw { min-width: 0; border-spacing: 2px; } .kw col.c-l { width: 30%; } .kw col.c-b { width: 17%; } .kw-bar i { display: none; } .kw tbody th { font-size: 12px; } .kw thead th { font-size: 9px; letter-spacing: 0.02em; } .kw-pc { display: none; } }
 .panel.about { position: absolute; right: 0; top: calc(100% + 10px); z-index: 6; width: min(400px, calc(100vw - 32px)); max-height: min(72vh, 560px); }
 
 /* Dock */
@@ -399,6 +420,25 @@ input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border: 0; bo
 /* Below the scene */
 .below { max-width: 1180px; margin: 0 auto; padding-block: 56px 64px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 22px; }
 .log-wrap { display: grid; gap: 18px; }
+.data-wrap { display: grid; gap: 14px; scroll-margin-top: 90px; }
+.dt-wrap { overflow-x: auto; border-top: 1px solid var(--line); }
+.dt { width: 100%; border-collapse: collapse; font-size: 14px; }
+.dt th, .dt td { text-align: left; vertical-align: top; padding: 12px 14px 12px 0; border-bottom: 1px solid var(--line); }
+.dt thead th { font: 500 11px var(--f-mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-soft); padding-block: 10px; }
+.dt tbody th { font-weight: 600; font-size: 15px; min-width: 14rem; }
+.dt tbody th small { display: block; margin-top: 3px; font: 12px/1.4 var(--f-mono); font-weight: 400; color: var(--ink-soft); }
+.dt td { color: var(--ink-soft); }
+.dt .mono { font-family: var(--f-mono); font-size: 13px; white-space: nowrap; color: var(--ink); }
+.dt .lic { white-space: normal; min-width: 6rem; }
+.dt-files { display: flex; flex-wrap: wrap; gap: 6px; }
+.dt-files a, .dt-files button { font: 500 12px var(--f-mono); letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink); background: none; border: 1px solid var(--line); border-radius: 999px; padding: 5px 11px; cursor: pointer; text-decoration: none; white-space: nowrap; }
+.dt-files a:hover, .dt-files button:hover { color: #8FF5FF; border-color: #8FF5FF; }
+.dt-files a.is-dl { background: var(--ink); color: var(--cobalt-deep); border-color: var(--ink); }
+.dt-files a.is-dl:hover { background: #8FF5FF; color: var(--cobalt-deep); }
+.dt tr.is-cat th, .dt tr.is-cat td { background: rgba(143, 245, 255, 0.06); }
+.dt tr.is-cat th { padding-left: 10px; }
+.dt-note { margin: 0; color: var(--ink-soft); font-size: 14px; max-width: 72ch; }
+@media (max-width: 700px) { .dt thead { display: none; } .dt, .dt tbody, .dt tr, .dt th, .dt td { display: block; } .dt tr { padding: 10px 0; border-bottom: 1px solid var(--line); } .dt th, .dt td { border: 0; padding: 3px 0; } .dt tbody th { min-width: 0; } .dt tr.is-cat th { padding-left: 0; } }
 .log-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 6px 20px; }
 .log-head h2 { margin: 0; font-family: var(--f-display); font-weight: 700; font-size: clamp(28px, 4vw, 44px); letter-spacing: -0.01em; }
 .log-head p { margin: 0; color: var(--ink-soft); font-size: 15px; max-width: 52ch; }
@@ -495,8 +535,8 @@ h1 { font-weight: 400; font-style: italic; font-size: clamp(30px, 3.6vw, 46px); 
 .readout { top: calc(var(--bar-h, 64px) + 10px); }
 .mode-grid .world { top: calc(var(--bar-h, 64px) + 4px); }
 @media (max-width: 700px) {
-  .hud-top { padding: 8px 12px; gap: 8px; min-height: 0; }
-  .hud-top h1 { font-size: 21px; }
+  .hud-top { padding: 8px 12px; gap: 6px 8px; min-height: 0; flex-wrap: wrap; }
+  .hud-top h1 { font-size: 21px; flex: 1 0 100%; }
   .hud-btns { gap: 5px; }
   .hud-btns .pill { padding: 6px 9px; font-size: 10.5px; letter-spacing: 0.03em; }
   .readout { top: calc(var(--bar-h, 56px) + 8px); }
@@ -522,6 +562,7 @@ h1 { font-weight: 400; font-style: italic; font-size: clamp(30px, 3.6vw, 46px); 
       <div class="about-wrap">
         <button class="pill" id="storyBtn" type="button" aria-expanded="false" aria-controls="story" data-pl="Historie">Istorijos</button>
       </div>
+      <div class="about-wrap"><button class="pill" id="dataBtn" type="button" data-pl="Dane">Duomenys</button></div>
       <div class="about-wrap">
         <button class="pill" id="info" type="button" aria-expanded="false" aria-controls="about" data-pl="O nas">Apie</button>
         <aside class="panel about" id="about" aria-labelledby="aboutTitle" hidden>
@@ -549,11 +590,12 @@ h1 { font-weight: 400; font-style: italic; font-size: clamp(30px, 3.6vw, 46px); 
   </section>
   <section class="sv story sp" id="story" role="dialog" aria-labelledby="storyTitle" hidden>
     <div class="sp-in">
-      <div class="sv-top"><button class="sv-back" type="button" data-close data-pl="← Wehikuł czasu">← Laiko mašina</button><button class="sv-back sp-lang" type="button" id="spLang"></button></div>
+      <div class="sv-top"><button class="sv-back" type="button" data-close data-pl="← Wehikuł czasu">← Laiko mašina</button><button class="sv-back" type="button" data-jump="spWords" data-pl="Słowa kluczowe ↓">Raktažodžiai ↓</button><button class="sv-back sp-lang" type="button" id="spLang"></button></div>
       <h2 class="sv-title" id="storyTitle" data-pl="Historie">Istorijos</h2>
       <p class="sp-lead" data-pl="Co opowiadają dane i badania naukowe zebrane w wehikule czasu. Kliknij historię, aby przeczytać ją w całości, przyciski otwierają wykresy i źródła.">Ką pasakoja laiko mašinos duomenys ir moksliniai tyrimai. Spustelėk istoriją, kad perskaitytum visą, mygtukai atveria grafikus ir šaltinius.</p>
       <div class="sp-filters" id="spFilters"></div>
       <div class="st-list" id="stList"></div>
+      <section class="sp-words" id="spWords" aria-labelledby="spWordsTitle"></section>
     </div>
   </section>
   <section class="sv" id="sv" role="dialog" aria-labelledby="svTitle" hidden>
@@ -597,6 +639,14 @@ h1 { font-weight: 400; font-style: italic; font-size: clamp(30px, 3.6vw, 46px); 
 </section>
 
 <main class="below">
+  <section class="data-wrap" id="duomenys" aria-labelledby="dataTitle">
+    <div class="log-head">
+      <h2 id="dataTitle" data-pl="Otwarte dane">Atviri duomenys</h2>
+      <p data-pl="Wszystkie dane wehikułu czasu w jednym miejscu. Pobierz tabele w formacie CSV i wykorzystaj je we własnej pracy, podając źródło i licencję.">Visi laiko mašinos duomenys vienoje vietoje. Atsisiųskite lenteles CSV formatu ir naudokite savo darbe, nurodydami šaltinį ir licenciją.</p>
+    </div>
+    <div class="dt-wrap"><table class="dt" id="dataTable"></table></div>
+    <p class="dt-note" id="dataNote"></p>
+  </section>
   <section class="log-wrap" aria-labelledby="logTitle">
     <div class="log-head">
       <h2 id="logTitle" data-pl="Dziennik">Žurnalas</h2>
@@ -2268,7 +2318,107 @@ h1 { font-weight: 400; font-style: italic; font-size: clamp(30px, 3.6vw, 46px); 
     $("#spFilters").innerHTML =
       `<div class="sp-frow"><span class="sp-flabel">${tr("Temos", "Tematy")}</span>${chip("topic", "", tr("Visos", "Wszystkie"))}${TOPICS.map(([v, l]) => chip("topic", v, l, cnt("topic", v))).join("")}</div>` +
       `<div class="sp-frow"><span class="sp-flabel">${tr("Šaltiniai", "Źródła")}</span>${chip("src", "", tr("Visi", "Wszystkie"))}${SRC.map(v => chip("src", v, v === "duomenys" ? tr("Statistika", "Statystyka") : KINDS[v].label, cnt("src", v))).join("")}</div>`;
+    renderWords();
   }
+  // Each theme is a set of word stems searched in the Lithuanian titles and notes of the records
+  const WORD_THEMES = [
+    [tr("Bažnyčia", "Kościół"), /bažnyč/i],
+    [tr("Lenkai ir lenkų kalba", "Polacy i język polski"), /lenk/i],
+    [tr("Kelias", "Droga"), /\bkel(ias|io|ią|yje|iu|ių|iais|iuose)\b|plent|magistral|\bA1\b|trakt/i],
+    [tr("Kunigai ir parapija", "Księża i parafia"), /kunig|klebon|parapij/i],
+    [tr("Karai ir sukilimai", "Wojny i powstania"), /\bkar(as|o|ą|ui|e|ai|ų|uose|iai|ių)\b|kariuomen|mūš|kauty|sukil|armij/i],
+    [tr("Dailė ir freskos", "Sztuka i freski"), /fresk|paveiksl|tapyb|dailė|dailės|dailin|vargon|altor|skulpt/i],
+    [tr("Reformacija", "Reformacja"), /reformat|kalvin|evangelik|protestant|zbor/i],
+    [tr("Gyventojai ir šeimos", "Mieszkańcy i rodziny"), /gyventoj|šeim|valstieč|surašym|metrik/i],
+    [tr("Dvaras ir žemėvalda", "Dwór i własność ziemska"), /dvar|palivark|valak|žemval|savinink|valdė|valda\b|valdos/i],
+    [tr("Mokykla", "Szkoła"), /mokykl|mokytoj|mokin/i],
+    [tr("Vienuoliai", "Zakonnicy"), /jėzuit|dominikon|vienuol|bernardin|karmelit/i],
+    [tr("Šventės ir renginiai", "Święta i wydarzenia"), /šventė|šventės|šventę|švenči|festival|koncert|renginy|minėjim|atlaid|paroda|parodą/i],
+    [tr("Ežeras ir Neris", "Jezioro i Wilia"), /ežer|\bNer(is|ies|imi|yje|į)\b/i],
+    [tr("Napoleonas ir 1812 m.", "Napoleon i rok 1812"), /Napoleon|1812/i],
+    [tr("Bendruomenė", "Wspólnota"), /bendruomen/i],
+    [tr("Atsiminimai ir legendos", "Wspomnienia i legendy"), /atsimin|prisimin|legend|padavim/i],
+    [tr("Pasienis", "Granica"), /pasien|demarkac|\bKOP\b|ultimatum/i],
+    [tr("Archeologija ir lobiai", "Archeologia i skarby"), /pilkap|archeolog|\blob(is|io|į|iai|ių|ius)\b|radin|denar/i],
+    [tr("Gamta", "Przyroda"), /gamt|\bmišk|ąžuol|augal|drug|paukšč|gyvūn|pelk/i],
+    [tr("Kalbos ir tarmės", "Języki i gwary"), /kalb(a|os|ą|ų|omis|oje|ose|ai|inink|otyr)|tarm/i],
+    [tr("Sovietmetis", "Czasy sowieckie"), /soviet|kolūk|tarybin/i]
+  ];
+  function renderWords() {
+    const base = ORDER.filter(i => i.kind !== "asmuo"), text = i => `${lt(i).title} ${lt(i).notes}`;
+    const PER = [[tr("iki 1700", "do 1700"), y => y < 1700], [tr("XVIII a.", "XVIII w."), y => y >= 1700 && y < 1800], [tr("XIX a.", "XIX w."), y => y >= 1800 && y < 1900], [tr("XX a.", "XX w."), y => y >= 1900 && y < 2000], [tr("XXI a.", "XXI w."), y => y >= 2000]];
+    const tot = PER.map(([, f]) => base.filter(i => i.year != null && f(i.year)).length), noYear = base.filter(i => i.year == null).length;
+    const rows = WORD_THEMES.map(([l, re]) => { const m = base.filter(i => re.test(text(i))); return { l, n: m.length, p: PER.map(([, f]) => m.filter(i => i.year != null && f(i.year)).length) }; }).filter(r => r.n).sort((a, b) => b.n - a.n);
+    const maxN = rows[0].n, share = (v, j) => tot[j] ? v / tot[j] : 0, maxS = Math.max(...rows.flatMap(r => r.p.map(share)));
+    const ofLt = (v, n) => `${v} iš ${n} įrašų`, ofPl = (v, n) => `${v} z ${n} wpisów`;
+    const cell = (r, v, j) => {
+      const s = share(v, j), a = s / maxS, tip = `${r.l}, ${PER[j][0]}: ${tr(ofLt(v, tot[j]), ofPl(v, tot[j]))}`;
+      if (!v) return `<td class="c z" data-tip="${esc(tip)}">·</td>`;
+      return `<td class="c" data-tip="${esc(tip)}" style="background:rgba(143,245,255,${(0.1 + a * 0.85).toFixed(3)});color:${a > 0.5 ? "#001E5C" : "#F2F5FF"}">${Math.round(s * 100)}</td>`;
+    };
+    $("#spWords").innerHTML = `<span class="tag">${tr("Raktažodžiai", "Słowa kluczowe")}</span>
+      <h2 class="sp-wt" id="spWordsTitle">${tr("Apie ką kalba šaltiniai", "O czym mówią źródła")}</h2>
+      <p class="sp-wl">${tr(`Kiek iš ${base.length} laiko mašinos įrašų mini kiekvieną temą ir kaip tai keitėsi per šimtmečius.`, `Ile spośród ${base.length} wpisów wehikułu czasu wspomina każdy temat i jak zmieniało się to w kolejnych stuleciach.`)}</p>
+      <div class="kw-wrap"><table class="kw"><colgroup><col class="c-l"><col class="c-b">${PER.map(() => "<col>").join("")}</colgroup>
+        <thead><tr><th class="l" scope="col">${tr("Tema", "Temat")}</th><th class="l" scope="col">${tr("Įrašai", "Wpisy")}</th>${PER.map(([l], j) => `<th scope="col">${l}<small><span class="kw-pc">${tr("% įrašų", "% wpisów")}, </span>n = ${tot[j]}</small></th>`).join("")}</tr></thead>
+        <tbody>${rows.map(r => `<tr><th scope="row">${r.l}</th><td><span class="kw-bar" data-tip="${esc(`${r.l}: ${tr(ofLt(r.n, base.length), ofPl(r.n, base.length))}`)}"><i style="--w:${(r.n / maxN).toFixed(3)}"></i><b>${r.n}</b></span></td>${r.p.map((v, j) => cell(r, v, j)).join("")}</tr>`).join("")}</tbody>
+      </table></div>
+      <p class="kw-note">${tr(`Skaičiuota pagal žodžių šaknis įrašų pavadinimuose ir aprašymuose, todėl vienas įrašas gali patekti į kelias temas. Langelyje: kiek procentų to šimtmečio įrašų mini temą, kuo šviesesnis langelis, tuo didesnė dalis. Ankstyvųjų šimtmečių įrašų nedaug, todėl jų procentai svyruoja labiau. Įrašų be metų: ${noYear}, jie į šimtmečius nesuskirstyti. Asmenų įrašai neskaičiuojami.`,
+        `Liczone według rdzeni słów w tytułach i opisach wpisów, więc jeden wpis może należeć do kilku tematów. W komórce: jaki procent wpisów z danego stulecia wspomina temat, im jaśniejsza komórka, tym większy udział. Wpisów z wczesnych stuleci jest niewiele, więc ich procenty wahają się bardziej. Wpisów bez daty: ${noYear}, nie przypisano ich do stuleci. Wpisy o osobach nie są liczone.`)}</p>
+      <div class="kw-tip" id="kwTip" hidden></div>`;
+  }
+  // Hover tooltip for the keyword table
+  story.addEventListener("pointermove", e => {
+    const tip = $("#kwTip"); if (!tip) return;
+    const t = e.target.closest("[data-tip]"), box = $("#spWords");
+    if (!t || !box.contains(t)) { tip.hidden = true; return; }
+    const r = box.getBoundingClientRect();
+    tip.textContent = t.dataset.tip; tip.hidden = false;
+    const x = Math.min(e.clientX - r.left + 14, r.width - tip.offsetWidth - 8), y = e.clientY - r.top - tip.offsetHeight - 12;
+    tip.style.left = `${Math.max(8, x)}px`; tip.style.top = `${y < 4 ? e.clientY - r.top + 18 : y}px`;
+  });
+  story.addEventListener("pointerleave", () => { const tip = $("#kwTip"); if (tip) tip.hidden = true; });
+
+  /* ---------- Atviri duomenys: every dataset and the record catalogue as reusable files ---------- */
+  const DATA_REPO = "https://github.com/monikamaciuliene-png/rykantu-laiko-masina", DATA_BASE = "https://monikamaciuliene-png.github.io/rykantu-laiko-masina/data/";
+  const DATA_FILES = [
+    { ds: ["population"], file: "rykantai_gyventojai_1889-2021.csv" },
+    { ds: ["climate-stripes", "climate-days", "climate-snow"], file: "rykantai_era5_annual.csv", title: tr("Klimatas: temperatūra, krituliai, sniegas, šalnos", "Klimat: temperatura, opady, śnieg, przymrozki"),
+      sub: tr("Metiniai rodikliai, ERA5 reanalizė tinklelio langeliui prie Rykantų", "Wskaźniki roczne, reanaliza ERA5 dla komórki siatki przy Rykontach") },
+    { ds: ["library"], file: "rykantai_biblioteka_2007-2023.csv" },
+    { ds: ["traffic-a1"], file: "rykantai_eismas_a1_2016-2025.csv" },
+    { ds: ["orgs-jar"], file: "rykantai_jar_2026-10-16.csv" },
+    { ds: ["polish-lang"], file: "rykantai_kalbos_tautybes_1897-2023.csv" },
+    { ds: ["osm-2026"], file: null }
+  ];
+  function renderDataTable() {
+    const DSI = Object.fromEntries(DATASETS.map(d => [d.id, d]));
+    const chartLabel = { "climate-stripes": tr("Temperatūra", "Temperatura"), "climate-days": tr("Šalnos", "Przymrozki"), "climate-snow": tr("Sniegas", "Śnieg") };
+    const rows = DATA_FILES.map(r => {
+      const d = DSI[r.ds[0]]; if (!d) return "";
+      const files = (r.file ? `<a class="is-dl" href="${DATA_BASE}${r.file}" target="_blank" rel="noopener">CSV</a>` : "") + r.ds.map(id => `<button type="button" data-chart="${id}">${r.ds.length > 1 ? chartLabel[id] : tr("Grafikas", "Wykres")}</button>`).join("")
+        + (!r.file && d.links && d.links[0] ? `<a href="${esc(d.links[0][1])}" target="_blank" rel="noopener">${tr("Šaltinis", "Źródło")} ↗</a>` : "");
+      return `<tr><th scope="row">${esc(r.title || d.title)}${r.sub ? `<small>${esc(r.sub)}</small>` : `<small>${esc(d.type)}</small>`}</th><td class="mono">${esc(d.date)}</td><td>${esc(d.holder)}</td><td class="mono lic">${esc(d.licence || tr("žr. šaltinį", "zob. źródło"))}</td><td><div class="dt-files">${files}</div></td></tr>`;
+    }).join("");
+    const yrs = ORDER.filter(i => i.year != null).map(i => i.year);
+    const cat = `<tr class="is-cat"><th scope="row">${tr(`Visi laiko mašinos įrašai (${ORDER.length})`, `Wszystkie wpisy wehikułu czasu (${ORDER.length})`)}<small>${tr("Archyvai, tekstai, tyrimai, balsai, renginiai ir asmenys: pavadinimai, datos, saugotojai, aprašymai lietuvių ir lenkų kalbomis, nuorodos ir licencijos", "Archiwa, teksty, badania, głosy, wydarzenia i osoby: tytuły, daty, instytucje, opisy po litewsku i po polsku, linki i licencje")}</small></th><td class="mono">${Math.min(...yrs)}-${Math.max(...yrs)}</td><td>${tr("Šis projektas, iš atvirų šaltinių", "Ten projekt, z otwartych źródeł")}</td><td class="mono lic">xx</td><td><div class="dt-files"><a class="is-dl" href="${DATA_BASE}rykantai_irasai.csv" target="_blank" rel="noopener">CSV</a><a class="is-dl" href="${DATA_BASE}rykantai_irasai.json" target="_blank" rel="noopener">JSON</a></div></td></tr>`;
+    $("#dataTable").innerHTML = `<thead><tr><th scope="col">${tr("Duomenys", "Dane")}</th><th scope="col">${tr("Laikotarpis", "Okres")}</th><th scope="col">${tr("Šaltinis", "Źródło")}</th><th scope="col">${tr("Licencija", "Licencja")}</th><th scope="col">${tr("Failai ir grafikai", "Pliki i wykresy")}</th></tr></thead><tbody>${cat}${rows}</tbody>`;
+    $("#dataNote").innerHTML = tr(`Visi failai taip pat yra <a href="${DATA_REPO}/tree/main/data" target="_blank" rel="noopener">GitHub saugykloje</a>. CSV failai yra UTF-8, kableliais atskirti. Įrašų lentelėje kiekvieno įrašo vaizdo ir šaltinio licencija nurodyta stulpelyje „licencija“.`,
+      `Wszystkie pliki są też w <a href="${DATA_REPO}/tree/main/data" target="_blank" rel="noopener">repozytorium GitHub</a>. Pliki CSV są w UTF-8, rozdzielane przecinkami. W tabeli wpisów licencja obrazu i źródła każdego wpisu jest podana w kolumnie „licencija”.`);
+  }
+  renderDataTable();
+  $("#dataTable").addEventListener("click", e => {
+    const b = e.target.closest("[data-chart]"); if (!b) return;
+    stage.scrollIntoView({ block: "start" });
+    openData(DATASETS.find(d => d.id === b.dataset.chart));
+  });
+  $("#dataBtn").addEventListener("click", () => {
+    if (!sv.hidden) closeStoryView();
+    if (!story.hidden) closeStory();
+    if (current || !detail.hidden) select(null);
+    if (!about.hidden) closeAbout();
+    $("#duomenys").scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
+  });
   const SPF = { topic: "", src: "" };
   function filterStories() {
     story.querySelectorAll(".sp-chip").forEach(c => c.setAttribute("aria-pressed", String(SPF[c.dataset.f] === c.dataset.v)));
@@ -2279,6 +2429,8 @@ h1 { font-weight: 400; font-style: italic; font-size: clamp(30px, 3.6vw, 46px); 
   }
   story.addEventListener("click", e => {
     if (e.target.closest("[data-close]")) { closeStory(); return; }
+    const jump = e.target.closest("[data-jump]");
+    if (jump) { $(`#${jump.dataset.jump}`).scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" }); return; }
     const chipB = e.target.closest(".sp-chip");
     if (chipB) { const f = chipB.dataset.f, v = chipB.dataset.v; SPF[f] = SPF[f] === v ? "" : v; filterStories(); return; }
     const op = e.target.closest("[data-open]"), sc = e.target.closest("[data-story]");
