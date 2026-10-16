@@ -647,6 +647,33 @@ h1, h2, h3, .w-title, .sv-title, .sp-wt, .p-title, .log-head h2, .st h3 { font-s
 .k-asmuo .s-face.is-arms::before { display: none; }
 .scrap.k-asmuo:hover .s-face, .d-fig .k-asmuo .s-face { filter: none; }
 .scrap.k-asmuo:hover .s-face::before, .d-fig .k-asmuo .s-face::before { opacity: 0; }
+/* Pasidalink: how residents add their own photos, objects and memories */
+#shareBtn { background: #FFB4A3; color: #1A0F0C; border-color: #FFB4A3; }
+#shareBtn:hover { background: #FFD0C4; border-color: #FFD0C4; }
+.sh { display: grid; gap: 28px; }
+.sh-head { display: grid; gap: 12px; max-width: 48rem; }
+.sh-head h2 { margin: 0; font: 700 clamp(32px, 4.4vw, 54px)/1.02 var(--f-display); letter-spacing: -0.02em; }
+.sh-head p { margin: 0; font-size: 17px; line-height: 1.55; color: var(--ink-soft); }
+.sh-stat { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; padding: 18px 22px; border-radius: 16px; background: rgba(255, 180, 163, 0.14); border: 1px solid rgba(255, 180, 163, 0.4); }
+.sh-stat b { font: 700 clamp(44px, 6vw, 72px)/1 var(--f-display); color: #FFB4A3; letter-spacing: -0.03em; }
+.sh-stat span { font-size: 16px; max-width: 30rem; }
+.sh-ch { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 14px; }
+.sh-card { display: grid; gap: 10px; align-content: start; padding: 20px; border-radius: 16px; background: rgba(0, 11, 38, 0.38); border: 1px solid var(--line); }
+.sh-card .tag { color: #8FF5FF; }
+.sh-card h3 { margin: 0; font: 700 22px/1.15 var(--f-display); }
+.sh-card p { margin: 0; font-size: 15px; line-height: 1.5; }
+.sh-btn { justify-self: start; font: 700 13px var(--f-body); letter-spacing: 0.04em; text-transform: uppercase; padding: 10px 16px; border-radius: 999px; background: #FFB4A3; color: #1A0F0C; border: 0; text-decoration: none; }
+.sh-btn[aria-disabled="true"] { background: rgba(242, 245, 255, 0.14); color: var(--ink-soft); cursor: default; }
+.sh-sec { display: grid; gap: 10px; max-width: 52rem; }
+.sh-sec h3 { margin: 0; font: 700 20px var(--f-display); }
+.sh-sec p, .sh-sec li { font-size: 15px; line-height: 1.55; }
+.sh-sec p { margin: 0; }
+.sh-sec ol { margin: 0; padding-left: 1.3em; display: grid; gap: 6px; }
+.sh-tags { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.sh-tags li { font: 500 13px var(--f-body); padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line); background: rgba(0, 11, 38, 0.3); }
+.sh-consent { padding: 18px 20px; border-radius: 14px; border: 1px dashed var(--line); }
+.sh-cta { justify-self: start; font: 700 13px var(--f-body); letter-spacing: 0.03em; padding: 8px 14px; border-radius: 999px; background: #FFB4A3; color: #1A0F0C; border: 0; cursor: pointer; }
+@media (max-width: 700px) { .hud-btns { gap: 4px; } .hud-btns .pill { padding: 6px 6px; font-size: 10px; letter-spacing: 0; } }
 </style>
 
 <section class="scene is-welcome" id="scene" aria-label="Laiko mašina" data-pl-aria="Wehikuł czasu">
@@ -670,6 +697,7 @@ h1, h2, h3, .w-title, .sv-title, .sp-wt, .p-title, .log-head h2, .st h3 { font-s
       </div>
       <div class="about-wrap"><button class="pill" id="dataBtn" type="button" data-pl="Dane">Duomenys</button></div>
       <div class="about-wrap"><button class="pill" id="logBtn" type="button" data-pl="Dziennik">Žurnalas</button></div>
+      <div class="about-wrap"><button class="pill" id="shareBtn" type="button" data-page="pasidalink" data-pl="Podziel się">Pasidalink</button></div>
       <div class="about-wrap">
         <button class="pill" id="info" type="button" aria-expanded="false" aria-controls="about" data-pl="O nas">Apie</button>
         <aside class="panel about" id="about" aria-labelledby="aboutTitle" hidden>
@@ -733,6 +761,7 @@ h1, h2, h3, .w-title, .sv-title, .sp-wt, .p-title, .log-head h2, .st h3 { font-s
         <div class="log-head">
           <h2 id="logTitle" data-pl="Dziennik">Žurnalas</h2>
           <p data-pl="Wszystkie wpisy wehikułu czasu od najstarszego. Tytuł otwiera źródło w nowej karcie.">Visi laiko mašinos įrašai nuo seniausio. Pavadinimas atveria šaltinį naujame skirtuke.</p>
+      <button class="sh-cta" type="button" data-page="pasidalink" data-pl="Brakuje twojej historii? Podziel się →">Trūksta jūsų istorijos? Pasidalinkite →</button>
         </div>
         <nav class="kinds" id="kindsLog" aria-label="Įrašų grupės žurnale" data-pl-aria="Grupy wpisów w dzienniku"></nav>
         <ol class="log" id="log"></ol>
@@ -742,6 +771,12 @@ h1, h2, h3, .w-title, .sv-title, .sp-wt, .p-title, .log-head h2, .st h3 { font-s
         <p data-pl="Licencje podano przy każdym wpisie, dlatego przed ponownym wykorzystaniem należy je sprawdzić. Obrazy wpisów bez jasnej licencji nie są pokazywane, podany jest tylko link.">Licencijos nurodytos prie kiekvieno įrašo, todėl prieš naudodami pakartotinai jas patikrinkite. Įrašų be aiškios licencijos vaizdai nerodomi, pateikiama tik nuoroda.</p>
         <p data-pl="Wehikuł czasu Rykont to projekt Rykantų paštas, Stowarzyszenia Nauki Obywatelskiej, VILNIUS TECH i Participio.">Rykantų laiko mašina yra Rykantų pašto, Piliečių mokslo asociacijos, VILNIUS TECH ir Participio projektas.</p>
       </footer>
+    </div>
+  </section>
+  <section class="pg" id="sharePage" role="dialog" aria-labelledby="shareTitle" hidden>
+    <div class="pg-in">
+      <div class="sv-top"><button class="sv-back" type="button" data-pgclose data-pl="← Wehikuł czasu">← Laiko mašina</button><button class="sv-back pg-lang" type="button"></button></div>
+      <div class="sh" id="shareBody"></div>
     </div>
   </section>
   <div class="detail" id="detail" role="dialog" aria-labelledby="dTitle" hidden>
@@ -1632,6 +1667,7 @@ h1, h2, h3, .w-title, .sv-title, .sp-wt, .p-title, .log-head h2, .st h3 { font-s
     const langPl = s => s ? "j. " + s.replace(/ k\.$/, "").split(", ").map(w => LANGW[w] || w).join(", ") : s;
     const linksPl = (links, labels) => labels && labels.length === links.length ? links.map((l, k) => [labels[k], l[1]]) : links;
     ITEMS.forEach(i => {
+      i._own = i.kind === "balsas" || /(Rykantų pašto tinklaraštis|Blog Rykantų paštas)$/.test(i.holder || "");
       const p = PL_ITEMS[i.id] || {};
       i._lt = { title: i.title, notes: i.notes }; i._lang = i.lang;
       if (p.title) { if (p.orig) i.titleOrig = i.title; i.title = p.title; }
@@ -2489,8 +2525,8 @@ h1, h2, h3, .w-title, .sv-title, .sp-wt, .p-title, .log-head h2, .st h3 { font-s
         <p class="p-meta">Liczby wiernych pochodzą z różnych źródeł i prawdopodobnie dotyczą różnych granic parafii, dlatego nie można ich porównywać wprost. Według danych kurii z 1912 r. parafia Rykonty liczyła prawdopodobnie 1775 parafian.</p>`) +
         srcBtns([["pl-dominicans", tr("Dominikonai", "Dominikanie")], ["pl-parish-1784", "1784"], ["pl-miraculous", tr("Paveikslas", "Obraz")], ["pl-bell-1733", tr("Varpas", "Dzwon")], ["petitions-1883", "Žaltauskaitė, 2017"], ["pl-priests-1863", tr("XIX a. kunigai", "Księża XIX w.")], ["pl-frescoes-1931", tr("Freskos, 1931", "Freski, 1931")], ["pl-parish-1927", "1927-1938"], ["pl-daunoras", "Daunoras"], ["pl-mass", tr("Mišios", "Msze")], ["gb-polish-community", "1912"]])),
       `<article class="st st-gap"><span class="tag">${tr("Ko tyrimai dar nepaaiškina", "Czego badania jeszcze nie wyjaśniają")}</span>
-        ${tr(`<p>Rinkinyje beveik nėra tyrimų apie sovietmečio ir šių dienų kaimo gyvenimą: kolūkį, mokyklą, bendruomenę. Neaišku ir tai, kodėl 1931-1959 m. ir 2001-2011 m. gyventojų sumažėjo maždaug trečdaliu. Tai geri klausimai bendruomenės pokalbiams ir piliečių mokslui.</p>`,
-        `<p>W zbiorze prawie nie ma badań o życiu wsi w czasach sowieckich i dziś: o kołchozie, szkole, wspólnocie. Nie wiadomo też, dlaczego w latach 1931-1959 i 2001-2011 liczba mieszkańców spadła mniej więcej o jedną trzecią. To dobre pytania do rozmów we wspólnocie i do nauki obywatelskiej.</p>`)}</article>`
+        ${tr(`<p>Rinkinyje beveik nėra tyrimų apie sovietmečio ir šių dienų kaimo gyvenimą: kolūkį, mokyklą, bendruomenę. Neaišku ir tai, kodėl 1931-1959 m. ir 2001-2011 m. gyventojų sumažėjo maždaug trečdaliu. Tai geri klausimai bendruomenės pokalbiams ir piliečių mokslui.</p><button class="st-more" type="button" data-page="pasidalink">Pasidalinkite savo istorija →</button>`,
+        `<p>W zbiorze prawie nie ma badań o życiu wsi w czasach sowieckich i dziś: o kołchozie, szkole, wspólnocie. Nie wiadomo też, dlaczego w latach 1931-1959 i 2001-2011 liczba mieszkańców spadła mniej więcej o jedną trzecią. To dobre pytania do rozmów we wspólnocie i do nauki obywatelskiej.</p><button class="st-more" type="button" data-page="pasidalink">Podziel się swoją historią →</button>`)}</article>`
       ,
       card(tr("Žemėlapiai", "Mapy"), tr("Rykantai žemėlapiuose, 1872-2026", "Rykonty na mapach, 1872-2026"),
         tr(`<p>Tas pats maždaug 4 km kvadratas aplink kaimą keturiuose žemėlapiuose: 1872 m. rusų, 1915 m. vokiečių, 1936 m. lenkų ir šiandienos OpenStreetMap. Bažnyčia ir geležinkelis lieka vietoje, keičiasi keliai, miškai ir kaimo dydis. 1936 m. kaimas dar telkiasi prie kelio, o šiandien A1 magistralė kerta jo pietinę dalį.</p>`,
@@ -2655,19 +2691,58 @@ h1, h2, h3, .w-title, .sv-title, .sp-wt, .p-title, .log-head h2, .st h3 { font-s
     const b = e.target.closest("[data-map]"); if (b) { showMap(b.dataset.map); return; }
     const it = e.target.closest("[data-item]"); if (it) { const item = BY_ID[it.dataset.item]; if (item) select(item); }
   });
-  const dataPage = $("#dataPage"), logPage = $("#logPage"), PAGES = { duomenys: dataPage, zurnalas: logPage };
+  const dataPage = $("#dataPage"), logPage = $("#logPage"), sharePage = $("#sharePage"), PAGES = { duomenys: dataPage, zurnalas: logPage, pasidalink: sharePage };
   document.querySelectorAll(".pg-lang").forEach(b => { b.textContent = PLX ? "LT" : "PL"; b.addEventListener("click", () => $("#langBtn").click()); });
   function openPage(name) {
     const p = PAGES[name]; if (!p) return;
     if (!sv.hidden) closeStoryView(); if (!mv.hidden) closeMapView(); if (!story.hidden) closeStory(); if (!about.hidden) closeAbout();
     if (current || !detail.hidden) select(null);
+    if (name === "pasidalink") renderShare();
     Object.values(PAGES).forEach(x => { x.hidden = x !== p; });
     p.scrollTop = 0; stage.scrollIntoView({ block: "start" }); storyHash(`#${name}`);
   }
-  function closePages() { Object.values(PAGES).forEach(x => { x.hidden = true; }); if (/^#(duomenys|zurnalas)$/.test(location.hash)) storyHash(""); }
+  function closePages() { Object.values(PAGES).forEach(x => { x.hidden = true; }); if (/^#(duomenys|zurnalas|pasidalink)$/.test(location.hash)) storyHash(""); }
   document.querySelectorAll(".pg").forEach(p => p.addEventListener("click", e => { if (e.target.closest("[data-pgclose]")) closePages(); }));
+  const FORM_URL = "xx"; // the intake form, filled in once Rykantų paštas sets it up
+  function renderShare() {
+    const docs = ORDER.filter(i => i.kind !== "asmuo"), own = docs.filter(i => i._own ?? (i.kind === "balsas" || /(Rykantų pašto tinklaraštis|Blog Rykantų paštas)$/.test(i.holder || ""))).length;
+    const ready = FORM_URL !== "xx";
+    const what = tr(["Šeimos nuotraukos", "Laiškai ir dokumentai", "Daiktai ir įrankiai", "Prisiminimai", "Dainos ir receptai", "Vietų pavadinimai", "Šventės ir papročiai"],
+      ["Zdjęcia rodzinne", "Listy i dokumenty", "Przedmioty i narzędzia", "Wspomnienia", "Piosenki i przepisy", "Nazwy miejsc", "Święta i zwyczaje"]);
+    $("#shareBody").innerHTML = `
+      <header class="sh-head"><span class="tag">${tr("Pasidalink", "Podziel się")}</span>
+        <h2 id="shareTitle">${tr("Pasidalinkite savo Rykantais", "Podziel się swoimi Rykontami")}</h2>
+        <p>${tr(`Dokumentų laiko mašinoje: ${docs.length}. Patys rykantiškiai iš jų sukūrė ${own}: tinklalaidės pokalbius ir Rykantų pašto tinklaraščio tekstus. Kitus užrašė archyvai, spauda ir mokslininkai. Šeimos nuotraukos, laiškai, daiktai ir prisiminimai dar laukia savo vietos.`,
+          `Dokumentów w wehikule czasu: ${docs.length}. Sami mieszkańcy Rykont stworzyli z nich ${own}: rozmowy z podcastu i teksty z bloga Rykantų paštas. Resztę zapisały archiwa, prasa i badacze. Rodzinne zdjęcia, listy, przedmioty i wspomnienia wciąż czekają na swoje miejsce.`)}</p></header>
+      <div class="sh-stat"><b>${own} ${tr("iš", "z")} ${docs.length}</b><span>${tr("įrašų sukūrė patys rykantiškiai. Visa kita užrašė kiti.", "wpisów stworzyli sami mieszkańcy. Całą resztę zapisali inni.")}</span></div>
+      <div class="sh-ch">
+        <article class="sh-card"><span class="tag">1</span><h3>${tr("Internetu", "Przez internet")}</h3>
+          <p>${tr("Užpildykite formą: aprašykite nuotrauką, daiktą ar prisiminimą ir pridėkite failą.", "Wypełnij formularz: opisz zdjęcie, przedmiot lub wspomnienie i dodaj plik.")}</p>
+          ${ready ? `<a class="sh-btn" href="${esc(FORM_URL)}" target="_blank" rel="noopener">${tr("Pildyti formą ↗", "Wypełnij formularz ↗")}</a>` : `<span class="sh-btn" aria-disabled="true">${tr("Forma ruošiama: xx", "Formularz w przygotowaniu: xx")}</span>`}</article>
+        <article class="sh-card"><span class="tag">2</span><h3>${tr("Rykantų pašte", "Na poczcie w Rykontach")}</h3>
+          <p>${tr("Atneškite nuotraukas ar dokumentus į Rykantų paštą: juos nuskenuos vietoje, o originalai liks jums.", "Przynieś zdjęcia lub dokumenty na pocztę Rykantų paštas: zeskanują je na miejscu, a oryginały zostaną u ciebie.")}</p>
+          <p class="p-meta">${tr("Adresas: xx. Skenavimo dienos ir laikas: xx.", "Adres: xx. Dni i godziny skanowania: xx.")}</p></article>
+        <article class="sh-card"><span class="tag">3</span><h3>${tr("Balsu", "Głosem")}</h3>
+          <p>${tr("Prisiminimus galima įrašyti tinklalaidei „Rykantų pašto laiškai“, kurioje jau skamba aštuoni kaimo balsai.", "Wspomnienia można nagrać dla podcastu „Rykantų pašto laiškai”, w którym brzmi już osiem głosów ze wsi.")}</p>
+          <p class="p-meta">${tr("Susitarti dėl pokalbio: xx.", "Umów rozmowę: xx.")}</p></article>
+      </div>
+      <section class="sh-sec"><h3>${tr("Ko ieškome", "Czego szukamy")}</h3>
+        <ul class="sh-tags">${what.map(w => `<li>${w}</li>`).join("")}</ul>
+        <p>${tr("Ypač laukiame sovietmečio ir šių dienų kaimo gyvenimo: kolūkio, mokyklos, bendruomenės. Apie juos rinkinyje beveik nieko nėra.", "Szczególnie czekamy na życie wsi w czasach sowieckich i dziś: kołchoz, szkołę, wspólnotę. W zbiorze prawie nic o nich nie ma.")}</p></section>
+      <section class="sh-sec"><h3>${tr("Kas bus toliau", "Co dalej")}</h3><ol>
+        <li>${tr("Gauname ir peržiūrime jūsų medžiagą.", "Otrzymujemy i sprawdzamy twój materiał.")}</li>
+        <li>${tr("Jei reikia, susisiekiame patikslinti datą, vietą ar vardus.", "W razie potrzeby kontaktujemy się, by doprecyzować datę, miejsce lub imiona.")}</li>
+        <li>${tr("Įrašas atsiranda laiko mašinoje ir žurnale su jūsų pasirinktu vardu ir licencija.", "Wpis pojawia się w wehikule czasu i w dzienniku z wybranym przez ciebie podpisem i licencją.")}</li>
+        <li>${tr("Bet kada galite paprašyti įrašą pakeisti ar pašalinti.", "W każdej chwili możesz poprosić o zmianę lub usunięcie wpisu.")}</li></ol></section>
+      <section class="sh-sec sh-consent"><h3>${tr("Sutikimas", "Zgoda")}</h3>
+        <p>${tr("Siųsdami medžiagą patvirtinate, kad esate jos autorius arba turite teisę ja dalytis, o žmonės nuotraukose sutinka, kad ji būtų paskelbta, arba tai sena istorinė nuotrauka. Leidžiate medžiagą skelbti Rykantų laiko mašinoje ir jos atviruose duomenyse pagal pasirinktą licenciją: laisvai, nurodant autorių (CC BY 4.0), arba tik šioje svetainėje. Jūsų vardą nurodysime taip, kaip pasirinksite. Kontaktus naudosime tik susisiekti dėl įrašo ir jų neskelbsime.",
+          "Wysyłając materiał, potwierdzasz, że jesteś jego autorem lub masz prawo go udostępnić, a osoby na zdjęciu zgadzają się na publikację albo jest to stare zdjęcie historyczne. Pozwalasz publikować materiał w Wehikule czasu Rykont i w jego otwartych danych na wybranej licencji: swobodnie, z podaniem autora (CC BY 4.0), albo tylko na tej stronie. Podpiszemy cię tak, jak wybierzesz. Danych kontaktowych użyjemy tylko do kontaktu w sprawie wpisu i nie będziemy ich publikować.")}</p>
+        <p>${tr("Jei jums mažiau nei 14 metų, medžiagą siųskite kartu su tėvais.", "Jeśli masz mniej niż 14 lat, wyślij materiał razem z rodzicami.")}</p>
+        <p class="p-meta">${tr("Duomenis tvarko: xx. Norėdami ką nors pakeisti, pašalinti įrašą ar atšaukti sutikimą, rašykite: xx.", "Dane przetwarza: xx. Aby coś zmienić, usunąć wpis lub wycofać zgodę, napisz na: xx.")}</p></section>`;
+  }
   $("#dataBtn").addEventListener("click", () => openPage("duomenys"));
   $("#logBtn").addEventListener("click", () => openPage("zurnalas"));
+  document.addEventListener("click", e => { const b = e.target.closest("[data-page]"); if (b) openPage(b.dataset.page); });
   const SPF = { topic: "", src: "" };
   function filterStories() {
     story.querySelectorAll(".sp-chip").forEach(c => c.setAttribute("aria-pressed", String(SPF[c.dataset.f] === c.dataset.v)));
@@ -2760,7 +2835,7 @@ h1, h2, h3, .w-title, .sv-title, .sp-wt, .p-title, .log-head h2, .st h3 { font-s
   }
   document.addEventListener("keydown", e => {
     if (e.target.matches && e.target.matches("input")) return;
-    if (e.key === "Escape") { if (current || !detail.hidden) select(null); else if (!sv.hidden) closeStoryView(); else if (!mv.hidden) closeMapView(); else if (!dataPage.hidden || !logPage.hidden) closePages(); else if (!story.hidden) closeStory(); else if (!about.hidden) closeAbout(); }
+    if (e.key === "Escape") { if (current || !detail.hidden) select(null); else if (!sv.hidden) closeStoryView(); else if (!mv.hidden) closeMapView(); else if (!dataPage.hidden || !logPage.hidden || !sharePage.hidden) closePages(); else if (!story.hidden) closeStory(); else if (!about.hidden) closeAbout(); }
     if (!detail.hidden && e.key === "ArrowRight") stepBy(1);
     if (!detail.hidden && e.key === "ArrowLeft") stepBy(-1);
   });
@@ -3089,7 +3164,7 @@ vec3 objectTangent = vec3(tangent.xyz);
   const svIdx = svHash ? STORY_META.findIndex(m => m.slug === svHash) : -1;
   const spHash = location.hash.match(/^#istorijos(?:=(\w+))?/);
   const mvHash = location.hash.match(/^#zemelapiai(?:=(\d+))?/);
-  const pgHash = location.hash.match(/^#(duomenys|zurnalas)$/);
+  const pgHash = location.hash.match(/^#(duomenys|zurnalas|pasidalink)$/);
   if (pgHash) { stage.classList.remove("is-welcome"); markIntroSeen(); openPage(pgHash[1]); }
   else if (mvHash) { stage.classList.remove("is-welcome"); markIntroSeen(); openMapView(mvHash[1] ? +mvHash[1] : null, !!mvHash[1]); }
   else if (svIdx >= 0) { stage.classList.remove("is-welcome"); markIntroSeen(); openStoryView(svIdx, true); }
