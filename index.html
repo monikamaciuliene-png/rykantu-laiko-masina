@@ -645,6 +645,16 @@ h1, h2, h3, .w-title, .sv-title, .sp-wt, .p-title, .log-head h2, .st h3 { font-s
   .botbar .kinds::-webkit-scrollbar { display: none; }
   .dock { bottom: calc(var(--bot-h, 90px) + 8px); }
 }
+/* People medallions with a portrait: the face fills the oval, the name sits on a coral fade */
+.k-asmuo .sc:has(.s-face) { padding: 0 0 20px; justify-content: flex-end; overflow: hidden; }
+.k-asmuo .s-face { position: absolute; inset: 0; border-radius: 50%; background: #E9E2DA center 22% / cover no-repeat; filter: grayscale(0.85) contrast(1.05); box-shadow: inset 0 0 0 3px rgba(255, 255, 255, 0.6), inset 0 0 0 7px rgba(10, 14, 26, 0.12); transition: filter 0.3s; }
+.k-asmuo .s-face.is-arms { background-color: #FFF4EF; background-size: 58%; background-position: center 34%; filter: none; }
+.k-asmuo .s-face::after { content: ""; position: absolute; inset: 0; border-radius: 50%; background: linear-gradient(180deg, rgba(238, 115, 92, 0) 46%, rgba(238, 115, 92, 0.94) 78%); }
+.k-asmuo .sc:has(.s-face) .s-title { position: relative; z-index: 1; margin: 0 16px; color: #1A0F0C; text-align: center; }
+.k-asmuo .s-face::before { content: ""; position: absolute; inset: 0; border-radius: 50%; background: #FF9E8A; mix-blend-mode: multiply; opacity: 0.6; transition: opacity 0.3s; }
+.k-asmuo .s-face.is-arms::before { display: none; }
+.scrap.k-asmuo:hover .s-face, .d-fig .k-asmuo .s-face { filter: none; }
+.scrap.k-asmuo:hover .s-face::before, .d-fig .k-asmuo .s-face::before { opacity: 0; }
 </style>
 </head>
 <body>
@@ -1652,6 +1662,25 @@ h1, h2, h3, .w-title, .sv-title, .sp-wt, .p-title, .log-head h2, .st h3 { font-s
     const m = /^\d{4}-(0[1-9]|1[0-2])(?:-(\d{2}))?(?!\d)/.exec(i.date);
     return (i.year ?? 9999) * 10000 + (m ? +m[1] * 100 + (+m[2] || 0) : 0);
   };
+  // Portraits (or coats of arms for families) from Wikimedia Commons, each with its own licence
+  const FACES = {
+    "p-albrecht-adam": { img: "img/portraits/p-albrecht-adam.jpg", by: "Franz Hanfstaengl, apie 1850", lic: tr("Viešasis domenas", "Domena publiczna"), url: "https://commons.wikimedia.org/wiki/File:Albrecht_Adam.jpg" },
+    "p-balasovas": { img: "img/portraits/p-balasovas.jpg", by: "George Dawe, 1819-1822", lic: tr("Viešasis domenas", "Domena publiczna"), url: "https://commons.wikimedia.org/wiki/File:Alexander_Balashov.jpg" },
+    "p-chlapowski": { img: "img/portraits/p-chlapowski.jpg", by: tr("Nežinomas autorius", "Autor nieznany"), lic: tr("Viešasis domenas", "Domena publiczna"), url: "https://commons.wikimedia.org/wiki/File:Dezydery_Ch%C5%82apowski.PNG" },
+    "p-gelgaudas": { img: "img/portraits/p-gelgaudas.jpg", by: tr("XIX a. litografija, nežinomas autorius", "Litografia z XIX w., autor nieznany"), lic: tr("Viešasis domenas", "Domena publiczna"), url: "https://commons.wikimedia.org/wiki/File:Antanas_Gelgaudas,_19th_century_litography.png" },
+    "p-mackiewicz": { img: "img/portraits/p-mackiewicz.jpg", by: "Wacław Żyliński, 1923-1939, NAC", lic: tr("Viešasis domenas", "Domena publiczna"), url: "https://commons.wikimedia.org/wiki/File:J%C3%B3zef_Mackiewicz.png" },
+    "p-milosz": { img: "img/portraits/p-milosz.jpg", by: "Artur Pawłowski, 1999", lic: "CC BY-SA 4.0", url: "https://commons.wikimedia.org/wiki/File:Czeslaw_Milosz_3_ap.tif" },
+    "p-napoleonas": { img: "img/portraits/p-napoleonas.jpg", by: "Jacques-Louis David, 1812", lic: tr("Viešasis domenas", "Domena publiczna"), url: "https://commons.wikimedia.org/wiki/File:Jacques-Louis_David_-_The_Emperor_Napoleon_in_His_Study_at_the_Tuileries_-_Google_Art_Project.jpg" },
+    "p-oginskiai": { img: "img/portraits/p-oginskiai.jpg", by: tr("Brama herbas, Bastianowa pagal J. Ostrowskį", "Herb Brama, Bastianowa według J. Ostrowskiego"), lic: "CC BY 3.0", url: "https://commons.wikimedia.org/wiki/File:POL_COA_Brama.svg", arms: true },
+    "p-oscar-milosz": { img: "img/portraits/p-oscar-milosz.jpg", by: tr("Nežinomas autorius, iki 1939 m.", "Autor nieznany, przed 1939 r."), lic: tr("Viešasis domenas", "Domena publiczna"), url: "https://commons.wikimedia.org/wiki/File:Oskar_Mi%C5%82osz_-_portrait.jpg" },
+    "p-piasecki": { img: "img/portraits/p-piasecki.jpg", by: tr("Nežinomas autorius, iki 1939 m.", "Autor nieznany, przed 1939 r."), lic: tr("Viešasis domenas", "Domena publiczna"), url: "https://commons.wikimedia.org/wiki/File:Sergiusz_Piasecki-face.jpg" },
+    "p-talvosai": { img: "img/portraits/p-talvosai.jpg", by: tr("Łabędź herbas, T. Gajl ir Bastianow", "Herb Łabędź, T. Gajl i Bastianow"), lic: "CC BY-SA 3.0", url: "https://commons.wikimedia.org/wiki/File:Herb_%C5%81ab%C4%99d%C5%BA_1.svg", arms: true },
+    "p-tolstojus": { img: "img/portraits/p-tolstojus.jpg", by: tr("Sergejus Prokudinas-Gorskis, 1908", "Siergiej Prokudin-Gorski, 1908"), lic: tr("Viešasis domenas", "Domena publiczna"), url: "https://commons.wikimedia.org/wiki/File:L.N.Tolstoy_Prokudin-Gorsky.jpg" },
+    "p-tumanowicz": { img: "img/portraits/p-tumanowicz.jpg", by: tr("Nežinomas autorius, iki 1939 m., IPN archyvas", "Autor nieznany, przed 1939 r., archiwum IPN"), lic: tr("Viešasis domenas", "Domena publiczna"), url: "https://commons.wikimedia.org/wiki/File:Walerian_Tumanowicz.jpg" },
+    "p-vytautas": { img: "img/portraits/p-vytautas.jpg", by: tr("Jan Matejko, „Žalgirio mūšis“ (1878), fragmentas", "Jan Matejko, „Bitwa pod Grunwaldem” (1878), fragment"), lic: tr("Viešasis domenas", "Domena publiczna"), url: "https://commons.wikimedia.org/wiki/File:Vytautas_dydysis.jpg" },
+    "p-povilioniene": { img: "img/portraits/p-povilioniene.jpg", by: "Jonas Gvildys, 2004", lic: "CC BY-SA 3.0", url: "https://commons.wikimedia.org/wiki/File:Veronika_Povilioniene_2004_JG.jpg" }
+  };
+  ITEMS.forEach(i => { if (FACES[i.id]) i.face = FACES[i.id]; });
   const ORDER = ITEMS.slice().sort((a, b) => sortKey(a) - sortKey(b));
   const N = ORDER.length;
   const BY_ID = Object.fromEntries(ORDER.map(i => [i.id, i]));
@@ -1855,6 +1884,7 @@ h1, h2, h3, .w-title, .sv-title, .sp-wt, .p-title, .log-head h2, .st h3 { font-s
       const r = rng(item.id), bars = Array.from({ length: 11 }, () => `<i style="height:${4 + Math.round(r() * 12)}px"></i>`).join("");
       return `<span class="s-year${yc}">${yr}</span><span class="s-title">${esc(item.title.split(" ")[0])}</span><span class="bars">${bars}</span>`;
     }
+    if (item.kind === "asmuo" && item.face) return `<span class="s-face${item.face.arms ? " is-arms" : ""}" style="background-image:url('${item.face.img}')"></span><span class="s-title">${esc(item.title.replace(/\s*\(.*?\)\s*/g, " ").trim())}</span>`;
     if (item.kind === "asmuo") {
       const ini = item.title.replace(/\(.*?\)/g, "").split(/\s+/).filter(w => /^[A-ZĄČĘĖĮŠŲŪŽŁŚŻŹĆŃÓ]/.test(w) && !/^(Kun\.|Ks\.|Dr\.|Gen\.|Generolas|Generał)$/.test(w)).slice(0, 2).map(w => w[0]).join("");
       return `<span class="s-type">${esc(item.type)}</span><span class="s-mono">${esc(ini)}</span><span class="s-title">${esc(item.title)}</span><span class="s-span">${esc(item.date)}</span>`;
@@ -2686,7 +2716,7 @@ h1, h2, h3, .w-title, .sv-title, .sp-wt, .p-title, .log-head h2, .st h3 { font-s
       <p class="p-meta">${esc(item.date)}${item.lang ? " · " + esc(item.lang) : ""}</p>
       <h2 class="p-title" id="dTitle">${esc(item.title)}</h2>${item.titleOrig ? `<p class="p-meta">Tytuł oryginalny: ${esc(item.titleOrig)}</p>` : ""}
       <p class="d-holder">${esc(item.holder)}</p>
-      <p>${esc(item.notes)}</p>${peopleHTML(item)}
+      <p>${esc(item.notes)}</p>${item.face ? `<p class="p-meta">${item.face.arms ? tr("Herbas", "Herb") : tr("Portretas", "Portret")}: ${esc(item.face.by)} · ${esc(item.face.lic)} · <a href="${esc(item.face.url)}" target="_blank" rel="noopener">Wikimedia Commons ↗</a></p>` : ""}${peopleHTML(item)}
       <div class="d-links"><span class="chip">${esc(item.licence || tr("Licencija: žr. įrašą", "Licencja: zob. wpis"))}</span>${linkHTML(item)}</div>`;
     const P = pool(), idx = P.indexOf(item);
     $("#dCount").textContent = item.kind === "duomenys" ? tr("Duomenys", "Dane") : idx >= 0 ? `${idx + 1} / ${P.length}` : `${num(item)} / ${N}`;
