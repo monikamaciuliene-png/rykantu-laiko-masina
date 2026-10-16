@@ -272,7 +272,7 @@ h1 { margin: 0; font-family: var(--f-display); font-weight: 700; font-size: clam
   .sv-text { top: 300px; width: 100%; padding: 20px 18px 60px; background: var(--lime); }
 }
 @media (prefers-reduced-motion: reduce) { .sv-field .scrap { animation: none; } }
-/* Įžvalgos wear lime, so they read as their own layer on the cobalt */
+/* Istorijos wear lime, so they read as their own layer on the cobalt */
 :root { --lime: #CFF35E; --lime-ink: #071233; }
 #storyBtn { background: var(--lime); color: var(--lime-ink); border-color: var(--lime); }
 #storyBtn:hover, #storyBtn[aria-expanded="true"] { background: #E2FF8C; border-color: #E2FF8C; color: var(--lime-ink); }
@@ -282,6 +282,16 @@ h1 { margin: 0; font-family: var(--f-display); font-weight: 700; font-size: clam
 .story .st-gap { background: transparent; border-color: rgba(7, 18, 51, 0.4); }
 .story .st-tabs { background: rgba(7, 18, 51, 0.08); }
 .story .st-links button:hover, .story .x:hover { background: var(--ink); color: var(--lime); border-color: var(--ink); }
+/* Istorijos: a full page of storyline cards */
+.sp { overflow: auto; overscroll-behavior: contain; }
+.sp-in { width: min(1240px, 100%); margin: 0 auto; padding: 26px 34px 80px; display: grid; gap: 16px; align-content: start; }
+.sp .sp-lang { margin-left: auto; }
+.sp-lead { margin: 0; max-width: 46rem; font-size: 16px; line-height: 1.55; }
+.sp .st-tabs { margin-top: 4px; }
+.sp .st-list { display: block; columns: 3 330px; column-gap: 16px; }
+.sp .st-list[hidden] { display: none; }
+.sp .st { break-inside: avoid; margin: 0 0 16px; }
+@media (max-width: 700px) { .sp-in { padding: 18px 16px 60px; } }
 .panel.about { position: absolute; right: 0; top: calc(100% + 10px); z-index: 6; width: min(400px, calc(100vw - 32px)); max-height: min(72vh, 560px); }
 
 /* Dock */
@@ -487,7 +497,7 @@ h1 { font-weight: 400; font-style: italic; font-size: clamp(30px, 3.6vw, 46px); 
       <h1 data-pl="Wehikuł czasu Rykont" id="homeTitle" role="button" tabindex="0" title="Į pradžią" data-pl-title="Na początek">Rykantų laiko mašina</h1>
       <div class="hud-btns">
       <div class="about-wrap">
-        <button class="pill" id="storyBtn" type="button" aria-expanded="false" aria-controls="story" data-pl="Wnioski">Įžvalgos</button>
+        <button class="pill" id="storyBtn" type="button" aria-expanded="false" aria-controls="story" data-pl="Historie">Istorijos</button>
       </div>
       <div class="about-wrap">
         <button class="pill" id="info" type="button" aria-expanded="false" aria-controls="about" data-pl="O nas">Apie</button>
@@ -501,17 +511,6 @@ h1 { font-weight: 400; font-style: italic; font-size: clamp(30px, 3.6vw, 46px); 
         </aside>
       </div>
       <div class="about-wrap"><button class="pill" id="langBtn" type="button" lang="pl" aria-label="Polski">PL</button></div>
-      <aside class="panel story" id="story" aria-labelledby="storyTitle" hidden>
-        <div class="p-top"><span class="tag" data-pl="Wnioski">Įžvalgos</span><button class="x" type="button" data-close aria-label="Uždaryti" data-pl-aria="Zamknij">&times;</button></div>
-        <h2 class="p-title" id="storyTitle" data-pl="Co mówią dane i badania">Ką sako duomenys ir tyrimai</h2>
-        <p class="p-meta" data-pl="Historie, które opowiadają dane i badania naukowe zebrane w wehikule czasu. Przyciski otwierają wykresy i źródła.">Istorijos, kurias pasakoja laiko mašinos duomenys ir moksliniai tyrimai. Mygtukai atveria grafikus ir šaltinius.</p>
-        <div class="st-tabs" role="tablist" aria-label="Įžvalgų grupė" data-pl-aria="Grupa wniosków">
-          <button class="st-tab" type="button" role="tab" data-tab="data" aria-selected="true" aria-controls="stData" data-pl="Co mówią dane">Ką sako duomenys</button>
-          <button class="st-tab" type="button" role="tab" data-tab="research" aria-selected="false" aria-controls="stResearch" data-pl="Co mówią badania">Ką sako tyrimai</button>
-        </div>
-        <div class="st-list" id="stData" role="tabpanel"></div>
-        <div class="st-list" id="stResearch" role="tabpanel" hidden></div>
-      </aside>
       </div>
     </div>
   </div>
@@ -524,6 +523,19 @@ h1 { font-weight: 400; font-style: italic; font-size: clamp(30px, 3.6vw, 46px); 
       <p class="w-ask" data-pl="Od czego zacząć?">Nuo ko pradėti?</p>
     </div>
     <nav class="w-grid" id="wGrid" aria-label="Pasirinkimai" data-pl-aria="Wybór"></nav>
+  </section>
+  <section class="sv story sp" id="story" role="dialog" aria-labelledby="storyTitle" hidden>
+    <div class="sp-in">
+      <div class="sv-top"><button class="sv-back" type="button" data-close data-pl="← Wehikuł czasu">← Laiko mašina</button><button class="sv-back sp-lang" type="button" id="spLang"></button></div>
+      <h2 class="sv-title" id="storyTitle" data-pl="Historie">Istorijos</h2>
+      <p class="sp-lead" data-pl="Co opowiadają dane i badania naukowe zebrane w wehikule czasu. Kliknij historię, aby przeczytać ją w całości, przyciski otwierają wykresy i źródła.">Ką pasakoja laiko mašinos duomenys ir moksliniai tyrimai. Spustelėk istoriją, kad perskaitytum visą, mygtukai atveria grafikus ir šaltinius.</p>
+      <div class="st-tabs" role="tablist" aria-label="Istorijų grupė" data-pl-aria="Grupa historii">
+        <button class="st-tab" type="button" role="tab" data-tab="data" aria-selected="true" aria-controls="stData" data-pl="Co mówią dane">Ką sako duomenys</button>
+        <button class="st-tab" type="button" role="tab" data-tab="research" aria-selected="false" aria-controls="stResearch" data-pl="Co mówią badania">Ką sako tyrimai</button>
+      </div>
+      <div class="st-list" id="stData" role="tabpanel"></div>
+      <div class="st-list" id="stResearch" role="tabpanel" hidden></div>
+    </div>
   </section>
   <section class="sv" id="sv" role="dialog" aria-labelledby="svTitle" hidden>
     <div class="sv-field" id="svField" aria-hidden="true"></div>
@@ -2003,10 +2015,22 @@ h1 { font-weight: 400; font-style: italic; font-size: clamp(30px, 3.6vw, 46px); 
   infoBtn.addEventListener("click", () => { if (about.hidden) openAbout(); else closeAbout(); });
   about.addEventListener("click", e => { if (e.target.closest("[data-close]")) closeAbout(); });
 
-  /* ---------- Įžvalgos: storylines from the data and from research ---------- */
+  /* ---------- Istorijos: storylines from the data and from research ---------- */
   const story = $("#story"), storyBtn = $("#storyBtn");
-  function openStory() { if (!about.hidden) closeAbout(); renderStories(); story.hidden = false; storyBtn.setAttribute("aria-expanded", "true"); }
-  function closeStory() { story.hidden = true; storyBtn.setAttribute("aria-expanded", "false"); }
+  const storyHash = h => { try { history.replaceState(null, "", `${location.pathname}${location.search}${h}`); } catch (e) {} };
+  function showStoryTab(t) {
+    story.querySelectorAll(".st-tab").forEach(b => b.setAttribute("aria-selected", String(b.dataset.tab === t)));
+    $("#stData").hidden = t !== "data"; $("#stResearch").hidden = t !== "research";
+    storyHash(`#istorijos=${t === "research" ? "tyrimai" : "duomenys"}`);
+  }
+  function openStory(tab) {
+    if (!about.hidden) closeAbout(); renderStories();
+    story.hidden = false; story.scrollTop = 0; storyBtn.setAttribute("aria-expanded", "true");
+    showStoryTab(tab || ($("#stResearch").hidden ? "data" : "research"));
+  }
+  function closeStory() { story.hidden = true; storyBtn.setAttribute("aria-expanded", "false"); if (/^#istorijos/.test(location.hash)) storyHash(""); }
+  $("#spLang").textContent = PLX ? "LT" : "PL";
+  $("#spLang").addEventListener("click", () => $("#langBtn").click());
   storyBtn.addEventListener("click", () => { if (story.hidden) openStory(); else closeStory(); });
   let storiesDone = false, SVL = [];
   // Story slugs and which artefacts belong to each, in the order the cards are built
@@ -2046,7 +2070,7 @@ h1 { font-weight: 400; font-style: italic; font-size: clamp(30px, 3.6vw, 46px); 
     const slug = STORY_META[k] ? STORY_META[k].slug : String(k);
     const href = `${location.pathname}?lang=${LANG}#istorija=${slug}`;
     const first = t => { t = String(t); return t.length > 200 ? t.slice(0, t.lastIndexOf(" ", 196)) + "…" : t; };
-    svText.innerHTML = `<div class="sv-top"><button class="sv-back" type="button">${tr("← Įžvalgos", "← Wnioski")}</button><a class="sv-new" href="${href}" target="_blank" rel="noopener">${tr("Atverti naujame lange ↗", "Otwórz w nowym oknie ↗")}</a><button class="x" type="button" data-svclose aria-label="${tr("Uždaryti istoriją", "Zamknij historię")}">&times;</button></div>
+    svText.innerHTML = `<div class="sv-top"><button class="sv-back" type="button">${tr("← Istorijos", "← Historie")}</button><a class="sv-new" href="${href}" target="_blank" rel="noopener">${tr("Atverti naujame lange ↗", "Otwórz w nowym oknie ↗")}</a><button class="x" type="button" data-svclose aria-label="${tr("Uždaryti istoriją", "Zamknij historię")}">&times;</button></div>
       <span class="tag">${s.tag}</span><h2 class="sv-title" id="svTitle">${s.title}</h2>${s.body}
       <h3 class="sv-h">${tr("Artefaktai šioje istorijoje", "Artefakty w tej historii")} · ${timeline.length}</h3>
       <ol class="sv-list">${timeline.map(i => `<li><button type="button" data-item="${i.id}"><b>${esc(yrText(i))}</b><span class="t">${esc(i.title)}</span><span class="n">${esc(first(i.notes))}</span></button></li>`).join("")}</ol>`;
@@ -2082,7 +2106,7 @@ h1 { font-weight: 400; font-style: italic; font-size: clamp(30px, 3.6vw, 46px); 
   }
   sv.addEventListener("click", e => {
     if (e.target.closest("[data-svclose]")) { closeStoryView(); return; }
-    if (e.target.closest(".sv-back")) { const k = svOpen; closeStoryView(); openStory(); const tab = k >= 5 ? "research" : "data"; story.querySelector(`.st-tab[data-tab="${tab}"]`).click(); return; }
+    if (e.target.closest(".sv-back")) { const k = svOpen; closeStoryView(); openStory(k >= 5 ? "research" : "data"); const c = story.querySelector(`[data-story="${k}"]`); if (c) c.scrollIntoView({ block: "center" }); return; }
     const ds = e.target.closest("[data-ds]"), it = e.target.closest("[data-item]");
     if (ds) openData(DATASETS.find(d => d.id === ds.dataset.ds));
     if (it) { const item = BY_ID[it.dataset.item]; if (item) select(item); }
@@ -2198,14 +2222,10 @@ h1 { font-weight: 400; font-style: italic; font-size: clamp(30px, 3.6vw, 46px); 
     if (op) { openStoryView(+op.dataset.open); return; }
     if (sc && !e.target.closest("button, a")) { openStoryView(+sc.dataset.story); return; }
     const tab = e.target.closest(".st-tab");
-    if (tab) {
-      story.querySelectorAll(".st-tab").forEach(b => b.setAttribute("aria-selected", String(b === tab)));
-      $("#stData").hidden = tab.dataset.tab !== "data"; $("#stResearch").hidden = tab.dataset.tab !== "research";
-      return;
-    }
+    if (tab) { showStoryTab(tab.dataset.tab); return; }
     const ds = e.target.closest("[data-ds]"), it = e.target.closest("[data-item]");
-    if (ds) { closeStory(); openData(DATASETS.find(d => d.id === ds.dataset.ds)); }
-    if (it) { const item = ORDER.find(i => i.id === it.dataset.item); if (item) { closeStory(); select(item); } }
+    if (ds) openData(DATASETS.find(d => d.id === ds.dataset.ds));
+    if (it) { const item = ORDER.find(i => i.id === it.dataset.item); if (item) select(item); }
   });
 
   /* ---------- Detail ---------- */
@@ -2237,7 +2257,6 @@ h1 { font-weight: 400; font-style: italic; font-size: clamp(30px, 3.6vw, 46px); 
     current = item;
     if (item) {
       if (!about.hidden) closeAbout();
-      if (!story.hidden) closeStory();
       scraps.get(item).classList.add("is-sel");
       goTo(item);
       openDetail(item);
@@ -2369,7 +2388,6 @@ h1 { font-weight: 400; font-style: italic; font-size: clamp(30px, 3.6vw, 46px); 
     if (!ds) return;
     if (current) { scraps.get(current).classList.remove("is-sel"); current = null; }
     if (!about.hidden) closeAbout();
-    if (!story.hidden) closeStory();
     openDetail(ds);
   }
   function stopTravel() {}
@@ -2597,15 +2615,17 @@ vec3 objectTangent = vec3(tangent.xyz);
       if (k === "browse") { if (mode !== "scatter") setMode("scatter"); }
       if (k === "travel") setMode("stream");
       if (k === "people") { setMode("grid"); if (focusKind !== "asmuo") setFocus("asmuo"); }
-      if (k === "history") { openStory(); story.querySelector('.st-tab[data-tab="research"]').click(); }
-      if (k === "data") { timebar.classList.remove("is-collapsed"); try { localStorage.setItem("rykantai-strip", "1"); } catch (e) {} stripShow(dialYear()); openStory(); story.querySelector('.st-tab[data-tab="data"]').click(); }
+      if (k === "history") openStory("research");
+      if (k === "data") { timebar.classList.remove("is-collapsed"); try { localStorage.setItem("rykantai-strip", "1"); } catch (e) {} stripShow(dialYear()); openStory("data"); }
       if (k === "about") openAbout();
     });
   });
   document.addEventListener("keydown", e => { if (e.key === "Escape" && !welcome.hidden) closeWelcome(); });
   const svHash = (location.hash.match(/istorija=([\w-]+)/) || [])[1];
   const svIdx = svHash ? STORY_META.findIndex(m => m.slug === svHash) : -1;
+  const spHash = location.hash.match(/^#istorijos(?:=(\w+))?/);
   if (svIdx >= 0) { stage.classList.remove("is-welcome"); markIntroSeen(); openStoryView(svIdx, true); }
+  else if (spHash) { stage.classList.remove("is-welcome"); markIntroSeen(); openStory(spHash[1] === "duomenys" ? "data" : "research"); }
   else openWelcome(true);
   const homeTitle = $("#homeTitle");
   homeTitle.addEventListener("click", () => openWelcome());
