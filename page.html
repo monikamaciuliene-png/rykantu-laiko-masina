@@ -182,6 +182,37 @@ h1 { margin: 0; font-family: var(--f-display); font-weight: 700; font-size: clam
 .st-links button[data-ds] { text-transform: uppercase; }
 .st-links button:hover { color: #8FF5FF; border-color: #8FF5FF; }
 .st-gap { border-style: dashed; background: transparent; }
+.st[data-story] { cursor: pointer; transition: transform 0.18s, box-shadow 0.18s; }
+.st[data-story]:hover { transform: translateY(-2px); box-shadow: 0 10px 26px rgba(7, 18, 51, 0.14); }
+.st-more { justify-self: start; font: 600 12px var(--f-mono); letter-spacing: 0.05em; text-transform: uppercase; color: var(--lime); background: var(--ink); border: 0; border-radius: 999px; padding: 7px 13px; cursor: pointer; }
+.st-more:hover { background: #000B26; }
+/* Story view: one storyline full screen, its artefacts flying around */
+.sv { position: absolute; inset: 0; z-index: 4; background: var(--lime); color: var(--lime-ink); --ink: var(--lime-ink); --ink-soft: rgba(7, 18, 51, 0.72); --line: rgba(7, 18, 51, 0.24); --cobalt-deep: var(--lime); overflow: hidden; }
+.sv-text { position: absolute; left: 0; top: 0; bottom: 0; width: min(620px, 100%); overflow: auto; overscroll-behavior: contain; padding: 26px 34px 60px; display: grid; align-content: start; gap: 14px; background: linear-gradient(90deg, var(--lime) 82%, rgba(207, 243, 94, 0)); position: absolute; z-index: 2; }
+.sv-field { position: absolute; top: 0; bottom: 0; right: 0; left: min(560px, 100%); z-index: 1; }
+.sv-top { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.sv-top .x { margin-left: auto; }
+.sv-back, .sv-new { font: 500 12px var(--f-mono); letter-spacing: 0.05em; text-transform: uppercase; color: var(--ink); background: none; border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; cursor: pointer; text-decoration: none; }
+.sv-back:hover, .sv-new:hover, .sv .x:hover { background: var(--ink); color: var(--lime); border-color: var(--ink); }
+.sv-title { margin: 4px 0 0; font: 400 clamp(36px, 5vw, 60px)/1.02 var(--f-display); text-wrap: balance; }
+.sv-text p { margin: 0; font-size: 16px; line-height: 1.55; }
+.sv-text .p-meta { font-size: 13px; }
+.sv-text .st-stats b { font-size: 34px; }
+.sv-h { margin: 12px 0 0; font: 500 12px var(--f-mono); letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-soft); }
+.sv-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; border-top: 1px solid var(--line); }
+.sv-list button { width: 100%; display: grid; grid-template-columns: 3.4rem minmax(0, 1fr); gap: 2px 12px; text-align: left; background: none; border: 0; border-bottom: 1px solid var(--line); padding: 10px 2px; cursor: pointer; color: var(--ink); font: inherit; }
+.sv-list button:hover { background: rgba(255, 255, 255, 0.45); }
+.sv-list b { grid-row: span 2; font: 400 22px/1 var(--f-display); }
+.sv-list .t { font-weight: 600; font-size: 14px; }
+.sv-list .n { font-size: 13px; color: var(--ink-soft); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.sv-field .scrap { animation: fly var(--fd, 22s) ease-in-out var(--fdel, 0s) infinite alternate; rotate: var(--fr, 0deg); }
+.sv-field .scrap:hover { z-index: 3; }
+@keyframes fly { from { translate: 0 0; } to { translate: var(--fx, 40px) var(--fy, -30px); } }
+@media (max-width: 700px) {
+  .sv-field { left: 0; right: 0; bottom: auto; height: 300px; }
+  .sv-text { top: 300px; width: 100%; padding: 20px 18px 60px; background: var(--lime); }
+}
+@media (prefers-reduced-motion: reduce) { .sv-field .scrap { animation: none; } }
 /* Įžvalgos wear lime, so they read as their own layer on the cobalt */
 :root { --lime: #CFF35E; --lime-ink: #071233; }
 #storyBtn { background: var(--lime); color: var(--lime-ink); border-color: var(--lime); }
@@ -422,6 +453,10 @@ h1 { font-weight: 400; font-style: italic; font-size: clamp(30px, 3.6vw, 46px); 
       </div>
     </div>
   </div>
+  <section class="sv" id="sv" role="dialog" aria-labelledby="svTitle" hidden>
+    <div class="sv-field" id="svField" aria-hidden="true"></div>
+    <div class="sv-text" id="svText"></div>
+  </section>
   <div class="detail" id="detail" role="dialog" aria-labelledby="dTitle" hidden>
     <figure class="d-fig" id="dFig"></figure>
     <aside class="d-cap" id="dCap"></aside>
@@ -1091,6 +1126,7 @@ h1 { font-weight: 400; font-style: italic; font-size: clamp(30px, 3.6vw, 46px); 
     const linksPl = (links, labels) => labels && labels.length === links.length ? links.map((l, k) => [labels[k], l[1]]) : links;
     ITEMS.forEach(i => {
       const p = PL_ITEMS[i.id] || {};
+      i._lt = { title: i.title, notes: i.notes }; i._lang = i.lang;
       if (p.title) { if (p.orig) i.titleOrig = i.title; i.title = p.title; }
       if (p.notes) i.notes = p.notes;
       if (p.holder) i.holder = p.holder;
@@ -1567,7 +1603,7 @@ h1 { font-weight: 400; font-style: italic; font-size: clamp(30px, 3.6vw, 46px); 
   /* ---------- Drag, swipe and hover ---------- */
   const ptrs = new Map();
   let dragMoved = false, downAt = null;
-  const blocked = t => t.closest(".dock, .hud-btns, .detail, h1, .r-title");
+  const blocked = t => t.closest(".dock, .hud-btns, .detail, .sv, h1, .r-title");
   stage.addEventListener("pointerdown", e => {
     if (mode === "grid" || blocked(e.target) || e.button > 0) return;
     ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
@@ -1674,7 +1710,82 @@ h1 { font-weight: 400; font-style: italic; font-size: clamp(30px, 3.6vw, 46px); 
   function openStory() { if (!about.hidden) closeAbout(); renderStories(); story.hidden = false; storyBtn.setAttribute("aria-expanded", "true"); }
   function closeStory() { story.hidden = true; storyBtn.setAttribute("aria-expanded", "false"); }
   storyBtn.addEventListener("click", () => { if (story.hidden) openStory(); else closeStory(); });
-  let storiesDone = false;
+  let storiesDone = false, SVL = [];
+  // Story slugs and which artefacts belong to each, in the order the cards are built
+  const lt = i => i._lt || i;
+  const has = re => i => re.test(`${lt(i).title} ${lt(i).notes} ${i.holder}`);
+  const STORY_META = [
+    { slug: "gyventojai", match: has(/gyventoj|surašym|metrik|valstieč|šeimos|šeimų/i) },
+    { slug: "biblioteka", match: has(/bibliotek|skaitytoj/i) },
+    { slug: "klimatas", match: has(/ežer|neries|nerį|gamt|drug|augal|vanden|snie|klimat|miško|ledyn|krioklių|šaltin|ąžuol/i) },
+    { slug: "bendruomene", match: i => i.year != null && i.year >= 2020 },
+    { slug: "lenkai", match: i => /lenkų/.test(i._lang || i.lang || "") || has(/lenk|polsk|kurier|zpl|wileńsk/i)(i) },
+    { slug: "reformacija", match: has(/reformat|kalvin|evangelik|protestant|zbor|tolvaiš|talvoš|talwosz|helvet/i) },
+    { slug: "daile", match: has(/fresk|paveiksl|tapyb|madon|portret|dailė|dailin|vargon|altor|paramentai|arnot/i) },
+    { slug: "kelias", match: has(/1812|napoleon|1831|sukil|1920|1944|1943|kariuomen|kaut|armija krajova|demarkac|pasienie|plėšik|karo /i) },
+    { slug: "kalbos", match: has(/kalb|tarm|parapij|kunig|mišios|pamald|tikėj|kryž/i) },
+    { slug: "pedsakai", match: has(/pilkap|lobi|lobis|denar|archeolog|ledyn|moren|viduramž|kryžiuoč|ordino/i) }
+  ];
+  const sv = $("#sv"), svText = $("#svText"), svField = $("#svField");
+  let svOpen = -1;
+  function storyItems(k, body) {
+    const keyIds = [...body.matchAll(/data-item="([^"]+)"/g)].map(m => m[1]);
+    const key = keyIds.map(id => BY_ID[id]).filter(Boolean);
+    const rest = ORDER.filter(i => !keyIds.includes(i.id) && STORY_META[k] && STORY_META[k].match(i));
+    return { key, all: [...key, ...rest].filter((i, n, a) => a.indexOf(i) === n) };
+  }
+  function openStoryView(k, keepHash) {
+    renderStories();
+    const s = SVL[k]; if (!s) return;
+    closeStory(); if (!about.hidden) closeAbout();
+    svOpen = k;
+    const { key, all } = storyItems(k, s.body);
+    const timeline = all.slice().sort((a, b) => (a.year ?? 9999) - (b.year ?? 9999));
+    const slug = STORY_META[k] ? STORY_META[k].slug : String(k);
+    const href = `${location.pathname}?lang=${LANG}#istorija=${slug}`;
+    const first = t => { t = String(t); return t.length > 200 ? t.slice(0, t.lastIndexOf(" ", 196)) + "…" : t; };
+    svText.innerHTML = `<div class="sv-top"><button class="sv-back" type="button">${tr("← Įžvalgos", "← Wnioski")}</button><a class="sv-new" href="${href}" target="_blank" rel="noopener">${tr("Atverti naujame lange ↗", "Otwórz w nowym oknie ↗")}</a><button class="x" type="button" data-svclose aria-label="${tr("Uždaryti istoriją", "Zamknij historię")}">&times;</button></div>
+      <span class="tag">${s.tag}</span><h2 class="sv-title" id="svTitle">${s.title}</h2>${s.body}
+      <h3 class="sv-h">${tr("Artefaktai šioje istorijoje", "Artefakty w tej historii")} · ${timeline.length}</h3>
+      <ol class="sv-list">${timeline.map(i => `<li><button type="button" data-item="${i.id}"><b>${esc(yrText(i))}</b><span class="t">${esc(i.title)}</span><span class="n">${esc(first(i.notes))}</span></button></li>`).join("")}</ol>`;
+    svText.scrollTop = 0;
+    sv.hidden = false;
+    layoutField([...key, ...all.filter(i => !key.includes(i))].slice(0, 22));
+    if (!keepHash) try { history.replaceState(null, "", `${location.pathname}${location.search}#istorija=${slug}`); } catch (e) {}
+    stage.scrollIntoView({ block: "start" });
+  }
+  function layoutField(list) {
+    svField.innerHTML = "";
+    const r = svField.getBoundingClientRect(), W = Math.max(200, r.width), H = Math.max(200, r.height), small = W < 500;
+    if (small) list = list.slice(0, 9);
+    const cols = small ? 3 : Math.max(2, Math.round(W / 200)), rows = Math.max(2, Math.ceil(list.length / cols));
+    const cw = W / cols, ch = H / rows;
+    list.forEach((item, n) => {
+      const rr = rng(item.id + "sv"), [w0, h0] = sizes.get(item) || [150, 150];
+      const k = Math.min(1, (Math.min(cw, ch) * 0.92) / Math.max(w0, h0)), w = w0 * k, hh = h0 * k;
+      const c = n % cols, row = Math.floor(n / cols);
+      const x = c * cw + (cw - w) * (0.15 + rr() * 0.7), y = row * ch + (ch - hh) * (0.15 + rr() * 0.7);
+      const b = document.createElement("button");
+      b.type = "button"; b.className = `scrap k-${item.kind}${item.kind === "archyvas" && !item.img ? " no-img" : ""}`;
+      b.dataset.item = item.id; b.tabIndex = -1;
+      b.style.cssText = `left:${x.toFixed(0)}px;top:${y.toFixed(0)}px;width:${w.toFixed(0)}px;height:${hh.toFixed(0)}px;--fx:${((rr() - 0.5) * 70).toFixed(0)}px;--fy:${((rr() - 0.5) * 60).toFixed(0)}px;--fd:${(16 + rr() * 16).toFixed(1)}s;--fdel:${(-rr() * 20).toFixed(1)}s;--fr:${((rr() - 0.5) * 10).toFixed(1)}deg`;
+      b.innerHTML = `<span class="sc" style="width:${w0}px;height:${h0}px;transform:scale(${k.toFixed(3)});transform-origin:0 0">${scrapInner(item)}</span>`;
+      if (item.kind === "tekstas") b.firstElementChild.style.clipPath = tornPath(item);
+      svField.appendChild(b);
+    });
+  }
+  function closeStoryView() {
+    sv.hidden = true; svOpen = -1; svField.innerHTML = "";
+    try { history.replaceState(null, "", `${location.pathname}${location.search}`); } catch (e) {}
+  }
+  sv.addEventListener("click", e => {
+    if (e.target.closest("[data-svclose]")) { closeStoryView(); return; }
+    if (e.target.closest(".sv-back")) { const k = svOpen; closeStoryView(); openStory(); const tab = k >= 5 ? "research" : "data"; story.querySelector(`.st-tab[data-tab="${tab}"]`).click(); return; }
+    const ds = e.target.closest("[data-ds]"), it = e.target.closest("[data-item]");
+    if (ds) openData(DATASETS.find(d => d.id === ds.dataset.ds));
+    if (it) { const item = BY_ID[it.dataset.item]; if (item) select(item); }
+  });
+  window.addEventListener("resize", () => { if (svOpen >= 0) { const { key, all } = storyItems(svOpen, SVL[svOpen].body); layoutField([...key, ...all.filter(i => !key.includes(i))].slice(0, 22)); } });
   function renderStories() {
     if (storiesDone) return;
     storiesDone = true;
@@ -1684,7 +1795,8 @@ h1 { font-weight: 400; font-style: italic; font-size: clamp(30px, 3.6vw, 46px); 
     const stats = rows => `<div class="st-stats">${rows.map(([b, s]) => `<div><b>${b}</b><span>${s}</span></div>`).join("")}</div>`;
     const dsBtns = rows => `<div class="st-links">${rows.map(([id, l]) => `<button type="button" data-ds="${id}">${l}</button>`).join("")}</div>`;
     const srcBtns = rows => `<div class="st-links">${rows.filter(([id]) => ORDER.some(i => i.id === id)).map(([id, l]) => `<button type="button" data-item="${id}">${l}</button>`).join("")}</div>`;
-    const card = (tag, title, body) => `<article class="st"><span class="tag">${tag}</span><h3>${title}</h3>${body}</article>`;
+    SVL = [];
+    const card = (tag, title, body) => { const k = SVL.length; SVL.push({ tag, title, body }); return `<article class="st" data-story="${k}"><span class="tag">${tag}</span><h3>${title}</h3>${body}<button class="st-more" type="button" data-open="${k}">${tr("Skaityti visą istoriją →", "Czytaj całą historię →")}</button></article>`; };
     $("#stData").innerHTML = [
       card(tr("Gyventojai", "Ludność"), tr("Kaimas mažėja, apylinkės auga", "Wieś się wyludnia, okolica rośnie"),
         stats([[`${f0(412)} → ${f0(251)}`, tr("gyventojai kaime, 2001-2021 m.", "mieszkańcy wsi, 2001-2021")], [`${f0(1112)} → ${f0(1617)}`, tr("rinkėjai Rykantų apylinkėje, 2014-2024 m.", "wyborcy w obwodzie głosowania Rykonty, 2014-2024")]]) +
@@ -1751,6 +1863,9 @@ h1 { font-weight: 400; font-style: italic; font-size: clamp(30px, 3.6vw, 46px); 
   }
   story.addEventListener("click", e => {
     if (e.target.closest("[data-close]")) { closeStory(); return; }
+    const op = e.target.closest("[data-open]"), sc = e.target.closest("[data-story]");
+    if (op) { openStoryView(+op.dataset.open); return; }
+    if (sc && !e.target.closest("button, a")) { openStoryView(+sc.dataset.story); return; }
     const tab = e.target.closest(".st-tab");
     if (tab) {
       story.querySelectorAll(".st-tab").forEach(b => b.setAttribute("aria-selected", String(b === tab)));
@@ -1816,7 +1931,7 @@ h1 { font-weight: 400; font-style: italic; font-size: clamp(30px, 3.6vw, 46px); 
   detail.addEventListener("click", e => { if (e.target === detail) select(null); });
   document.addEventListener("keydown", e => {
     if (e.target.matches && e.target.matches("input")) return;
-    if (e.key === "Escape") { if (!story.hidden) closeStory(); else if (!about.hidden) closeAbout(); else if (current || !detail.hidden) select(null); }
+    if (e.key === "Escape") { if (current || !detail.hidden) select(null); else if (!sv.hidden) closeStoryView(); else if (!story.hidden) closeStory(); else if (!about.hidden) closeAbout(); }
     if (!detail.hidden && e.key === "ArrowRight") stepBy(1);
     if (!detail.hidden && e.key === "ArrowLeft") stepBy(-1);
   });
@@ -2085,6 +2200,9 @@ vec3 objectTangent = vec3(tangent.xyz);
   if (!GL) stage.classList.add("no-gl");
   setMode(mode);
   startFlow();
-  if (!introSeen()) openAbout();
+  const svHash = (location.hash.match(/istorija=([\w-]+)/) || [])[1];
+  const svIdx = svHash ? STORY_META.findIndex(m => m.slug === svHash) : -1;
+  if (svIdx >= 0) { markIntroSeen(); openStoryView(svIdx, true); }
+  else if (!introSeen()) openAbout();
 })();
 </script>
