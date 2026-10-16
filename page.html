@@ -1,8 +1,5 @@
 <title>Rykantų laiko mašina</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Schibsted+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
 <style>
 /* Layout: cobalt field; artefacts stream right to left through the chrome blob, the time machine, which reads out the year and the artefact passing through it; drag or swipe to travel; a picked scrap opens large beside a caption box; filter dock at the bottom; logbook below */
 :root {
@@ -26,9 +23,9 @@
   --k-renginys: #FFC2A8;
   --k-asmuo: #FF9E8A;
   --k-duomenys: #A8F0C6;
-  --f-display: "Instrument Serif", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
-  --f-body: "Schibsted Grotesk", "Helvetica Neue", Arial, sans-serif;
-  --f-mono: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+  --f-display: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --f-body: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --f-mono: "Helvetica Neue", Helvetica, Arial, sans-serif;
   color-scheme: dark;
 }
 * { box-sizing: border-box; }
@@ -292,6 +289,10 @@ h1 { margin: 0; font-family: var(--f-display); font-weight: 700; font-size: clam
 .sp .st-list { display: block; columns: 3 330px; column-gap: 16px; }
 .sp .st-list[hidden], .sp .st[hidden] { display: none; }
 .sp .st { break-inside: avoid; margin: 0 0 16px; }
+/* The story title leads the card; the numbers sit below it, smaller */
+.sp .st h3 { font-size: clamp(30px, 2.5vw, 36px); line-height: 1.05; margin: 0 0 6px; }
+.sp .st-stats { gap: 8px 16px; padding: 10px 0 2px; border-top: 1px solid var(--line); }
+.sp .st-stats b { font-size: 21px; }
 /* Raktažodžiai: themes the records mention, overall and by century */
 .sp-words { position: relative; margin-top: 10px; padding: 24px 26px 22px; border-radius: 16px; background: radial-gradient(120% 120% at 20% 0%, #1F63D6 0, #0047AB 45%, #001E5C 100%); color: #F2F5FF; display: grid; gap: 12px; scroll-margin-top: 16px; --ink: #F2F5FF; --ink-soft: rgba(242, 245, 255, 0.74); --line: rgba(242, 245, 255, 0.18); }
 .sp-words .tag { color: #8FF5FF; }
@@ -480,7 +481,7 @@ input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border: 0; bo
 .mode-grid #gl, .mode-grid .blobfb, .mode-grid .readout { display: none !important; }
 #pause[aria-pressed="true"] { background: var(--ink); color: var(--cobalt-deep); }
 
-/* Display face: Instrument Serif has one weight, so no faux bold */
+/* Display sizes, refined by the Helvetica scale at the end */
 h1 { font-weight: 400; font-style: italic; font-size: clamp(30px, 3.6vw, 46px); letter-spacing: 0; }
 .s-year, .p-title, .log-head h2, .d-count { font-weight: 400; letter-spacing: 0; }
 .s-year { font-size: 40px; }
@@ -533,6 +534,29 @@ h1 { font-weight: 400; font-style: italic; font-size: clamp(30px, 3.6vw, 46px); 
   .hud-btns .pill { padding: 6px 9px; font-size: 10.5px; letter-spacing: 0.03em; }
   .readout { top: calc(var(--bar-h, 56px) + 8px); }
 }
+/* One typeface: Helvetica. Titles bold and tight, numbers tabular, Helvetica is wider than the old serif so big sizes come down */
+body { font-variant-numeric: tabular-nums; }
+.s-type, .s-title { overflow-wrap: anywhere; }
+h1, h2, h3, .w-title, .sv-title, .sp-wt, .p-title, .log-head h2, .st h3 { font-style: normal; font-weight: 700; letter-spacing: -0.02em; }
+.hud-top h1 { font-size: clamp(22px, 2.2vw, 30px); }
+.w-title { font-size: clamp(34px, 5.2vw, 76px); line-height: 1.02; }
+.sv-title { font-size: clamp(30px, 4vw, 50px); line-height: 1.05; }
+.sp-wt { font-size: clamp(26px, 3vw, 38px); }
+.sp .st h3 { font-size: clamp(22px, 1.9vw, 27px); line-height: 1.12; }
+.st-stats b, .sp .st-stats b { font-weight: 400; letter-spacing: -0.01em; }
+.sp .st-stats b { font-size: 20px; }
+.sv-text .st-stats { gap: 12px 22px; }
+.sv-text .st-stats > div { flex: 1 1 150px; }
+.sv-text .st-stats b { font-size: clamp(22px, 2vw, 28px); }
+.r-year { font-weight: 300; font-size: clamp(44px, 5vw, 74px); letter-spacing: -0.03em; }
+.s-year { font-weight: 700; font-size: 30px; letter-spacing: -0.03em; }
+.k-tyrimas .s-year { font-size: 26px; }
+.k-balsas .s-year { font-size: 21px; }
+.k-renginys .s-year { font-size: 24px; }
+.s-year.is-text { font-size: 18px; }
+.k-asmuo .s-mono { font: 700 30px/1 var(--f-display); letter-spacing: -0.02em; }
+.log-head h2 { font-size: clamp(30px, 4.2vw, 48px); }
+@media (max-width: 700px) { .hud-top h1 { font-size: 19px; } .r-year { font-size: 40px; } }
 </style>
 
 <section class="scene is-welcome" id="scene" aria-label="Laiko mašina" data-pl-aria="Wehikuł czasu">
