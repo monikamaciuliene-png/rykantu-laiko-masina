@@ -162,6 +162,10 @@ a:hover { color: #8FF5FF; }
 /* Welcome: the blob fills the screen, then shrinks to its place */
 .welcome { position: absolute; inset: 0; z-index: 7; display: grid; grid-template-rows: 1fr auto; justify-items: center; padding: 64px 22px 34px; background: radial-gradient(circle at 50% 44%, rgba(0, 14, 70, 0) 0, rgba(8, 24, 110, 0.45) 38%, rgba(4, 14, 66, 0.94) 78%); transition: opacity 0.6s ease; }
 .welcome.is-leaving { opacity: 0; pointer-events: none; }
+.w-hit { position: absolute; left: 50%; top: 44%; width: 68vmin; height: 68vmin; transform: translate(-50%, -50%); border-radius: 50%; border: 0; background: transparent; cursor: pointer; z-index: 0; }
+.w-hit:focus-visible { outline: 3px solid #8FF5FF; outline-offset: 6px; }
+.w-head, .w-grid { position: relative; z-index: 1; }
+.w-head { pointer-events: none; }
 .w-head { align-self: center; display: grid; justify-items: center; gap: 12px; text-align: center; max-width: 820px; }
 .w-tag { font: 500 12px var(--f-mono); letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-soft); }
 .w-title { margin: 0; font: italic 400 clamp(40px, 6.4vw, 92px)/1 var(--f-display); text-wrap: balance; text-shadow: 0 4px 34px rgba(0, 10, 60, 0.85), 0 1px 3px rgba(0, 10, 60, 0.6); }
@@ -511,10 +515,11 @@ h1 { font-weight: 400; font-style: italic; font-size: clamp(30px, 3.6vw, 46px); 
     </div>
   </div>
   <section class="welcome" id="welcome" role="dialog" aria-labelledby="wTitle" hidden>
+    <button class="w-hit" type="button" data-w="browse" aria-label="Į laiko mašiną" data-pl-aria="Do wehikułu czasu"></button>
     <button class="pill w-lang" type="button" id="wLang"></button>
     <div class="w-head">
       <h2 class="w-title" id="wTitle" data-pl="Witamy w wehikule czasu Rykont">Sveiki atvykę į Rykantų laiko mašiną</h2>
-      <p class="w-sub" data-pl="Zebraliśmy tu ponad 200 dokumentów, zdjęć, badań i opowieści o Rykontach od 1619 r. do dziś.">Čia surinkta daugiau nei 200 dokumentų, nuotraukų, tyrimų ir pasakojimų apie Rykantus nuo 1619 m. iki šių dienų.</p>
+      <p class="w-sub" id="wLead"></p>
       <p class="w-ask" data-pl="Od czego zacząć?">Nuo ko pradėti?</p>
     </div>
     <nav class="w-grid" id="wGrid" aria-label="Pasirinkimai" data-pl-aria="Wybór"></nav>
@@ -2553,6 +2558,10 @@ vec3 objectTangent = vec3(tangent.xyz);
     { k: "travel", t: tr("Keliauti laiku", "Podróż w czasie"), s: tr("Nuo 1619 m. iki šiandien, metai po metų", "Od 1619 r. do dziś, rok po roku") }
   ];
   $("#wGrid").innerHTML = W_OPTS.map(o => `<button class="w-opt${o.main ? " is-main" : ""}" type="button" data-w="${o.k}"><b>${o.t}</b><span>${o.s}</span></button>`).join("");
+  // The count follows the records; Lithuanian and Polish number agreement
+  const ltDocs = n => (n % 10 === 1 && n % 100 !== 11) ? `Čia surinktas ${n} dokumentas` : (n % 10 >= 2 && (n % 100 < 10 || n % 100 >= 20)) ? `Čia surinkti ${n} dokumentai` : `Čia surinkta ${n} dokumentų`;
+  const plDocs = n => n === 1 ? "Zebraliśmy tu 1 dokument" : (n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20)) ? `Zebraliśmy tu ${n} dokumenty` : `Zebraliśmy tu ${n} dokumentów`;
+  $("#wLead").textContent = tr(`${ltDocs(nArt)} iš atvirų šaltinių apie Rykantus nuo 1619 m. iki šių dienų.`, `${plDocs(nArt)} z otwartych źródeł o Rykontach od 1619 r. do dziś.`);
   $("#wLang").textContent = PLX ? "LT" : "PL";
   $("#wLang").addEventListener("click", () => $("#langBtn").click());
   let wTimer = 0;
@@ -2579,7 +2588,7 @@ vec3 objectTangent = vec3(tangent.xyz);
     if (mode !== "scatter") setMode("scatter");
     stage.scrollIntoView({ block: "start" });
   }
-  welcome.addEventListener("pointerover", e => { if (e.target.closest(".w-opt") && GL) GL.pulse(); });
+  welcome.addEventListener("pointerover", e => { if (e.target.closest(".w-opt, .w-hit") && GL) GL.pulse(); });
   welcome.addEventListener("click", e => {
     const b = e.target.closest("[data-w]"); if (!b) return;
     const k = b.dataset.w;
