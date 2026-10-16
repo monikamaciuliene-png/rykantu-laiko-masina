@@ -674,6 +674,16 @@ h1, h2, h3, .w-title, .sv-title, .sp-wt, .p-title, .log-head h2, .st h3 { font-s
 .sh-consent { padding: 18px 20px; border-radius: 14px; border: 1px dashed var(--line); }
 .sh-cta { justify-self: start; font: 700 13px var(--f-body); letter-spacing: 0.03em; padding: 8px 14px; border-radius: 999px; background: #FFB4A3; color: #1A0F0C; border: 0; cursor: pointer; }
 @media (max-width: 700px) { .hud-btns { gap: 4px; } .hud-btns .pill { padding: 6px 6px; font-size: 10px; letter-spacing: 0; } }
+.sh-demo { justify-self: start; margin: 0; padding: 8px 14px; border-radius: 999px; background: var(--lime); color: var(--lime-ink); font: 700 13px var(--f-body); }
+.sh-form { display: grid; gap: 14px; max-width: 40rem; padding: 22px; border-radius: 16px; background: rgba(0, 11, 38, 0.38); border: 1px dashed var(--line); }
+.sh-form h3 { margin: 0; font: 700 20px var(--f-display); }
+.sh-form fieldset { margin: 0; padding: 0; border: 0; display: grid; gap: 8px; }
+.sh-form legend, .sh-form > label { font-size: 15px; font-weight: 600; }
+.sh-form > label { display: grid; gap: 6px; }
+.sh-form .sh-chk { display: flex; gap: 8px; align-items: flex-start; font-weight: 500; }
+.sh-opts { display: flex; flex-wrap: wrap; gap: 8px 16px; font-size: 15px; font-weight: 400; }
+.sh-form textarea, .sh-form input[type="text"] { font: 15px var(--f-body); color: var(--ink); background: rgba(0, 11, 38, 0.5); border: 1px solid var(--line); border-radius: 10px; padding: 9px 12px; }
+.sh-file { justify-self: start; font: 600 13px var(--f-body); color: var(--ink-soft); padding: 7px 12px; border-radius: 8px; border: 1px dashed var(--line); }
 </style>
 
 <section class="scene is-welcome" id="scene" aria-label="Laiko mašina" data-pl-aria="Wehikuł czasu">
@@ -2703,42 +2713,32 @@ h1, h2, h3, .w-title, .sv-title, .sp-wt, .p-title, .log-head h2, .st h3 { font-s
   }
   function closePages() { Object.values(PAGES).forEach(x => { x.hidden = true; }); if (/^#(duomenys|zurnalas|pasidalink)$/.test(location.hash)) storyHash(""); }
   document.querySelectorAll(".pg").forEach(p => p.addEventListener("click", e => { if (e.target.closest("[data-pgclose]")) closePages(); }));
-  const FORM_URL = "xx"; // the intake form, filled in once Rykantų paštas sets it up
+  // Pasidalink is an example for the community workshop: nothing here is sent anywhere
   function renderShare() {
     const docs = ORDER.filter(i => i.kind !== "asmuo"), own = docs.filter(i => i._own ?? (i.kind === "balsas" || /(Rykantų pašto tinklaraštis|Blog Rykantų paštas)$/.test(i.holder || ""))).length;
-    const ready = FORM_URL !== "xx";
-    const what = tr(["Šeimos nuotraukos", "Laiškai ir dokumentai", "Daiktai ir įrankiai", "Prisiminimai", "Dainos ir receptai", "Vietų pavadinimai", "Šventės ir papročiai"],
-      ["Zdjęcia rodzinne", "Listy i dokumenty", "Przedmioty i narzędzia", "Wspomnienia", "Piosenki i przepisy", "Nazwy miejsc", "Święta i zwyczaje"]);
+    const kinds = tr(["Nuotrauka", "Daiktas", "Prisiminimas", "Kita"], ["Zdjęcie", "Przedmiot", "Wspomnienie", "Inne"]);
     $("#shareBody").innerHTML = `
+      <p class="sh-demo">${tr("Pavyzdys dirbtuvėms. Tai dar ne veikianti paslauga: forma nieko neišsiunčia.", "Przykład na warsztaty. To jeszcze nie działająca usługa: formularz niczego nie wysyła.")}</p>
       <header class="sh-head"><span class="tag">${tr("Pasidalink", "Podziel się")}</span>
-        <h2 id="shareTitle">${tr("Pasidalinkite savo Rykantais", "Podziel się swoimi Rykontami")}</h2>
-        <p>${tr(`Dokumentų laiko mašinoje: ${docs.length}. Patys rykantiškiai iš jų sukūrė ${own}: tinklalaidės pokalbius ir Rykantų pašto tinklaraščio tekstus. Kitus užrašė archyvai, spauda ir mokslininkai. Šeimos nuotraukos, laiškai, daiktai ir prisiminimai dar laukia savo vietos.`,
-          `Dokumentów w wehikule czasu: ${docs.length}. Sami mieszkańcy Rykont stworzyli z nich ${own}: rozmowy z podcastu i teksty z bloga Rykantų paštas. Resztę zapisały archiwa, prasa i badacze. Rodzinne zdjęcia, listy, przedmioty i wspomnienia wciąż czekają na swoje miejsce.`)}</p></header>
+        <h2 id="shareTitle">${tr("Kaip gyventojai galėtų papildyti laiko mašiną", "Jak mieszkańcy mogliby uzupełniać wehikuł czasu")}</h2>
+        <p>${tr(`Dokumentų laiko mašinoje: ${docs.length}. Patys rykantiškiai iš jų sukūrė ${own}: tinklalaidės pokalbius ir Rykantų pašto tinklaraščio tekstus. Kitus užrašė archyvai, spauda ir mokslininkai. Šeimos nuotraukos, daiktai ir prisiminimai dar laukia savo vietos.`,
+          `Dokumentów w wehikule czasu: ${docs.length}. Sami mieszkańcy Rykont stworzyli z nich ${own}: rozmowy z podcastu i teksty z bloga Rykantų paštas. Resztę zapisały archiwa, prasa i badacze. Rodzinne zdjęcia, przedmioty i wspomnienia wciąż czekają na swoje miejsce.`)}</p></header>
       <div class="sh-stat"><b>${own} ${tr("iš", "z")} ${docs.length}</b><span>${tr("įrašų sukūrė patys rykantiškiai. Visa kita užrašė kiti.", "wpisów stworzyli sami mieszkańcy. Całą resztę zapisali inni.")}</span></div>
       <div class="sh-ch">
-        <article class="sh-card"><span class="tag">1</span><h3>${tr("Internetu", "Przez internet")}</h3>
-          <p>${tr("Užpildykite formą: aprašykite nuotrauką, daiktą ar prisiminimą ir pridėkite failą.", "Wypełnij formularz: opisz zdjęcie, przedmiot lub wspomnienie i dodaj plik.")}</p>
-          ${ready ? `<a class="sh-btn" href="${esc(FORM_URL)}" target="_blank" rel="noopener">${tr("Pildyti formą ↗", "Wypełnij formularz ↗")}</a>` : `<span class="sh-btn" aria-disabled="true">${tr("Forma ruošiama: xx", "Formularz w przygotowaniu: xx")}</span>`}</article>
-        <article class="sh-card"><span class="tag">2</span><h3>${tr("Rykantų pašte", "Na poczcie w Rykontach")}</h3>
-          <p>${tr("Atneškite nuotraukas ar dokumentus į Rykantų paštą: juos nuskenuos vietoje, o originalai liks jums.", "Przynieś zdjęcia lub dokumenty na pocztę Rykantų paštas: zeskanują je na miejscu, a oryginały zostaną u ciebie.")}</p>
-          <p class="p-meta">${tr("Adresas: xx. Skenavimo dienos ir laikas: xx.", "Adres: xx. Dni i godziny skanowania: xx.")}</p></article>
-        <article class="sh-card"><span class="tag">3</span><h3>${tr("Balsu", "Głosem")}</h3>
-          <p>${tr("Prisiminimus galima įrašyti tinklalaidei „Rykantų pašto laiškai“, kurioje jau skamba aštuoni kaimo balsai.", "Wspomnienia można nagrać dla podcastu „Rykantų pašto laiškai”, w którym brzmi już osiem głosów ze wsi.")}</p>
-          <p class="p-meta">${tr("Susitarti dėl pokalbio: xx.", "Umów rozmowę: xx.")}</p></article>
+        <article class="sh-card"><span class="tag">1</span><h3>${tr("Internetu", "Przez internet")}</h3><p>${tr("Trumpa forma: penki klausimai. Pavyzdys žemiau.", "Krótki formularz: pięć pytań. Przykład poniżej.")}</p></article>
+        <article class="sh-card"><span class="tag">2</span><h3>${tr("Rykantų pašte", "Na poczcie w Rykontach")}</h3><p>${tr("Pavyzdžiui, nustatytomis dienomis čia būtų galima nuskenuoti atneštas nuotraukas ir dokumentus.", "Na przykład w ustalone dni można by tu zeskanować przyniesione zdjęcia i dokumenty.")}</p></article>
+        <article class="sh-card"><span class="tag">3</span><h3>${tr("Balsu", "Głosem")}</h3><p>${tr("Prisiminimus būtų galima įrašyti tinklalaidei „Rykantų pašto laiškai“, kurioje jau skamba aštuoni kaimo balsai.", "Wspomnienia można by nagrać dla podcastu „Rykantų pašto laiškai”, w którym brzmi już osiem głosów ze wsi.")}</p></article>
       </div>
-      <section class="sh-sec"><h3>${tr("Ko ieškome", "Czego szukamy")}</h3>
-        <ul class="sh-tags">${what.map(w => `<li>${w}</li>`).join("")}</ul>
-        <p>${tr("Ypač laukiame sovietmečio ir šių dienų kaimo gyvenimo: kolūkio, mokyklos, bendruomenės. Apie juos rinkinyje beveik nieko nėra.", "Szczególnie czekamy na życie wsi w czasach sowieckich i dziś: kołchoz, szkołę, wspólnotę. W zbiorze prawie nic o nich nie ma.")}</p></section>
-      <section class="sh-sec"><h3>${tr("Kas bus toliau", "Co dalej")}</h3><ol>
-        <li>${tr("Gauname ir peržiūrime jūsų medžiagą.", "Otrzymujemy i sprawdzamy twój materiał.")}</li>
-        <li>${tr("Jei reikia, susisiekiame patikslinti datą, vietą ar vardus.", "W razie potrzeby kontaktujemy się, by doprecyzować datę, miejsce lub imiona.")}</li>
-        <li>${tr("Įrašas atsiranda laiko mašinoje ir žurnale su jūsų pasirinktu vardu ir licencija.", "Wpis pojawia się w wehikule czasu i w dzienniku z wybranym przez ciebie podpisem i licencją.")}</li>
-        <li>${tr("Bet kada galite paprašyti įrašą pakeisti ar pašalinti.", "W każdej chwili możesz poprosić o zmianę lub usunięcie wpisu.")}</li></ol></section>
-      <section class="sh-sec sh-consent"><h3>${tr("Sutikimas", "Zgoda")}</h3>
-        <p>${tr("Siųsdami medžiagą patvirtinate, kad esate jos autorius arba turite teisę ja dalytis, o žmonės nuotraukose sutinka, kad ji būtų paskelbta, arba tai sena istorinė nuotrauka. Leidžiate medžiagą skelbti Rykantų laiko mašinoje ir jos atviruose duomenyse pagal pasirinktą licenciją: laisvai, nurodant autorių (CC BY 4.0), arba tik šioje svetainėje. Jūsų vardą nurodysime taip, kaip pasirinksite. Kontaktus naudosime tik susisiekti dėl įrašo ir jų neskelbsime.",
-          "Wysyłając materiał, potwierdzasz, że jesteś jego autorem lub masz prawo go udostępnić, a osoby na zdjęciu zgadzają się na publikację albo jest to stare zdjęcie historyczne. Pozwalasz publikować materiał w Wehikule czasu Rykont i w jego otwartych danych na wybranej licencji: swobodnie, z podaniem autora (CC BY 4.0), albo tylko na tej stronie. Podpiszemy cię tak, jak wybierzesz. Danych kontaktowych użyjemy tylko do kontaktu w sprawie wpisu i nie będziemy ich publikować.")}</p>
-        <p>${tr("Jei jums mažiau nei 14 metų, medžiagą siųskite kartu su tėvais.", "Jeśli masz mniej niż 14 lat, wyślij materiał razem z rodzicami.")}</p>
-        <p class="p-meta">${tr("Duomenis tvarko: xx. Norėdami ką nors pakeisti, pašalinti įrašą ar atšaukti sutikimą, rašykite: xx.", "Dane przetwarza: xx. Aby coś zmienić, usunąć wpis lub wycofać zgodę, napisz na: xx.")}</p></section>`;
+      <form class="sh-form" aria-labelledby="shFormTitle" onsubmit="return false">
+        <h3 id="shFormTitle">${tr("Formos pavyzdys", "Przykład formularza")}</h3>
+        <fieldset><legend>1. ${tr("Kuo dalijatės?", "Czym się dzielisz?")}</legend><div class="sh-opts">${kinds.map((k, j) => `<label><input type="radio" name="shk"${j === 0 ? " checked" : ""}> ${k}</label>`).join("")}</div></fieldset>
+        <label>2. ${tr("Papasakokite trumpai: kas, kada, kur?", "Opowiedz krótko: kto, kiedy, gdzie?")}<textarea rows="3" placeholder="${tr("Pvz.: Senelių vestuvės prie bažnyčios, apie 1955 m.", "Np.: Ślub dziadków przy kościele, około 1955 r.")}"></textarea></label>
+        <label>3. ${tr("Nuotrauka ar failas (nebūtina)", "Zdjęcie lub plik (nieobowiązkowe)")}<span class="sh-file" aria-disabled="true">${tr("Pasirinkti failą", "Wybierz plik")}</span></label>
+        <label>4. ${tr("Vardas ir kontaktas", "Imię i kontakt")}<input type="text" placeholder="${tr("Vardas, el. paštas arba telefonas (neskelbiamas)", "Imię, e-mail lub telefon (nie publikujemy)")}"></label>
+        <label class="sh-chk"><input type="checkbox"> 5. ${tr("Sutinku, kad tai būtų paskelbta Rykantų laiko mašinoje su mano vardu.", "Zgadzam się na publikację w Wehikule czasu Rykont z moim imieniem.")}</label>
+        <button class="sh-btn" type="button" aria-disabled="true">${tr("Siųsti", "Wyślij")}</button>
+        <p class="p-meta">${tr("Tai tik pavyzdys: forma neveikia ir nieko neišsiunčia.", "To tylko przykład: formularz nie działa i niczego nie wysyła.")}</p>
+      </form>`;
   }
   $("#dataBtn").addEventListener("click", () => openPage("duomenys"));
   $("#logBtn").addEventListener("click", () => openPage("zurnalas"));
