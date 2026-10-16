@@ -2177,17 +2177,105 @@
   "saugotojas": "Wojskowy Instytut Geograficzny; Polona",
   "kalba": "lenkų k.",
   "licencija": "Viešasis domenas",
-  "aprasymas": "Kaimo vardu pavadintas 1:25 000 žemėlapio lapas: kiekviena sodyba, keliai ir stotis.",
+  "aprasymas": "Kaimo vardu pavadintas 1:25 000 žemėlapio lapas: kiekviena sodyba, keliai, stotis, bažnyčia su kapinėmis į vakarus nuo geležinkelio. Lietuviškoji lapo dalis braižyta pagal 1892 m. rusų, lenkiškoji pagal 1934 m. WIG matavimus. Vaizdas iškirptas ir sulygintas su šiandienos žemėlapiu.",
   "nuorodos": [
    {
     "pavadinimas": "Polona",
     "url": "https://polona.pl/preview/025bd92d-b115-45d9-b6dd-0cb09bc058f4"
    }
   ],
-  "vaizdas": "https://monikamaciuliene-png.github.io/rykantu-laiko-masina/img/wigmap.jpg",
+  "vaizdas": "https://monikamaciuliene-png.github.io/rykantu-laiko-masina/img/map-1936.jpg",
   "pavadinimas_pl": "Arkusz topograficzny „Rykonty”, Pas 30 Słup 40-A",
   "saugotojas_pl": "Wojskowy Instytut Geograficzny; Polona",
-  "aprasymas_pl": "Arkusz mapy w skali 1:25 000 nazwany od wsi: każda zagroda, drogi i stacja."
+  "aprasymas_pl": "Arkusz mapy w skali 1:25 000 nazwany od wsi: każda zagroda, drogi, stacja, kościół z cmentarzem na zachód od kolei. Litewska część arkusza opracowana według rosyjskich zdjęć z 1892 r., polska według zdjęć WIG z 1934 r. Wycinek przycięto i dopasowano do dzisiejszej mapy."
+ },
+ {
+  "id": "map-1872",
+  "rusis": "archyvas",
+  "metai": 1872,
+  "data": "1872",
+  "tipas": "Žemėlapis",
+  "pavadinimas": "Rusijos trivierstis žemėlapis, XIII eilė, 4 lapas",
+  "saugotojas": "Kongreso biblioteka; Mapster (mapywig.org)",
+  "kalba": "rusų k.",
+  "licencija": "Viešasis domenas",
+  "aprasymas": "Karinis topografinis 1:126 000 žemėlapis, pataisytas pagal 1865 ir 1872 m. žvalgybą. Rykantai pažymėti kaip miestelis „м. Рыконты“, pro jį jau eina geležinkelis, šiaurės rytuose vingiuoja Neris („Р. Вилия“). Vaizdas iškirptas ir sulygintas su šiandienos žemėlapiu.",
+  "nuorodos": [
+   {
+    "pavadinimas": "Mapster",
+    "url": "http://igrek.amzp.pl/details.php?id=11769313"
+   }
+  ],
+  "vaizdas": "https://monikamaciuliene-png.github.io/rykantu-laiko-masina/img/map-1872.jpg",
+  "pavadinimas_pl": "Rosyjska mapa trójwiorstowa, rząd XIII, arkusz 4",
+  "saugotojas_pl": "Biblioteka Kongresu; Mapster (mapywig.org)",
+  "aprasymas_pl": "Wojskowa mapa topograficzna 1:126 000, poprawiona według rekonesansu z lat 1865 i 1872. Rykonty oznaczono jako miasteczko „м. Рыконты”, przechodzi już przez nie kolej, a na północnym wschodzie wije się Wilia („Р. Вилия”). Wycinek przycięto i dopasowano do dzisiejszej mapy."
+ },
+ {
+  "id": "map-1915",
+  "rusis": "archyvas",
+  "metai": 1915,
+  "data": "1915",
+  "tipas": "Žemėlapis",
+  "pavadinimas": "Vokiečių žemėlapis „Karte des westlichen Russlands“, lapas Q 23 Wilna",
+  "saugotojas": "Kgl. Preuss. Landes-Aufnahme; Lenkijos nacionalinė biblioteka, Polona",
+  "kalba": "vokiečių k.",
+  "licencija": "Viešasis domenas",
+  "aprasymas": "1:100 000 žemėlapis, išspausdintas 1915 m., Pirmojo pasaulinio karo metais. Kaimas pažymėtas „Rykonty“, šalia Bołczuny ir Siemieniuki, abipus geležinkelio daug miško. Vaizdas iškirptas ir sulygintas su šiandienos žemėlapiu.",
+  "nuorodos": [
+   {
+    "pavadinimas": "Polona",
+    "url": "https://polona.pl/preview/ce4ff95a-eea8-457a-bda7-d13e59cd2b4f"
+   }
+  ],
+  "vaizdas": "https://monikamaciuliene-png.github.io/rykantu-laiko-masina/img/map-1915.jpg",
+  "pavadinimas_pl": "Niemiecka mapa „Karte des westlichen Russlands”, arkusz Q 23 Wilna",
+  "saugotojas_pl": "Kgl. Preuss. Landes-Aufnahme; Biblioteka Narodowa, Polona",
+  "aprasymas_pl": "Mapa 1:100 000 wydrukowana w 1915 r., w czasie I wojny światowej. Wieś oznaczono jako „Rykonty”, obok Bołczuny i Siemieniuki, po obu stronach kolei dużo lasu. Wycinek przycięto i dopasowano do dzisiejszej mapy."
+ },
+ {
+  "id": "map-1937-lt",
+  "rusis": "archyvas",
+  "metai": 1937,
+  "data": "1937",
+  "tipas": "Žemėlapis",
+  "pavadinimas": "Lietuvos kariuomenės žemėlapis, lapas 1707 „Aukšdvaris-Trakai“",
+  "saugotojas": "Karo topografijos skyrius; Mapster (mapywig.org)",
+  "kalba": "lietuvių k.",
+  "licencija": "",
+  "aprasymas": "1:100 000 žemėlapis, sudarytas pagal 1933-1934 m. žvalgybą. Kaimas pažymėtas lietuvišku vardu „RIKANTAI“, nors tada jis buvo Lenkijos valdomoje pusėje. Rykantai lapo šiaurės rytų kampe. Licencija neaiški, todėl rodoma tik nuoroda.",
+  "nuorodos": [
+   {
+    "pavadinimas": "Mapster",
+    "url": "http://igrek.amzp.pl/details.php?id=1754482"
+   }
+  ],
+  "vaizdas": "",
+  "pavadinimas_pl": "Mapa armii litewskiej, arkusz 1707 „Aukšdvaris-Trakai”",
+  "saugotojas_pl": "Karo topografijos skyrius (Oddział Topografii Wojskowej); Mapster (mapywig.org)",
+  "aprasymas_pl": "Mapa 1:100 000 opracowana według rekonesansu z lat 1933-1934. Wieś oznaczono litewską nazwą „RIKANTAI”, choć leżała wtedy po stronie polskiej. Rykonty są w północno-wschodnim rogu arkusza. Licencja jest niejasna, dlatego podano tylko link."
+ },
+ {
+  "id": "map-1961-su",
+  "rusis": "archyvas",
+  "metai": 1961,
+  "data": "1961",
+  "tipas": "Žemėlapis",
+  "pavadinimas": "Sovietų generalinio štabo žemėlapis N-35-38-Г-г „Рикантай“",
+  "saugotojas": "SSRS generalinis štabas; Mapster (mapywig.org)",
+  "kalba": "rusų k.",
+  "licencija": "",
+  "aprasymas": "Slaptas 1:25 000 lapas, pavadintas kaimo vardu, 3-iasis leidimas. Atnaujintas pagal 1956 m. aerofotonuotraukas, 1958 m. patikrintas vietoje. Licencija neaiški, todėl rodoma tik nuoroda.",
+  "nuorodos": [
+   {
+    "pavadinimas": "Mapster",
+    "url": "http://igrek.amzp.pl/details.php?id=11839775"
+   }
+  ],
+  "vaizdas": "",
+  "pavadinimas_pl": "Mapa Sztabu Generalnego ZSRR N-35-38-Г-г „Рикантай”",
+  "saugotojas_pl": "Sztab Generalny ZSRR; Mapster (mapywig.org)",
+  "aprasymas_pl": "Tajny arkusz 1:25 000 nazwany od wsi, wydanie 3. Zaktualizowany według zdjęć lotniczych z 1956 r., sprawdzony w terenie w 1958 r. Licencja jest niejasna, dlatego podano tylko link."
  },
  {
   "id": "buracas",
