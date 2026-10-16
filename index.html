@@ -867,7 +867,11 @@ h1 { font-weight: 400; font-style: italic; font-size: clamp(30px, 3.6vw, 46px); 
       links: [["Open-Meteo istoriniai orai", "https://open-meteo.com/en/docs/historical-weather-api"]] },
     { id: "osm-2026", kind: "duomenys", viz: "osm", year: 2026, date: "2026-10-16", type: "Atvirieji duomenys", title: "Rykantai OpenStreetMap žemėlapyje", holder: "OpenStreetMap bendruomenė", lang: "", licence: "ODbL",
       notes: "Kaimo ribose pažymėtas 251 pastato kontūras, 139 kelių atkarpos, dvejos kapinės, 10 miško plotų, šlapynės, geležinkelio stotelė, parduotuvė ir 1585 m. bažnyčia. Tai savanorių žemėlapis, todėl skaičiai rodo, kas pažymėta, o ne oficialią statistiką.",
-      links: [["OpenStreetMap", "https://www.openstreetmap.org/relation/3695358"]] }
+      links: [["OpenStreetMap", "https://www.openstreetmap.org/relation/3695358"]] },
+    { id: "orgs-jar", kind: "duomenys", viz: "orgs", year: 1991, date: "1991-2026", type: "Registras", title: "Organizacijos Rykantuose", holder: "Registrų centras, Juridinių asmenų registro atvirieji duomenys", lang: "", licence: "",
+      notes: "Rykantų kaime šiuo metu įregistruota 12 juridinių asmenų: Rykantų Švč. Trejybės parapija (1996), Rykantų bendruomenė (2003), Trakų rajono Rykantų universalus daugiafunkcis centras (2014), VšĮ „Rykantų paštas“ (2021), VšĮ „Fondas 17“ (2021) ir septynios bendrovės. Išregistruoti 4, tarp jų Rykantų pradinė mokykla (1994-2005). Duomenys 2026-10-16.",
+      orgs: [["Individuali įmonė (pavadinimas neskelbiamas)", "1991-09-02", "1992-02-19"], ["Rykantų pradinė mokykla", "1994-09-15", "2005-07-04"], ["Rykantų Švč. Trejybės parapija", "1996-09-09", null], ["UAB „Akmeninė dovana“", "2000-01-31", null], ["UAB „Junelitus“", "2003-03-26", null], ["Rykantų bendruomenė", "2003-12-22", null], ["UAB „TransNeli“", "2007-05-18", null], ["UAB „Proto energija“", "2007-05-31", "2022-11-07"], ["UAB „JUMESTA“", "2009-04-03", null], ["Asociacija „Škoda Auto Klubas“", "2011-01-20", "2023-07-28"], ["Rykantų universalus daugiafunkcis centras", "2014-09-01", null], ["VšĮ „Rykantų paštas“", "2021-04-20", null], ["VšĮ „Fondas 17“", "2021-09-08", null], ["UAB „Jusveda“", "2021-09-20", null], ["MB „Tri-tonn transport“", "2024-10-02", null], ["MB „IŠ PLYTŲ“", "2026-01-16", null]],
+      links: [["Registrų centras: JAR atvirieji duomenys", "https://www.registrucentras.lt/p/1094"], ["data.gov.lt", "https://data.gov.lt/"]] }
   ];
 
   const sortKey = i => {
@@ -915,6 +919,10 @@ h1 { font-weight: 400; font-style: italic; font-size: clamp(30px, 3.6vw, 46px); 
     if (item.viz === "snow") {
       const mx = Math.max(...CLIMATE.map(c => c[3]));
       return `<svg viewBox="0 0 ${CLIMATE.length} 40" preserveAspectRatio="none" aria-hidden="true">${CLIMATE.map((c, k) => `<rect x="${k + 0.15}" y="${(40 - c[3] / mx * 38).toFixed(2)}" width="0.7" height="${(c[3] / mx * 38).toFixed(2)}" fill="#3987e5"/>`).join("")}</svg>`;
+    }
+    if (item.viz === "orgs") {
+      const yr = d => +d.slice(0, 4) + (+d.slice(5, 7) - 1) / 12, x = v => 4 + (v - 1990) / 37 * 92;
+      return `<svg viewBox="0 0 100 40" preserveAspectRatio="none" aria-hidden="true">${item.orgs.map((o, k) => `<line x1="${x(yr(o[1])).toFixed(1)}" x2="${x(o[2] ? yr(o[2]) : 2026.8).toFixed(1)}" y1="${(3 + k * 2.2).toFixed(1)}" y2="${(3 + k * 2.2).toFixed(1)}" stroke="${o[2] ? "#6B7A99" : "#A8F0C6"}" stroke-width="1.6" stroke-linecap="round" vector-effect="non-scaling-stroke"/>`).join("")}</svg>`;
     }
     if (item.viz === "population" && item.series) {
       const s = item.series, x0 = s[0][0], x1 = s[s.length - 1][0], mx = Math.max(...s.map(p => p[1])) * 1.1;
@@ -965,6 +973,20 @@ h1 { font-weight: 400; font-style: italic; font-size: clamp(30px, 3.6vw, 46px); 
         <text x="${F.W - F.R + 6}" y="${F.y(roll[roll.length - 1]) + 4}" font-size="11" fill="#F2F5FF">${f0(roll[roll.length - 1])} cm</text></svg>`;
       return { svg, legend: [["#3987e5", "snygis per metus"], ["#F2F5FF", "10 metų slankusis vidurkis"]], rows, F, tip: r => `${r[0]} · ${f0(r[3])} cm sniego, ${f0(r[2])} mm kritulių` };
     }
+    if (item.viz === "orgs") {
+      const yr = d => +d.slice(0, 4) + (+d.slice(5, 7) - 1) / 12, rowsO = item.orgs, W = 680, LBL = 250, R = 20, T = 14, RH = 21, H = T + rowsO.length * RH + 30;
+      const x = v => LBL + (v - 1990) / 37 * (W - LBL - R);
+      let g = "";
+      [1990, 2000, 2010, 2020].forEach(t => { g += `<line x1="${x(t)}" x2="${x(t)}" y1="${T - 6}" y2="${H - 26}" stroke="rgba(242,245,255,0.12)" stroke-width="1"/><text x="${x(t)}" y="${H - 8}" text-anchor="middle" font-size="11" fill="#B7C6EE">${t}</text>`; });
+      rowsO.forEach((o, k) => {
+        const y0 = T + k * RH + RH / 2, a = yr(o[1]), b = o[2] ? yr(o[2]) : 2026.8, col = o[2] ? "#6B7A99" : "#A8F0C6";
+        const span = o[2] ? `${o[1]}-${o[2]}` : `nuo ${o[1]}`;
+        g += `<g><title>${esc(o[0])}: ${esc(span)}</title><text x="${LBL - 12}" y="${y0 + 4}" text-anchor="end" font-size="12" fill="${o[2] ? "#B7C6EE" : "#F2F5FF"}">${esc(o[0])}</text>
+          <line x1="${x(a).toFixed(1)}" x2="${Math.max(x(a) + 3, x(b)).toFixed(1)}" y1="${y0}" y2="${y0}" stroke="${col}" stroke-width="8" stroke-linecap="round"/></g>`;
+      });
+      const svg = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Rykantuose įregistruotų organizacijų gyvavimo laikotarpiai">${g}</svg>`;
+      return { svg, legend: [["#A8F0C6", "veikia"], ["#6B7A99", "išregistruota"]], rows: [], F: null, tip: null };
+    }
     if (item.viz === "population" && item.series) {
       const s = item.series, mx = Math.ceil(Math.max(...s.map(p => p[1])) * 1.15 / 50) * 50;
       const F = chartFrame(s, 0, mx, [0, mx / 2, mx].map(Math.round), v => f0(v), 24);
@@ -982,6 +1004,7 @@ h1 { font-weight: 400; font-style: italic; font-size: clamp(30px, 3.6vw, 46px); 
     const c = vizBig(item);
     if (!c) { fig.innerHTML = ""; return; }
     fig.innerHTML = `<div class="d-chart">${c.legend.length ? `<div class="c-legend">${c.legend.map(([col, l]) => `<span><i style="background:${col}"></i>${l}</span>`).join("")}</div>` : ""}${c.svg}<div class="c-tip" hidden></div></div>`;
+    if (!c.F) return;
     const box = fig.querySelector(".d-chart"), svg = box.querySelector("svg"), tipEl = box.querySelector(".c-tip");
     const NS = "http://www.w3.org/2000/svg", cross = document.createElementNS(NS, "line");
     cross.setAttribute("stroke", "rgba(242,245,255,0.5)"); cross.setAttribute("stroke-width", "1"); cross.setAttribute("y1", c.F.T); cross.setAttribute("y2", c.F.H - c.F.B); cross.style.display = "none";
