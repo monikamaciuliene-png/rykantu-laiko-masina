@@ -157,10 +157,12 @@ a:hover { color: #8FF5FF; }
 .w-head { align-self: center; display: grid; justify-items: center; gap: 12px; text-align: center; max-width: 820px; }
 .w-tag { font: 500 12px var(--f-mono); letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-soft); }
 .w-title { margin: 0; font: italic 400 clamp(40px, 6.4vw, 92px)/1 var(--f-display); text-wrap: balance; text-shadow: 0 4px 34px rgba(0, 10, 60, 0.85), 0 1px 3px rgba(0, 10, 60, 0.6); }
-.w-sub { margin: 0; font-size: clamp(16px, 1.6vw, 20px); color: var(--ink); text-shadow: 0 2px 14px rgba(0, 10, 60, 0.9); }
+.w-sub { margin: 0; max-width: 560px; font-size: clamp(16px, 1.6vw, 20px); line-height: 1.45; color: var(--ink); text-shadow: 0 2px 14px rgba(0, 10, 60, 0.9); }
+.w-ask { margin: 6px 0 0; font: 500 12px var(--f-mono); letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-soft); text-shadow: 0 2px 10px rgba(0, 10, 60, 0.9); }
 .w-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; width: min(900px, 100%); }
 .w-opt { display: grid; gap: 4px; text-align: left; padding: 14px 16px; border-radius: 16px; border: 1px solid var(--line); background: rgba(8, 22, 96, 0.62); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); color: var(--ink); cursor: pointer; font: inherit; transition: transform 0.18s, border-color 0.18s, background 0.18s; }
-.w-opt b { font: 400 22px/1.1 var(--f-display); }
+.w-opt b { font: 400 26px/1.1 var(--f-display); }
+.w-opt span { font-size: 13px !important; }
 .w-opt span { font: 12px/1.35 var(--f-mono); color: var(--ink-soft); }
 .w-opt:hover, .w-opt:focus-visible { transform: translateY(-2px); border-color: #8FF5FF; background: rgba(12, 34, 130, 0.78); outline: none; }
 .w-opt.is-main { background: var(--lime); border-color: var(--lime); color: var(--lime-ink); }
@@ -173,9 +175,9 @@ a:hover { color: #8FF5FF; }
 .no-gl.is-welcome .blobfb { left: 50% !important; top: 44% !important; width: min(64vw, 64vh) !important; }
 @media (max-width: 700px) {
   .welcome { padding: 70px 14px 18px; }
-  .w-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .w-grid { grid-template-columns: minmax(0, 1fr); gap: 8px; }
   .w-opt { padding: 11px 12px; }
-  .w-opt b { font-size: 18px; }
+  .w-opt b { font-size: 22px; }
   .w-opt span { font-size: 11px; }
 }
 .hud-top h1 { cursor: pointer; transition: border-color 0.2s, background 0.2s; }
@@ -503,7 +505,8 @@ h1 { font-weight: 400; font-style: italic; font-size: clamp(30px, 3.6vw, 46px); 
     <button class="pill w-lang" type="button" id="wLang"></button>
     <div class="w-head">
       <h2 class="w-title" id="wTitle" data-pl="Witamy w wehikule czasu Rykont">Sveiki atvykę į Rykantų laiko mašiną</h2>
-      <p class="w-sub" data-pl="Co chcesz zrobić?">Ką norėtumėte daryti?</p>
+      <p class="w-sub" data-pl="Zebraliśmy tu ponad 200 dokumentów, zdjęć, badań i opowieści o Rykontach od 1619 r. do dziś.">Čia surinkta daugiau nei 200 dokumentų, nuotraukų, tyrimų ir pasakojimų apie Rykantus nuo 1619 m. iki šių dienų.</p>
+      <p class="w-ask" data-pl="Od czego zacząć?">Nuo ko pradėti?</p>
     </div>
     <nav class="w-grid" id="wGrid" aria-label="Pasirinkimai" data-pl-aria="Wybór"></nav>
   </section>
@@ -2536,12 +2539,9 @@ vec3 objectTangent = vec3(tangent.xyz);
   const welcome = $("#welcome");
   const nPeople = ORDER.filter(i => i.kind === "asmuo").length, nArt = N - nPeople;
   const W_OPTS = [
-    { k: "browse", main: true, t: tr("Naršyti rinkinį", "Przeglądaj zbiór"), s: tr(`${nArt} artefaktai koliaže: archyvai, tekstai, tyrimai, balsai`, `${nArt} artefaktów w kolażu: archiwa, teksty, badania, głosy`) },
-    { k: "history", t: tr("Suprasti Rykantų istoriją", "Zrozumieć historię Rykont"), s: tr("Istorijos iš duomenų ir tyrimų", "Historie z danych i badań") },
-    { k: "travel", t: tr("Keliauti laiku", "Podróżować w czasie"), s: tr("Artefaktai teka pro laiko mašiną", "Artefakty płyną przez wehikuł czasu") },
-    { k: "people", t: tr("Susipažinti su žmonėmis", "Poznać ludzi"), s: tr(`${nPeople} asmenų, minimų šaltiniuose`, `${nPeople} osób wspominanych w źródłach`) },
-    { k: "data", t: tr("Pažvelgti į duomenis", "Spojrzeć na dane"), s: tr("Gyventojai, klimatas, kalbos, eismas", "Ludność, klimat, języki, ruch") },
-    { k: "about", t: tr("Apie projektą", "O projekcie"), s: tr("Kas tai sukūrė ir kaip naudotis", "Kto to stworzył i jak korzystać") }
+    { k: "browse", main: true, t: tr("Žiūrėti viską", "Zobacz wszystko"), s: tr("Visi dokumentai, nuotraukos ir pasakojimai vienoje vietoje", "Wszystkie dokumenty, zdjęcia i opowieści w jednym miejscu") },
+    { k: "history", t: tr("Skaityti istorijas", "Czytaj historie"), s: tr("Trumpai apie tai, ką rodo šaltiniai ir duomenys", "Krótko o tym, co pokazują źródła i dane") },
+    { k: "travel", t: tr("Keliauti laiku", "Podróż w czasie"), s: tr("Nuo 1619 m. iki šiandien, metai po metų", "Od 1619 r. do dziś, rok po roku") }
   ];
   $("#wGrid").innerHTML = W_OPTS.map(o => `<button class="w-opt${o.main ? " is-main" : ""}" type="button" data-w="${o.k}"><b>${o.t}</b><span>${o.s}</span></button>`).join("");
   $("#wLang").textContent = PLX ? "LT" : "PL";
