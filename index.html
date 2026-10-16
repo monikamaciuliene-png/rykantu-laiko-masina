@@ -2785,9 +2785,9 @@ vec3 objectTangent = vec3(tangent.xyz);
   const welcome = $("#welcome");
   const nPeople = ORDER.filter(i => i.kind === "asmuo").length, nArt = N - nPeople;
   const W_OPTS = [
-    { k: "browse", main: true, t: tr("Žiūrėti viską", "Zobacz wszystko"), s: tr("Visi dokumentai, nuotraukos ir pasakojimai vienoje vietoje", "Wszystkie dokumenty, zdjęcia i opowieści w jednym miejscu") },
+    { k: "browse", main: true, t: tr("Naršyti rinkinį", "Przeglądaj zbiór"), s: tr("Visi įrašai išdėlioti vienoje vietoje, rinkis pats", "Wszystkie wpisy rozłożone w jednym miejscu, wybierz sam") },
     { k: "history", t: tr("Skaityti istorijas", "Czytaj historie"), s: tr("Trumpai apie tai, ką rodo šaltiniai ir duomenys", "Krótko o tym, co pokazują źródła i dane") },
-    { k: "travel", t: tr("Keliauti laiku", "Podróż w czasie"), s: tr("Nuo 1619 m. iki šiandien, metai po metų", "Od 1619 r. do dziś, rok po roku") }
+    { k: "travel", t: tr("Paleisti laiko mašiną", "Uruchom wehikuł czasu"), s: tr("Įrašai patys plaukia pro šalį, nuo 1619 m. iki šių dienų", "Wpisy same przepływają obok, od 1619 r. do dziś") }
   ];
   $("#wGrid").innerHTML = W_OPTS.map(o => `<button class="w-opt${o.main ? " is-main" : ""}" type="button" data-w="${o.k}"><b>${o.t}</b><span>${o.s}</span></button>`).join("");
   // The count follows the records; Lithuanian and Polish number agreement
