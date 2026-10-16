@@ -67,7 +67,7 @@ a:hover { color: #8FF5FF; }
 
 /* Scraps */
 .scrap { position: absolute; left: 0; top: 0; display: block; margin: 0; padding: 0; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; transform-origin: 0 0; will-change: transform; }
-.scrap .sc { position: relative; width: 100%; height: 100%; transition: transform 0.25s; animation: drift var(--dur, 8s) ease-in-out var(--delay, 0s) infinite; }
+.scrap .sc { position: relative; width: 100%; height: 100%; transition: transform 0.28s cubic-bezier(0.2, 0.8, 0.2, 1); animation: drift var(--dur, 8s) ease-in-out var(--delay, 0s) infinite; }
 @keyframes drift {
   0%, 100% { translate: 0 0; rotate: 0deg; }
   30% { translate: var(--dx, 4px) var(--dy, -5px); rotate: var(--dr, 1deg); }
@@ -75,8 +75,9 @@ a:hover { color: #8FF5FF; }
 }
 .d-fig .sc { animation: none; }
 .scrap:hover { z-index: 4; }
-.scrap:hover .sc { transform: scale(1.08) rotate(-1.5deg); }
-.mode-scatter .scrap:hover .sc, .mode-stream .scrap:hover .sc { transform: scale(1.5) rotate(-1.5deg); }
+.scrap:hover .sc { transform: scale(1.3) rotate(-1.5deg); }
+.mode-scatter .scrap:hover .sc, .mode-stream .scrap:hover .sc { transform: scale(1.95) rotate(-1.5deg); }
+.scrap:hover { z-index: 6 !important; }
 .scrap.is-dim { opacity: 0.1; pointer-events: none; }
 .scrap.is-sel { z-index: 5; }
 .scrap:focus-visible { outline: none; }
@@ -263,8 +264,8 @@ h1 { margin: 0; font-family: var(--f-display); font-weight: 700; font-size: clam
 .sv-list b { grid-row: span 2; font: 400 22px/1 var(--f-display); }
 .sv-list .t { font-weight: 600; font-size: 14px; }
 .sv-list .n { font-size: 13px; color: var(--ink-soft); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-.sv-field .scrap { animation: fly var(--fd, 22s) ease-in-out var(--fdel, 0s) infinite alternate; rotate: var(--fr, 0deg); }
-.sv-field .scrap:hover { z-index: 3; }
+.sv-field .scrap { animation: fly var(--fd, 22s) ease-in-out var(--fdel, 0s) infinite alternate; rotate: var(--fr, 0deg); transition: scale 0.28s cubic-bezier(0.2, 0.8, 0.2, 1); }
+.sv-field .scrap:hover { z-index: 3; scale: 1.6; }
 @keyframes fly { from { translate: 0 0; } to { translate: var(--fx, 40px) var(--fy, -30px); } }
 @media (max-width: 700px) {
   .sv-field { left: 0; right: 0; bottom: auto; height: 300px; }
@@ -424,7 +425,7 @@ input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border: 0; bo
 /* Grid view: every artefact, oldest first, scrolled */
 .mode-grid { cursor: default; }
 .mode-grid .world { inset: 72px 0 var(--dock-h, 150px) 0; overflow-y: auto; overflow-x: hidden; display: flex; flex-wrap: wrap; align-content: flex-start; justify-content: center; gap: 30px 24px; padding: 34px max(24px, 4vw) 48px; touch-action: pan-y; }
-.mode-grid .scrap { position: relative; transform: none !important; }
+.mode-grid .scrap { position: relative; transform: none !important; zoom: 0.76; }
 .mode-grid #gl, .mode-grid .blobfb, .mode-grid .readout { display: none !important; }
 #pause[aria-pressed="true"] { background: var(--ink); color: var(--cobalt-deep); }
 
@@ -1713,7 +1714,7 @@ h1 { font-weight: 400; font-style: italic; font-size: clamp(30px, 3.6vw, 46px); 
     geom.bottom = Math.max(geom.top + 220, stage.clientHeight - dock.offsetHeight - 30);
     geom.cy = (geom.top + geom.bottom) / 2;
   }
-  const baseScale = () => Math.max(0.36, Math.min(0.66, (geom.bottom - geom.top) / 940));
+  const baseScale = () => Math.max(0.3, Math.min(0.52, (geom.bottom - geom.top) / 1190));
   const playhead = () => mode === "scatter" ? [pan.tx + SC.cx, pan.ty + SC.cy] : [geom.cx, geom.cy];
   const blobRadius = () => Math.max(46, Math.min(stage.clientWidth * 0.1, (geom.bottom - geom.top) * 0.19));
   function yearAt(p) {
@@ -1811,7 +1812,7 @@ h1 { font-weight: 400; font-style: italic; font-size: clamp(30px, 3.6vw, 46px); 
   function layoutScatter() {
     updateGeom();
     const W = stage.clientWidth, band = geom.bottom - geom.top;
-    SC.s = Math.max(0.32, Math.min(0.52, band / 1180));
+    SC.s = Math.max(0.25, Math.min(0.4, band / 1530));
     SC.w = Math.max(W * 1.4, 1400); SC.h = Math.max(band * 1.55, 950);
     SC.cx = SC.w / 2; SC.cy = SC.h / 2;
     const R = blobRadius() * 1.5;
@@ -2063,7 +2064,7 @@ h1 { font-weight: 400; font-style: italic; font-size: clamp(30px, 3.6vw, 46px); 
     const cw = W / cols, ch = H / rows;
     list.forEach((item, n) => {
       const rr = rng(item.id + "sv"), [w0, h0] = sizes.get(item) || [150, 150];
-      const k = Math.min(1, (Math.min(cw, ch) * 0.92) / Math.max(w0, h0)), w = w0 * k, hh = h0 * k;
+      const k = Math.min(0.78, (Math.min(cw, ch) * 0.7) / Math.max(w0, h0)), w = w0 * k, hh = h0 * k;
       const c = n % cols, row = Math.floor(n / cols);
       const x = c * cw + (cw - w) * (0.15 + rr() * 0.7), y = row * ch + (ch - hh) * (0.15 + rr() * 0.7);
       const b = document.createElement("button");
