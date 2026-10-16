@@ -188,13 +188,16 @@ h1 { margin: 0; font-family: var(--f-display); font-weight: 700; font-size: clam
 .timebar input[type="range"] { height: 22px; }
 .tb-cursor { position: absolute; top: 0; height: calc(100% - 16px); width: 1px; background: #F2F5FF; box-shadow: 0 0 8px rgba(143, 245, 255, 0.85); pointer-events: none; }
 .tb-years { position: relative; height: 14px; margin: 0 9px; font: 10px var(--f-mono); color: var(--ink-soft); }
-.tb-years span { position: absolute; transform: translateX(-50%); }
+.tb-years span { position: absolute; transform: translateX(-50%); white-space: nowrap; }
+.tb-years span:first-child { transform: none; }
+.tb-years span:last-child { transform: translateX(-100%); }
 .tb-read { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 14px; font: 12px var(--f-mono); color: var(--ink-soft); min-height: 18px; }
 .tb-read b { font: 400 20px/1 var(--f-display); color: var(--ink); }
 .tb-read em { font-style: normal; color: var(--ink); }
 .tb-toggle { margin-left: auto; font: 500 11px var(--f-mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft); background: none; border: 1px solid var(--line); border-radius: 999px; padding: 3px 10px; cursor: pointer; }
 .tb-toggle:hover { color: #8FF5FF; border-color: #8FF5FF; }
 .timebar.is-collapsed .tb-labels, .timebar.is-collapsed .tb-tracks { display: none; }
+.timebar.is-collapsed .tb-area { grid-column: 1 / -1; }
 .dialwrap { position: relative; flex: 1 1 240px; min-width: 0; padding-top: 8px; }
 .ticks { position: absolute; left: 9px; right: 9px; top: 2px; height: 8px; pointer-events: none; }
 .ticks i { position: absolute; top: 0; width: 2px; height: 8px; background: var(--ink-soft); opacity: 0.85; }
@@ -330,6 +333,8 @@ h1 { font-weight: 400; font-style: italic; font-size: clamp(30px, 3.6vw, 46px); 
   .dock { bottom: 10px; padding: 10px; gap: 8px; width: calc(100% - 20px); }
   .dialwrap { flex-basis: 100%; order: -1; }
   .timebar { grid-template-columns: 78px minmax(0, 1fr); column-gap: 6px; }
+  .dock-row { gap: 8px; }
+  .views .vbtn { padding: 6px 7px; }
   .tb-labels > * { font-size: 9px; }
   .zoom { margin-left: 0; }
   .kchip { padding: 5px 9px; font-size: 11px; }
@@ -1522,12 +1527,25 @@ h1 { font-weight: 400; font-style: italic; font-size: clamp(30px, 3.6vw, 46px); 
     { ds: "orgs-jar", label: "Organizacijos", svg: () => barSvg(Object.entries(orgCount).map(([y, n]) => [+y, n]), 12, "#A8F0C6"), value: y => y >= 1990 ? String(orgCount[Math.min(y, Y1)] || 0) : null },
     { ds: null, label: "Artefaktai", svg: () => barSvg(Object.entries(artCount).map(([y, n]) => [+y, n]), maxArt, "#F2F5FF", true), value: y => artCount[y] ? String(artCount[y]) : null }
   ];
-  const tbLabels = $("#tbLabels"), tbTracks = $("#tbTracks"), tbCursor = $("#tbCursor"), tbRead = $("#tbRead"), timebar = $("#timebar");
+  const tbLabels = $("#tbLabels"), tbTracks = $("#tbTracks"), tbYears = $("#tbYears"), tbCursor = $("#tbCursor"), tbRead = $("#tbRead"), timebar = $("#timebar");
   function buildStrip() {
     tbLabels.innerHTML = TRACKS.map((t, k) => t.ds ? `<button type="button" data-k="${k}" title="Atverti grafiką">${t.label}</button>` : `<span>${t.label}</span>`).join("");
     tbTracks.innerHTML = TRACKS.map(t => t.svg()).join("");
-    $("#tbYears").innerHTML = [1600, 1700, 1800, 1900, 1950, 2000, 2026].map(y => `<span style="left:${(yearToU(y) * 100).toFixed(2)}%">${y}</span>`).join("");
+    tbYears.innerHTML = [1600, 1700, 1800, 1900, 1950, 2000, 2026].map(y => `<span data-y="${y}" style="left:${(yearToU(y) * 100).toFixed(2)}%">${y}</span>`).join("");
+    fitYears();
   }
+  // Year labels are kept by priority; any label that would touch one already kept is hidden
+  const YEAR_PRIORITY = [1600, 2026, 1900, 1800, 1700, 2000, 1950];
+  function fitYears() {
+    const kept = [];
+    for (const y of YEAR_PRIORITY) {
+      const s = tbYears.querySelector(`[data-y="${y}"]`), r = s.getBoundingClientRect();
+      const hit = kept.some(([a, b]) => r.left < b + 8 && r.right > a - 8);
+      s.style.visibility = hit ? "hidden" : "";
+      if (!hit) kept.push([r.left, r.right]);
+    }
+  }
+  new ResizeObserver(fitYears).observe(tbYears);
   let stripHover = false;
   function stripShow(y) {
     tbCursor.style.left = `calc(9px + (100% - 18px) * ${yearToU(y).toFixed(4)})`;
