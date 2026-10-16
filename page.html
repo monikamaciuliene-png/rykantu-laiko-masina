@@ -164,10 +164,29 @@ h1 { margin: 0; font-family: var(--f-display); font-weight: 700; font-size: clam
 .panel.about { position: absolute; right: 0; top: calc(100% + 10px); z-index: 6; width: min(400px, calc(100vw - 32px)); max-height: min(72vh, 560px); }
 
 /* Dock */
-.dock { position: absolute; z-index: 3; left: 50%; bottom: 16px; transform: translateX(-50%); width: min(1020px, calc(100% - 32px)); display: grid; gap: 10px; padding: 12px 14px; border-radius: 20px; background: rgba(0, 18, 64, 0.62); -webkit-backdrop-filter: blur(16px) saturate(140%); backdrop-filter: blur(16px) saturate(140%); border: 1px solid var(--line); pointer-events: auto; cursor: default; }
+.dock { position: absolute; z-index: 3; left: 50%; bottom: 16px; transform: translateX(-50%); width: min(1180px, calc(100% - 32px)); display: grid; gap: 8px; padding: 10px 14px; border-radius: 20px; background: rgba(0, 18, 64, 0.62); -webkit-backdrop-filter: blur(16px) saturate(140%); backdrop-filter: blur(16px) saturate(140%); border: 1px solid var(--line); pointer-events: auto; cursor: default; }
 .dock-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; }
 .year { font-family: var(--f-display); font-weight: 700; font-size: clamp(20px, 2.4vw, 26px); line-height: 1; min-width: 4.2ch; background: var(--holo); -webkit-background-clip: text; background-clip: text; color: transparent; font-variant-numeric: tabular-nums; }
 .year.is-text { font-size: 15px; }
+/* Time strip: data tracks run across the years above the dial, on the dial's own scale */
+.timebar { display: grid; grid-template-columns: 112px minmax(0, 1fr); column-gap: 10px; row-gap: 4px; align-items: start; }
+.tb-labels { display: grid; gap: 2px; padding-top: 2px; }
+.tb-labels > * { height: 9px; font: 500 9px/9px var(--f-mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft); text-align: right; background: none; border: 0; padding: 0; white-space: nowrap; }
+.tb-labels button { cursor: pointer; }
+.tb-labels button:hover { color: #8FF5FF; }
+.tb-area { position: relative; min-width: 0; }
+.tb-tracks { display: grid; gap: 2px; margin: 2px 9px 0; cursor: crosshair; touch-action: none; }
+.tb-tracks svg { display: block; width: 100%; height: 9px; }
+.timebar input[type="range"] { height: 22px; }
+.tb-cursor { position: absolute; top: 0; height: calc(100% - 16px); width: 1px; background: #F2F5FF; box-shadow: 0 0 8px rgba(143, 245, 255, 0.85); pointer-events: none; }
+.tb-years { position: relative; height: 14px; margin: 0 9px; font: 10px var(--f-mono); color: var(--ink-soft); }
+.tb-years span { position: absolute; transform: translateX(-50%); }
+.tb-read { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 14px; font: 12px var(--f-mono); color: var(--ink-soft); min-height: 18px; }
+.tb-read b { font: 400 20px/1 var(--f-display); color: var(--ink); }
+.tb-read em { font-style: normal; color: var(--ink); }
+.tb-toggle { margin-left: auto; font: 500 11px var(--f-mono); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft); background: none; border: 1px solid var(--line); border-radius: 999px; padding: 3px 10px; cursor: pointer; }
+.tb-toggle:hover { color: #8FF5FF; border-color: #8FF5FF; }
+.timebar.is-collapsed .tb-labels, .timebar.is-collapsed .tb-tracks { display: none; }
 .dialwrap { position: relative; flex: 1 1 240px; min-width: 0; padding-top: 8px; }
 .ticks { position: absolute; left: 9px; right: 9px; top: 2px; height: 8px; pointer-events: none; }
 .ticks i { position: absolute; top: 0; width: 2px; height: 8px; background: var(--ink-soft); opacity: 0.85; }
@@ -176,13 +195,13 @@ input[type="range"]::-webkit-slider-runnable-track { height: 2px; background: va
 input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; margin-top: -8px; border-radius: 50%; background: var(--ink); box-shadow: 0 0 0 4px rgba(143, 245, 255, 0.25), 0 0 18px rgba(143, 245, 255, 0.85); }
 input[type="range"]::-moz-range-track { height: 2px; background: var(--holo); }
 input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border: 0; border-radius: 50%; background: var(--ink); box-shadow: 0 0 0 4px rgba(143, 245, 255, 0.25), 0 0 18px rgba(143, 245, 255, 0.85); }
-.search { flex: 1 1 220px; min-width: 0; display: flex; align-items: center; gap: 8px; padding: 0 12px; border: 1px solid var(--line); border-radius: 999px; background: rgba(0, 11, 38, 0.5); }
+.search { flex: 1 1 150px; min-width: 0; display: flex; align-items: center; gap: 8px; padding: 0 12px; border: 1px solid var(--line); border-radius: 999px; background: rgba(0, 11, 38, 0.5); }
 .search::before { content: ""; width: 11px; height: 11px; border: 2px solid var(--ink-soft); border-radius: 50%; flex: none; }
 .search input { flex: 1; min-width: 0; height: 36px; border: 0; background: transparent; color: var(--ink); font: 15px var(--f-body); outline: none; }
 .search input::placeholder { color: var(--ink-soft); }
 .search:focus-within { border-color: #8FF5FF; }
 .kinds { display: flex; flex-wrap: wrap; gap: 6px; }
-.kchip { display: inline-flex; align-items: center; gap: 7px; font-family: var(--f-mono); font-size: 12px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 6px 11px; cursor: pointer; }
+.kchip { display: inline-flex; align-items: center; gap: 6px; font-family: var(--f-mono); font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 5px 9px; cursor: pointer; }
 .kchip i { width: 10px; height: 10px; border-radius: 3px; background: var(--c, var(--holo)); }
 .kchip span { color: var(--ink-soft); font-variant-numeric: tabular-nums; }
 .kchip:hover { border-color: var(--c, #8FF5FF); }
@@ -267,7 +286,7 @@ input[type="range"]::-moz-range-thumb { width: 18px; height: 18px; border: 0; bo
 .mode-stream #pause { display: inline-block; }
 .scene:not(.mode-stream) .scanline { display: none; }
 .views { display: inline-flex; padding: 3px; gap: 2px; border: 1px solid var(--line); border-radius: 999px; background: rgba(0, 11, 38, 0.5); }
-.vbtn { font-family: var(--f-mono); font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft); background: transparent; border: 0; border-radius: 999px; padding: 7px 12px; cursor: pointer; }
+.vbtn { font-family: var(--f-mono); font-size: 11px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ink-soft); background: transparent; border: 0; border-radius: 999px; padding: 6px 10px; cursor: pointer; }
 .vbtn:hover { color: var(--ink); }
 .vbtn[aria-checked="true"] { background: var(--ink); color: var(--cobalt-deep); }
 .r-clear { pointer-events: auto; font: 500 11px var(--f-mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-soft); background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 4px 10px; cursor: pointer; }
@@ -302,6 +321,8 @@ h1 { font-weight: 400; font-style: italic; font-size: clamp(30px, 3.6vw, 46px); 
   .r-year { font-size: 48px; }
   .dock { bottom: 10px; padding: 10px; gap: 8px; width: calc(100% - 20px); }
   .dialwrap { flex-basis: 100%; order: -1; }
+  .timebar { grid-template-columns: 78px minmax(0, 1fr); column-gap: 6px; }
+  .tb-labels > * { font-size: 9px; }
   .zoom { margin-left: 0; }
   .kchip { padding: 5px 9px; font-size: 11px; }
   .detail { flex-direction: column; justify-content: flex-start; gap: 14px; padding: 70px 16px 200px; overflow: auto; }
@@ -338,7 +359,7 @@ h1 { font-weight: 400; font-style: italic; font-size: clamp(30px, 3.6vw, 46px); 
           <h2 class="p-title" id="aboutTitle">Rykantų laiko mašina</h2>
           <p>Tai <a href="https://www.rykantupastas.lt/" target="_blank" rel="noopener noreferrer">Rykantų pašto</a>, Piliečių mokslo asociacijos, <a href="https://vilniustech.lt/" target="_blank" rel="noopener noreferrer">VILNIUS TECH</a> ir Participio projektas ir bendras tyrinėjimas.</p>
           <p>Čia surinkta <span id="aboutCount"></span> apie Rykantus: archyvų dokumentai ir nuotraukos, tekstai, moksliniai tyrimai, gyventojų balsai ir renginiai nuo 1619 m. iki šių dienų.</p>
-          <p class="p-meta">Yra trys vaizdai. Koliažas: artefaktai išbarstyti, tempk, kad judintum, o užvedus pelę burbulas, laiko mašina, juos perskaito ir parodo metus. Metų ratukas paryškina artefaktus, artimus pasirinktiems metams. Tinklelis: visi artefaktai nuo seniausio iki naujausio. Srautas: artefaktai teka pro laiko mašiną. Spustelėk artefaktą, kad atvertum. Forma ir spalva rodo grupę: pašto ženklas reiškia archyvą, laikraščio iškarpa tekstą, šešiakampis tyrimą, diskas balsą, bilietas renginį, kortelė nupjautu kampu duomenis.</p>
+          <p class="p-meta">Yra trys vaizdai. Koliažas: artefaktai išbarstyti, tempk, kad judintum, o užvedus pelę burbulas, laiko mašina, juos perskaito ir parodo metus. Metų ratukas paryškina artefaktus, artimus pasirinktiems metams. Tinklelis: visi artefaktai nuo seniausio iki naujausio. Srautas: artefaktai teka pro laiko mašiną. Spustelėk artefaktą, kad atvertum. Forma ir spalva rodo grupę: pašto ženklas reiškia archyvą, laikraščio iškarpa tekstą, šešiakampis tyrimą, diskas balsą, bilietas renginį. Apačioje esanti laiko juosta rodo duomenis per metus: temperatūrą, šalnas, sniegą, veikiančias organizacijas ir artefaktų skaičių. Užvesk pelę ant juostos, kad pamatytum tų metų reikšmes, spustelėk duomenų pavadinimą, kad atvertum visą grafiką.</p>
           <div class="p-actions"><button class="ok" type="button" data-close>Pradėti</button></div>
         </aside>
       </div>
@@ -353,6 +374,17 @@ h1 { font-weight: 400; font-style: italic; font-size: clamp(30px, 3.6vw, 46px); 
     <button class="pill d-nav d-next" id="dNext" type="button" aria-label="Vėlesnis įrašas">&rarr;</button>
   </div>
   <div class="dock" id="dock">
+    <div class="timebar" id="timebar">
+      <div class="tb-labels" id="tbLabels"></div>
+      <div class="tb-area">
+        <div class="tb-tracks" id="tbTracks" aria-label="Duomenys per metus"></div>
+        <div class="tb-cursor" id="tbCursor" aria-hidden="true"></div>
+        <label class="sr" for="dial">Metų ratukas</label>
+        <input type="range" id="dial" min="0" max="1000" step="1" value="1000">
+        <div class="tb-years" id="tbYears" aria-hidden="true"></div>
+      </div>
+      <div class="tb-read" id="tbRead" aria-live="polite"></div>
+    </div>
     <div class="dock-row">
       <div class="views" id="views" role="radiogroup" aria-label="Vaizdas">
         <button class="vbtn" type="button" role="radio" data-mode="scatter" aria-checked="true">Koliažas</button>
@@ -361,13 +393,6 @@ h1 { font-weight: 400; font-style: italic; font-size: clamp(30px, 3.6vw, 46px); 
       </div>
       <button class="pill" id="prev" type="button" aria-label="Ankstesnis artefaktas" title="Ankstesnis artefaktas">&larr;</button>
       <button class="pill" id="next" type="button" aria-label="Kitas artefaktas" title="Kitas artefaktas">&rarr;</button>
-      <div class="dialwrap">
-        <div class="ticks" id="ticks" aria-hidden="true"></div>
-        <label class="sr" for="dial">Metų ratukas</label>
-        <input type="range" id="dial" min="1600" max="2026" step="1" value="2026">
-      </div>
-    </div>
-    <div class="dock-row">
       <label class="search"><span class="sr">Paieška</span><input id="q" type="search" placeholder="Ieškoti žodžių, vardų, vietų" autocomplete="off"></label>
       <nav class="kinds" id="kindsScene" aria-label="Įrašų grupės"></nav>
       <button class="pill" id="pause" type="button" aria-pressed="false">Sustabdyti</button>
@@ -420,7 +445,7 @@ h1 { font-weight: 400; font-style: italic; font-size: clamp(30px, 3.6vw, 46px); 
     duomenys: { label: "Duomenys", about: "Statistika ir atvirieji duomenys: klimatas nuo 1940 m., gyventojai, žemėlapis." },
     renginys: { label: "Renginiai", about: "Kaimo šventės ir sukaktys, festivaliai, koncertai, ekskursija ir LRT PROTOTO žaidimas apie Rykantus." }
   };
-  const KIND_ORDER = ["archyvas", "tekstas", "tyrimas", "balsas", "renginys", "duomenys"];
+  const KIND_ORDER = ["archyvas", "tekstas", "tyrimas", "balsas", "renginys"];
   const AR = {"img/bulhak.jpg": 0.7, "img/buracas.jpg": 1.402, "img/deanery1.jpg": 0.645, "img/drawing1.jpg": 0.728, "img/drawing2.jpg": 0.73, "img/druckus.jpg": 0.696, "img/highway1954.jpg": 1.542, "img/inventory.jpg": 0.649, "img/kolkhoz.jpg": 0.829, "img/lacki1635.jpg": 0.618, "img/leningrad.jpg": 0.697, "img/negative.jpg": 1.557, "img/neris1.jpg": 1.431, "img/paslaitis.jpg": 0.751, "img/przylanski.jpg": 0.611, "img/register.jpg": 0.361, "img/residents1.jpg": 0.621, "img/talwosz1620a.jpg": 0.666, "img/talwosz1623.jpg": 0.628, "img/talwosz1628.jpg": 0.625, "img/tolvaisa.jpg": 0.678, "img/volost.jpg": 0.82, "img/wigmap.jpg": 1.092};
   const CLIMATE = [[1940,3.85,700,114.0,155,17],[1941,3.67,618,132.2,175,17],[1942,3.96,475,83.4,161,14],[1943,6.48,738,114.9,139,6],[1944,6.53,532,64.3,150,11],[1945,5.75,724,92.4,144,14],[1946,6.04,648,69.3,155,11],[1947,5.35,620,92.3,146,20],[1948,6.65,732,104.6,132,6],[1949,7.07,721,82.3,125,12],[1950,6.52,853,119.0,120,4],[1951,6.8,541,110.0,133,23],[1952,5.67,736,130.3,144,10],[1953,6.49,571,70.7,140,17],[1954,5.66,792,88.3,141,11],[1955,5.97,598,161.8,153,30],[1956,4.46,732,142.4,156,6],[1957,7.06,789,79.2,128,11],[1958,5.98,815,173.2,134,7],[1959,6.96,636,100.2,134,34],[1960,6.31,868,101.4,125,13],[1961,7.22,663,74.4,119,5],[1962,5.55,884,109.7,138,1],[1963,5.58,683,80.2,142,24],[1964,5.96,625,116.0,144,22],[1965,5.27,673,146.8,153,4],[1966,6.51,761,114.8,125,12],[1967,7.04,777,115.6,121,15],[1968,5.8,701,102.7,147,22],[1969,4.58,722,79.8,144,6],[1970,5.57,811,162.1,138,6],[1971,6.75,700,100.7,128,23],[1972,6.71,874,71.0,120,30],[1973,6.44,763,125.0,135,11],[1974,6.83,854,83.9,117,2],[1975,8.2,656,58.5,104,16],[1976,4.97,648,116.8,147,7],[1977,6.12,813,93.3,127,7],[1978,5.39,838,108.7,124,7],[1979,5.74,613,110.7,149,13],[1980,4.96,836,122.5,159,2],[1981,6.45,738,123.1,151,13],[1982,6.74,616,90.0,126,13],[1983,7.61,762,118.0,120,12],[1984,6.56,651,94.7,131,8],[1985,5.03,792,92.1,139,11],[1986,6.05,769,113.9,122,17],[1987,4.56,699,94.0,150,5],[1988,6.58,741,130.3,151,12],[1989,8.36,811,67.8,86,11],[1990,8.01,849,65.2,74,2],[1991,7.17,545,64.4,122,15],[1992,7.42,658,107.5,129,29],[1993,6.16,768,88.1,139,2],[1994,6.96,767,100.5,123,25],[1995,7.15,689,85.3,133,26],[1996,5.4,641,120.6,142,16],[1997,6.55,691,85.6,146,9],[1998,6.6,848,117.8,118,10],[1999,7.68,646,121.5,120,28],[2000,7.9,714,83.5,92,5],[2001,6.97,697,106.3,139,21],[2002,7.8,613,87.8,117,36],[2003,6.74,606,97.3,147,15],[2004,6.66,794,100.3,124,6],[2005,6.75,738,112.4,136,12],[2006,7.29,619,61.0,119,25],[2007,7.77,763,81.9,98,25],[2008,8.07,680,69.8,93,10],[2009,6.93,672,81.6,120,4],[2010,6.34,788,93.9,125,34],[2011,7.5,597,63.1,109,17],[2012,6.74,751,105.0,113,17],[2013,7.32,604,108.2,121,19],[2014,7.82,658,49.5,105,24],[2015,8.43,614,63.5,94,23],[2016,7.56,803,97.5,115,20],[2017,7.41,857,73.8,110,11],[2018,8.1,636,87.3,124,35],[2019,8.81,611,63.8,104,34],[2020,9.1,629,42.5,83,29],[2021,6.97,888,116.8,126,29],[2022,7.57,806,103.5,132,33],[2023,8.68,835,116.4,113,24],[2024,9.44,738,76.7,86,41],[2025,8.23,808,52.7,105,17]];
 
@@ -844,9 +869,10 @@ h1 { font-weight: 400; font-style: italic; font-size: clamp(30px, 3.6vw, 46px); 
       links: [["Gatvės gyvos", "https://www.gatvesgyvos.lt/pirmasyk-i-rykantus/"]] },
     { id: "dahlia", kind: "renginys", year: 2026, date: "2026 m. rugsėjo 18-20 d.", type: "Šventė", title: "Gėrėjimosi jurginais šventė Rykantuose", holder: "Trakų turizmo informacijos centras", lang: "", licence: "",
       notes: "Trijų dienų nemokama šventė po atviru dangumi.",
-      links: [["Trakai TIC", "https://www.trakai-visit.lt/renginys/gerejimosi-jurginais-svente-rykantuose/"]] },
+      links: [["Trakai TIC", "https://www.trakai-visit.lt/renginys/gerejimosi-jurginais-svente-rykantuose/"]] }
+  ];
 
-    /* Duomenys */
+  const DATASETS = [
     { id: "climate-stripes", kind: "duomenys", viz: "stripes", year: 1940, date: "1940-2025", type: "Klimatas", title: "Rykantų klimato juostos", holder: "ERA5 (Copernicus), per Open-Meteo", lang: "", licence: "CC BY 4.0",
       notes: "Kiekviena juosta yra vienų metų vidutinė oro temperatūra Rykantų apylinkėse, palyginti su 1961-1990 m. vidurkiu (6,2 °C). 2011-2025 m. vidurkis jau 8,0 °C. Šilčiausi metai 2024 (9,4 °C), šalčiausi 1941 (3,7 °C). Tai ERA5 reanalizė, modelio ir stebėjimų derinys tinklelio langeliui prie Rykantų, o ne matavimai pačiame kaime.",
       links: [["Open-Meteo istoriniai orai", "https://open-meteo.com/en/docs/historical-weather-api"], ["ERA5", "https://cds.climate.copernicus.eu/datasets/reanalysis-era5-single-levels"]] },
@@ -880,6 +906,8 @@ h1 { font-weight: 400; font-style: italic; font-size: clamp(30px, 3.6vw, 46px); 
   const esc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
   const stage = $("#scene"), world = $("#world"), tip = $("#tip"), dock = $("#dock");
   const dial = $("#dial"), detail = $("#detail");
+  const dialYear = () => Math.round(uToYear(+dial.value / 1000));
+  const setDialYear = y => { dial.value = Math.round(yearToU(y) * 1000); };
   const linkHTML = item => item.links.map(([l, h]) => `<a href="${h}" target="_blank" rel="noopener noreferrer">${l} ↗</a>`).join("");
   const kdot = k => `<i class="kdot kd-${k}" style="--c:var(--k-${k})"></i>`;
   const yrText = item => item.year == null ? "Be datos" : String(item.year);
@@ -888,6 +916,11 @@ h1 { font-weight: 400; font-style: italic; font-size: clamp(30px, 3.6vw, 46px); 
     for (const c of seed) s = Math.imul(s ^ c.charCodeAt(0), 16777619) >>> 0;
     return () => { s = (Math.imul(s, 1664525) + 1013904223) >>> 0; return s / 4294967296; };
   }
+
+  /* ---------- Time scale shared by the dial and the data strip: 1600-1900 compressed, 1900-2026 wide ---------- */
+  const Y0 = 1600, YS = 1900, Y1 = 2026, SPLIT = 0.28;
+  const yearToU = y => y <= YS ? Math.max(0, (y - Y0) / (YS - Y0) * SPLIT) : SPLIT + (Math.min(y, Y1) - YS) / (Y1 - YS) * (1 - SPLIT);
+  const uToYear = u => u <= SPLIT ? Y0 + u / SPLIT * (YS - Y0) : YS + (u - SPLIT) / (1 - SPLIT) * (Y1 - YS);
 
   /* ---------- Data charts ---------- */
   const f1 = v => v.toLocaleString("lt-LT", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
@@ -1159,7 +1192,7 @@ h1 { font-weight: 400; font-style: italic; font-size: clamp(30px, 3.6vw, 46px); 
     const yr = yearAt(flow.pos), yt = yr == null ? "Be datos" : String(yr);
     if (yt !== lastYearTxt) {
       rYear.textContent = yt; rYear.classList.toggle("is-text", yr == null); lastYearTxt = yt;
-      if (!dialActive && yr != null) dial.value = yr;
+      if (!dialActive && yr != null) { setDialYear(yr); if (!stripHover) stripShow(yr); }
     }
     const ni = nearestItem(W * 0.07 + 40);
     if (ni !== readItem) { readItem = ni; rTitle.textContent = ni ? ni.title : ""; rTitle.hidden = !ni; }
@@ -1258,7 +1291,7 @@ h1 { font-weight: 400; font-style: italic; font-size: clamp(30px, 3.6vw, 46px); 
     if (rClear.hidden !== (tuneYear == null)) rClear.hidden = tuneYear == null;
     if (!GL) { const [cx, cy] = playhead(), fb = $("#blobfb"); fb.style.left = cx + "px"; fb.style.top = cy + "px"; fb.style.width = (blobRadius() * 2) + "px"; }
   }
-  rClear.addEventListener("click", () => { tuneYear = null; applyTune(); dial.value = dial.max; });
+  rClear.addEventListener("click", () => { tuneYear = null; applyTune(); setDialYear(Y1); stripShow(Y1); });
   function setMode(m) {
     mode = m;
     try { localStorage.setItem(VIEW_KEY, m); } catch (e) {}
@@ -1409,7 +1442,7 @@ h1 { font-weight: 400; font-style: italic; font-size: clamp(30px, 3.6vw, 46px); 
       <p>${esc(item.notes)}</p>
       <div class="d-links"><span class="chip">${esc(item.licence || "Licencija: žr. įrašą")}</span>${linkHTML(item)}</div>`;
     const P = pool(), idx = P.indexOf(item);
-    $("#dCount").textContent = idx >= 0 ? `${idx + 1} / ${P.length}` : `${num(item)} / ${N}`;
+    $("#dCount").textContent = item.kind === "duomenys" ? "Duomenys" : idx >= 0 ? `${idx + 1} / ${P.length}` : `${num(item)} / ${N}`;
     detail.hidden = false;
   }
   function select(item, fromTravel) {
@@ -1451,7 +1484,8 @@ h1 { font-weight: 400; font-style: italic; font-size: clamp(30px, 3.6vw, 46px); 
   dial.addEventListener("pointerdown", () => { dialActive = true; });
   window.addEventListener("pointerup", () => { dialActive = false; });
   dial.addEventListener("input", () => {
-    const y = +dial.value;
+    const y = dialYear();
+    if (!stripHover) stripShow(y);
     if (mode === "stream") goToYear(y);
     else if (mode === "scatter") { tuneYear = y; applyTune(); }
     else {
@@ -1459,14 +1493,60 @@ h1 { font-weight: 400; font-style: italic; font-size: clamp(30px, 3.6vw, 46px); 
       world.scrollTo({ top: Math.max(0, scraps.get(it).offsetTop - 40), behavior: reduce ? "auto" : "smooth" });
     }
   });
-  const ticks = $("#ticks");
-  ORDER.forEach(i => {
-    if (i.year == null) return;
-    const t = document.createElement("i");
-    t.style.left = ((i.year - 1600) / (2026 - 1600) * 100) + "%";
-    t.style.background = `var(--k-${i.kind})`;
-    ticks.appendChild(t);
+  /* ---------- The time strip ---------- */
+  const DS = Object.fromEntries(DATASETS.map(d => [d.id, d]));
+  const CLY = Object.fromEntries(CLIMATE.map(r => [r[0], r]));
+  const orgCount = {};
+  for (let y = 1990; y <= Y1; y++) orgCount[y] = DS["orgs-jar"].orgs.filter(o => +o[1].slice(0, 4) <= y && (!o[2] || +o[2].slice(0, 4) > y)).length;
+  const artCount = {};
+  ORDER.forEach(i => { if (i.year != null) artCount[i.year] = (artCount[i.year] || 0) + 1; });
+  const BLUES = ["#cde2fb", "#9ec5f4", "#6da7ec", "#3987e5", "#256abf", "#184f95", "#0d366b"];
+  const seq = (v, lo, hi) => BLUES[Math.max(0, Math.min(BLUES.length - 1, Math.floor((v - lo) / (hi - lo) * BLUES.length)))];
+  const ux = y => yearToU(y) * 1000, uw = y => Math.max(0.6, (yearToU(y + 1) - yearToU(y)) * 1000);
+  const stripSvg = cells => `<svg viewBox="0 0 1000 12" preserveAspectRatio="none" aria-hidden="true">${cells.map(([y, col]) => `<rect x="${ux(y).toFixed(2)}" y="0" width="${(uw(y) + 0.25).toFixed(2)}" height="12" fill="${col}"/>`).join("")}</svg>`;
+  const barSvg = (vals, mx, col, sqrt) => `<svg viewBox="0 0 1000 12" preserveAspectRatio="none" aria-hidden="true"><rect x="0" y="11.5" width="1000" height="0.5" fill="rgba(242,245,255,0.18)"/>${vals.filter(v => v[1] > 0).map(([y, v]) => { const hh = Math.max(1.2, (sqrt ? Math.sqrt(v / mx) : v / mx) * 12); return `<rect x="${ux(y).toFixed(2)}" y="${(12 - hh).toFixed(2)}" width="${Math.max(1.4, uw(y) * 0.8).toFixed(2)}" height="${hh.toFixed(2)}" fill="${col}"/>`; }).join("")}</svg>`;
+  const maxSnow = Math.max(...CLIMATE.map(r => r[3])), maxArt = Math.max(...Object.values(artCount));
+  const TRACKS = [
+    { ds: "climate-stripes", label: "Temperatūra", svg: () => stripSvg(CLIMATE.map(r => [r[0], stripeColor(r[1] - BASE_T)])), value: y => CLY[y] ? `${f1(CLY[y][1])} °C` : null },
+    { ds: "climate-days", label: "Šalnos", svg: () => stripSvg(CLIMATE.map(r => [r[0], seq(r[4], 80, 175)])), value: y => CLY[y] ? `${CLY[y][4]} d. (karštų ${CLY[y][5]})` : null },
+    { ds: "climate-snow", label: "Sniegas", svg: () => barSvg(CLIMATE.map(r => [r[0], r[3]]), maxSnow, "#9ec5f4"), value: y => CLY[y] ? `${f0(CLY[y][3])} cm` : null },
+    { ds: "orgs-jar", label: "Organizacijos", svg: () => barSvg(Object.entries(orgCount).map(([y, n]) => [+y, n]), 12, "#A8F0C6"), value: y => y >= 1990 ? String(orgCount[Math.min(y, Y1)] || 0) : null },
+    { ds: null, label: "Artefaktai", svg: () => barSvg(Object.entries(artCount).map(([y, n]) => [+y, n]), maxArt, "#F2F5FF", true), value: y => artCount[y] ? String(artCount[y]) : null }
+  ];
+  const tbLabels = $("#tbLabels"), tbTracks = $("#tbTracks"), tbCursor = $("#tbCursor"), tbRead = $("#tbRead"), timebar = $("#timebar");
+  function buildStrip() {
+    tbLabels.innerHTML = TRACKS.map((t, k) => t.ds ? `<button type="button" data-k="${k}" title="Atverti grafiką">${t.label}</button>` : `<span>${t.label}</span>`).join("");
+    tbTracks.innerHTML = TRACKS.map(t => t.svg()).join("");
+    $("#tbYears").innerHTML = [1600, 1700, 1800, 1900, 1950, 2000, 2026].map(y => `<span style="left:${(yearToU(y) * 100).toFixed(2)}%">${y}</span>`).join("");
+  }
+  let stripHover = false;
+  function stripShow(y) {
+    tbCursor.style.left = `calc(9px + (100% - 18px) * ${yearToU(y).toFixed(4)})`;
+    const parts = TRACKS.map(t => { const v = t.value(y); return v ? `<span>${t.label} <em>${v}</em></span>` : ""; }).join("");
+    tbRead.innerHTML = `<b>${y}</b>${parts}${y >= Y1 ? `<span>Žemėlapyje <em>251 pastatas</em></span>` : ""}<button class="tb-toggle" type="button" aria-expanded="${!timebar.classList.contains("is-collapsed")}">${timebar.classList.contains("is-collapsed") ? "Rodyti duomenis" : "Slėpti duomenis"}</button>`;
+  }
+  const stripYear = e => { const r = tbTracks.getBoundingClientRect(); return Math.round(uToYear(Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)))); };
+  tbTracks.addEventListener("pointermove", e => {
+    stripHover = true;
+    const y = stripYear(e);
+    stripShow(y);
+    if (e.buttons === 1) { setDialYear(y); dial.dispatchEvent(new Event("input")); }
   });
+  tbTracks.addEventListener("pointerleave", () => { stripHover = false; stripShow(dialYear()); });
+  tbTracks.addEventListener("pointerdown", e => { const y = stripYear(e); setDialYear(y); dial.dispatchEvent(new Event("input")); });
+  tbLabels.addEventListener("click", e => { const b = e.target.closest("button"); if (b) openData(DS[TRACKS[+b.dataset.k].ds]); });
+  tbRead.addEventListener("click", e => {
+    if (!e.target.closest(".tb-toggle")) return;
+    timebar.classList.toggle("is-collapsed");
+    try { localStorage.setItem("rykantai-strip", timebar.classList.contains("is-collapsed") ? "0" : "1"); } catch (err) {}
+    stripShow(dialYear());
+  });
+  function openData(ds) {
+    if (!ds) return;
+    if (current) { scraps.get(current).classList.remove("is-sel"); current = null; }
+    if (!about.hidden) closeAbout();
+    openDetail(ds);
+  }
   function stopTravel() {}
 
   /* ---------- Logbook ---------- */
@@ -1633,7 +1713,10 @@ vec3 objectTangent = vec3(tangent.xyz);
 
   /* ---------- Boot ---------- */
   applyFilters();
-  dial.max = Math.max(2026, TODAY);
+  try { if (localStorage.getItem("rykantai-strip") === "0" || (localStorage.getItem("rykantai-strip") == null && window.innerHeight < 640)) timebar.classList.add("is-collapsed"); } catch (e) {}
+  buildStrip();
+  setDialYear(Y1);
+  stripShow(Y1);
   try { if (window.THREE) GL = initGL(); } catch (err) { console.error(err); GL = null; }
   if (!GL) stage.classList.add("no-gl");
   setMode(mode);
