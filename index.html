@@ -3126,7 +3126,7 @@ vec3 objectTangent = vec3(tangent.xyz);
   // The count follows the records; Lithuanian and Polish number agreement
   const ltDocs = n => (n % 10 === 1 && n % 100 !== 11) ? `Čia surinktas ${n} dokumentas` : (n % 10 >= 2 && (n % 100 < 10 || n % 100 >= 20)) ? `Čia surinkti ${n} dokumentai` : `Čia surinkta ${n} dokumentų`;
   const plDocs = n => n === 1 ? "Zebraliśmy tu 1 dokument" : (n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20)) ? `Zebraliśmy tu ${n} dokumenty` : `Zebraliśmy tu ${n} dokumentów`;
-  $("#wLead").textContent = tr(`${ltDocs(nArt)} iš atvirų šaltinių apie Rykantus nuo 1619 m. iki šių dienų.`, `${plDocs(nArt)} z otwartych źródeł o Rykontach od 1619 r. do dziś.`);
+  $("#wLead").textContent = tr("Čia surinkti dokumentai iš atvirų šaltinių apie Rykantus nuo 1619 m. iki šių dienų.", "Zebraliśmy tu dokumenty z otwartych źródeł o Rykontach od 1619 r. do dziś.");
   $("#wLang").textContent = PLX ? "LT" : "PL";
   $("#wLang").addEventListener("click", () => $("#langBtn").click());
   let wTimer = 0;
