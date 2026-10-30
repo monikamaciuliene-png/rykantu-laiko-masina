@@ -10,7 +10,7 @@ Svetainė yra lietuvių ir lenkų kalbomis: kalbą keičia mygtukas PL/LT viršu
 
 - `index.html` yra svetainė, kurią rodo GitHub Pages.
 - `page.html` yra puslapio šaltinis. Pakeitus jį, paleiskite `python3 build.py`, ir `index.html` bus atnaujintas.
-- `data/` yra tik tų duomenų rinkinių CSV kopijos, kurių licencija patvirtinta: klimatas (ERA5 per Open-Meteo, CC BY 4.0) ir biblioteka (LNB, CC BY 4.0). Gyventojų, eismo, organizacijų, kalbų ir tautybių bei visų įrašų lentelės bus grąžintos, kai bus patikrintos jų sąlygos ir pasirinkta įrašų licencija.
+- `data/` yra tik tų duomenų rinkinių CSV kopijos, kurių licencija patvirtinta: klimatas (ERA5 per Open-Meteo, CC BY 4.0) ir biblioteka (LNB, CC BY 4.0). Čia taip pat yra visų įrašų lentelė `rykantai_irasai` (CSV, JSON): jos aprašymams ir metaduomenims taikoma CC BY 4.0, o vaizdams ir šaltiniams galioja kiekvieno įrašo licencija stulpelyje `licencija`. Gyventojų, eismo, organizacijų, kalbų ir tautybių lentelės bus grąžintos, kai bus patikrintos jų sąlygos.
 - `img/` yra archyvų skenai iš epaveldas.lt (per Europeana). Kiekvieno skeno licencija nurodyta puslapyje prie įrašo.
 
 ## Savas domenas
