@@ -2005,7 +2005,7 @@ h1, h2, h3, .w-title, .sv-title, .sp-wt, .p-title, .log-head h2, .st h3 { font-s
       <h2 class="p-title" id="dTitle">${esc(item.title)}</h2>${item.titleOrig ? `<p class="p-meta">Tytuł oryginalny: ${esc(item.titleOrig)}</p>` : ""}
       <p class="d-holder">${esc(item.holder)}</p>
       <p>${esc(item.notes)}</p>${item.face ? `<p class="p-meta">${item.face.arms ? tr("Herbas", "Herb") : tr("Portretas", "Portret")}: ${esc(item.face.by)} · ${esc(item.face.lic)} · <a href="${esc(item.face.url)}" target="_blank" rel="noopener">Wikimedia Commons ↗</a></p>` : ""}${peopleHTML(item)}
-      <div class="d-links"><span class="chip">${esc(item.licence || tr("Licencija: žr. įrašą", "Licencja: zob. wpis"))}</span>${linkHTML(item)}</div>`;
+      <div class="d-links"><span class="chip">${esc(item.licence || tr("Licencija: žr. šaltinį", "Licencja: zob. źródło"))}</span>${linkHTML(item)}</div>`;
     const P = pool(), idx = P.indexOf(item);
     $("#dCount").textContent = item.kind === "duomenys" ? tr("Duomenys", "Dane") : idx >= 0 ? `${idx + 1} / ${P.length}` : `${num(item)} / ${N}`;
     detail.hidden = false;
@@ -2167,7 +2167,7 @@ h1, h2, h3, .w-title, .sv-title, .sp-wt, .p-title, .log-head h2, .st h3 { font-s
       </div>
       <div class="log-side">
         ${item.img ? `<img class="log-img" src="${item.img}" alt="" loading="lazy">` : ""}
-        <span class="chip">${esc(item.licence || tr("Licencija: žr. įrašą", "Licencja: zob. wpis"))}</span>
+        <span class="chip">${esc(item.licence || tr("Licencija: žr. šaltinį", "Licencja: zob. źródło"))}</span>
         <button class="pill" type="button">${tr("Atverti", "Otwórz")}</button>
       </div>`;
     const b = li.querySelector(".log-side button");
