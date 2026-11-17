@@ -1,21 +1,17 @@
-# Pasidalink: formos pavyzdys / Podziel się: przykład formularza
+# Pasidalink: forma
 
-Tai tik pavyzdys dirbtuvėms, ne veikianti forma. Jis rodo, kaip trumpai galima paklausti gyventojų apie nuotrauką, daiktą ar prisiminimą.
+Veikianti forma laikomasinos.lt/rykantai/#pasidalink ir laikomasinos.lt/hales-turgus/#pasidalink.
 
-To tylko przykład na warsztaty, a nie działający formularz. Pokazuje, jak krótko można zapytać mieszkańców o zdjęcie, przedmiot lub wspomnienie.
+- Siunčia į `submit.php` toje pačioje vietos aplanke (tas pats failas abiejose vietose).
+- Kiekvienas įrašas ir jo failas saugomas serveryje už `public_html` ribų: `pasidalink-gauta/<vieta>/<data-id>/`, ir išsiunčiamas į info@participio.lt (failas pridedamas, jei iki 8 MB).
+- Failai iki 10 MB: JPG, PNG, HEIC, WEBP, PDF.
+- Apsauga nuo šlamšto: paslėptas laukas, ne greičiau nei per 4 s, iki 8 įrašų per valandą iš vieno adreso.
+- Privalomas sutikimas gauti ir saugoti informaciją; atskirai pažymima, ar galima skelbti su vardu. Kontaktas neskelbiamas.
 
-## LT
+## Klausimai
 
-1. **Kuo dalijatės?** Nuotrauka · Daiktas · Prisiminimas · Kita
-2. **Papasakokite trumpai: kas, kada, kur?** Pvz.: Senelių vestuvės prie bažnyčios, apie 1955 m.
-3. **Nuotrauka ar failas** (nebūtina)
-4. **Vardas ir kontaktas** (el. paštas arba telefonas, neskelbiamas)
-5. **Sutikimas:** Sutinku, kad tai būtų paskelbta Rykantų laiko mašinoje su mano vardu.
-
-## PL
-
-1. **Czym się dzielisz?** Zdjęcie · Przedmiot · Wspomnienie · Inne
-2. **Opowiedz krótko: kto, kiedy, gdzie?** Np.: Ślub dziadków przy kościele, około 1955 r.
-3. **Zdjęcie lub plik** (nieobowiązkowe)
-4. **Imię i kontakt** (e-mail lub telefon, nie publikujemy)
-5. **Zgoda:** Zgadzam się na publikację w Wehikule czasu Rykont z moim imieniem.
+1. Kuo dalijatės? Nuotrauka · Daiktas · Prisiminimas · Kita
+2. Papasakokite trumpai: kas, kada, kur?
+3. Nuotrauka ar failas (nebūtina, iki 10 MB)
+4. Vardas (nebūtina)
+5. El. paštas arba telefonas (neskelbiamas)
