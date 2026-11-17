@@ -9,7 +9,7 @@ const TO       = 'info@participio.lt';
 const FROM     = 'noreply@laikomasinos.lt';
 const MAX_FILE = 10 * 1024 * 1024;   // 10 MB
 const MAX_MAIL_ATTACH = 8 * 1024 * 1024;
-const PLACES   = ['rykantai' => 'Rykantai', 'hales-turgus' => 'Halės turgus'];
+const PLACES   = ['rykantai' => 'Rykantai', 'hales-turgus' => 'Hales turgus'];   // ASCII: used in email headers
 const KINDS    = ['nuotrauka' => 'Nuotrauka', 'daiktas' => 'Daiktas', 'prisiminimas' => 'Prisiminimas', 'kita' => 'Kita'];
 const TYPES    = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/heic' => 'heic', 'image/heif' => 'heic', 'image/webp' => 'webp', 'application/pdf' => 'pdf'];
 
@@ -74,16 +74,18 @@ $rec = ['id' => $id, 'place' => $place, 'received' => date('c'), 'kind' => KINDS
 file_put_contents("$dir/irasas.json", json_encode($rec, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
 
 // Email (the saved copy above is the safety net if mail fails).
-$body = "Naujas įrašas: $place\n\n"
+$size = $file ? ($file['size'] < 1048576 ? max(1, round($file['size'] / 1024)) . " KB" : round($file['size'] / 1048576, 1) . " MB") : '';
+// Email labels are plain ASCII; only the text people typed keeps its letters.
+$body = "Naujas irasas: $place\n\n"
       . "Kas: " . KINDS[$kind] . "\n"
       . "Pasakojimas:\n$story\n\n"
       . "Vardas: " . ($name ?: '-') . "\n"
       . "Kontaktas: $contact\n"
       . "Galima skelbti su vardu: " . ($byName ? 'taip' : 'ne') . "\n"
-      . "Failas: " . ($file ? "{$file['original']} (" . round($file['size'] / 1048576, 1) . " MB)" : '-') . "\n\n"
+      . "Failas: " . ($file ? "{$file['original']} ($size)" : '-') . "\n\n"
       . "Serveryje: pasidalink-gauta/$placeKey/$id\n";
-$subject = '=?UTF-8?B?' . base64_encode("Pasidalink: $place, " . KINDS[$kind]) . '?=';
-$headers = "From: Laiko mašinos <" . FROM . ">\r\nMIME-Version: 1.0\r\n";
+$subject = "Pasidalink: $place, " . KINDS[$kind];
+$headers = "From: Laiko masinos <" . FROM . ">\r\nMIME-Version: 1.0\r\n";
 if (filter_var($contact, FILTER_VALIDATE_EMAIL)) $headers .= "Reply-To: $contact\r\n";
 if ($file && $file['size'] <= MAX_MAIL_ATTACH) {
   $b = 'b' . bin2hex(random_bytes(8));
