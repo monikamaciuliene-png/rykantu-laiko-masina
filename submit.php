@@ -11,6 +11,7 @@ const MAX_FILE = 10 * 1024 * 1024;   // 10 MB
 const MAX_MAIL_ATTACH = 8 * 1024 * 1024;
 const PLACES   = ['rykantai' => 'Rykantai', 'hales-turgus' => 'Hales turgus'];   // ASCII: used in email headers
 const KINDS    = ['nuotrauka' => 'Nuotrauka', 'daiktas' => 'Daiktas', 'prisiminimas' => 'Prisiminimas', 'kita' => 'Kita'];
+const AUTHORS  = ['as' => 'pats siuntejas', 'seima' => 'kazkas is seimos', 'kitas' => 'kitas zmogus ar istaiga', 'nezinau' => 'nezino'];
 const TYPES    = ['image/jpeg' => 'jpg', 'image/png' => 'png', 'image/heic' => 'heic', 'image/heif' => 'heic', 'image/webp' => 'webp', 'application/pdf' => 'pdf'];
 
 function done(int $code, string $err = ''): void {
@@ -36,10 +37,14 @@ if ($t <= 0 || time() - intdiv($t, 1000) < 4) done(400, 'fast');
 
 $kind    = field('kind', 20);
 $story   = field('story', 5000);
+$when    = field('when', 80);
+$where   = field('where', 160);
+$author  = AUTHORS[field('author', 20)] ?? '';
 $name    = field('name', 120);
 $contact = field('contact', 200);
 $agree   = ($_POST['agree'] ?? '') === '1';
 $byName  = ($_POST['byname'] ?? '') === '1';
+$publish = ($_POST['publish'] ?? '') === '1';
 if (!isset(KINDS[$kind]) || mb_strlen($story) < 3 || $contact === '' || !$agree) done(400, 'fields');
 
 // Storage: next to public_html, never inside it.
@@ -69,8 +74,8 @@ if (!empty($_FILES['file']) && $_FILES['file']['error'] !== UPLOAD_ERR_NO_FILE) 
   if (!move_uploaded_file($f['tmp_name'], "$dir/{$file['name']}")) done(500, 'store');
 }
 
-$rec = ['id' => $id, 'place' => $place, 'received' => date('c'), 'kind' => KINDS[$kind], 'story' => $story,
-        'name' => $name, 'contact' => $contact, 'agree_processing' => $agree, 'publish_with_name' => $byName, 'file' => $file];
+$rec = ['id' => $id, 'place' => $place, 'received' => date('c'), 'kind' => KINDS[$kind], 'story' => $story, 'when' => $when, 'where' => $where, 'photo_author' => $author,
+        'name' => $name, 'contact' => $contact, 'agree_processing' => $agree, 'publish_cc_by' => $publish, 'publish_with_name' => $byName, 'file' => $file];
 file_put_contents("$dir/irasas.json", json_encode($rec, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
 
 // Email (the saved copy above is the safety net if mail fails).
@@ -79,9 +84,13 @@ $size = $file ? ($file['size'] < 1048576 ? max(1, round($file['size'] / 1024)) .
 $body = "Naujas irasas: $place\n\n"
       . "Kas: " . KINDS[$kind] . "\n"
       . "Pasakojimas:\n$story\n\n"
+      . "Kada: " . ($when ?: '-') . "\n"
+      . "Kur: " . ($where ?: '-') . "\n"
+      . "Nuotraukos autorius: " . ($author ?: '-') . "\n\n"
       . "Vardas: " . ($name ?: '-') . "\n"
       . "Kontaktas: $contact\n"
-      . "Galima skelbti su vardu: " . ($byName ? 'taip' : 'ne') . "\n"
+      . "Galima skelbti (CC BY 4.0): " . ($publish ? 'TAIP' : 'NE') . "\n"
+      . "Nurodyti varda: " . ($byName ? 'taip' : 'ne') . "\n"
       . "Failas: " . ($file ? "{$file['original']} ($size)" : '-') . "\n\n"
       . "Serveryje: pasidalink-gauta/$placeKey/$id\n";
 $subject = "Pasidalink: $place, " . KINDS[$kind];

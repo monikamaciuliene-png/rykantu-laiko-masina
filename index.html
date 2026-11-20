@@ -700,6 +700,8 @@ h1, h2, h3, .w-title, .sv-title, .sp-wt, .p-title, .log-head h2, .st h3 { font-s
 .sh-form input[type="file"]::file-selector-button { font: 600 13px var(--f-body); color: var(--ink); background: rgba(0, 11, 38, 0.5); border: 1px dashed var(--line); border-radius: 8px; padding: 7px 12px; margin-right: 10px; cursor: pointer; }
 .sh-form textarea:focus-visible, .sh-form input:focus-visible, .sh-btn:focus-visible { outline: 2px solid #8FF5FF; outline-offset: 2px; }
 .sh-form .sh-chk input { margin-top: 3px; flex: none; }
+.sh-two { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 14px; }
+.sh-two label { display: grid; gap: 6px; font-size: 15px; font-weight: 600; }
 .sh-btn { cursor: pointer; }
 .sh-btn:disabled { opacity: 0.6; cursor: progress; }
 .sh-hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
@@ -2757,17 +2759,23 @@ h1, h2, h3, .w-title, .sv-title, .sp-wt, .p-title, .log-head h2, .st h3 { font-s
       <form class="sh-form" id="shForm" aria-labelledby="shFormTitle">
         <h3 id="shFormTitle">${tr("Pasidalinkite", "Podziel się")}</h3>
         <fieldset><legend>1. ${tr("Kuo dalijatės?", "Czym się dzielisz?")}</legend><div class="sh-opts">${kinds.map((k, j) => `<label><input type="radio" name="kind" value="${["nuotrauka", "daiktas", "prisiminimas", "kita"][j]}"${j === 0 ? " checked" : ""}> ${k}</label>`).join("")}</div></fieldset>
-        <label>2. ${tr("Papasakokite trumpai: kas, kada, kur?", "Opowiedz krótko: kto, kiedy, gdzie?")}<textarea name="story" rows="4" required maxlength="5000" placeholder="${tr("Pvz.: Senelių vestuvės prie bažnyčios, apie 1955 m.", "Np.: Ślub dziadków przy kościele, około 1955 r.")}"></textarea></label>
-        <label>3. ${tr("Nuotrauka ar failas (nebūtina, iki 10 MB)", "Zdjęcie lub plik (nieobowiązkowe, do 10 MB)")}<input type="file" name="file" accept="image/jpeg,image/png,image/heic,image/heif,image/webp,application/pdf"></label>
-        <label>4. ${tr("Vardas (nebūtina)", "Imię (nieobowiązkowe)")}<input type="text" name="name" maxlength="120" autocomplete="name"></label>
-        <label>5. ${tr("El. paštas arba telefonas (neskelbiamas)", "E-mail lub telefon (nie publikujemy)")}<input type="text" name="contact" required maxlength="200" autocomplete="email"></label>
+        <label>2. ${tr("Kas tai ir kokia jo istorija? Kieno tai, kas nuotraukoje?", "Co to jest i jaka jest jego historia? Czyje to, kto jest na zdjęciu?")}<textarea name="story" rows="4" required maxlength="5000" placeholder="${tr("Pvz.: Senelių vestuvių nuotrauka. Jaunieji stovi prie bažnyčios, šalia jų pamergės.", "Np.: Zdjęcie ze ślubu dziadków. Młodzi stoją przy kościele, obok druhny.")}"></textarea></label>
+        <div class="sh-two">
+          <label>3. ${tr("Kada? (metai, galima apytiksliai)", "Kiedy? (rok, może być w przybliżeniu)")}<input type="text" name="when" maxlength="80" placeholder="${tr("Pvz.: apie 1955", "Np.: około 1955")}"></label>
+          <label>4. ${tr("Kur?", "Gdzie?")}<input type="text" name="where" maxlength="160" placeholder="${tr("Pvz.: Rykantų bažnyčia", "Np.: kościół w Rykontach")}"></label>
+        </div>
+        <label>5. ${tr("Nuotrauka ar failas (nebūtina)", "Zdjęcie lub plik (nieobowiązkowe)")}<input type="file" name="file" accept="image/jpeg,image/png,image/heic,image/heif,image/webp,application/pdf"></label>
+        <fieldset><legend>6. ${tr("Kas darė nuotrauką?", "Kto zrobił zdjęcie?")}</legend><div class="sh-opts">${[["as", tr("Aš pats (-i)", "Ja sam(a)")], ["seima", tr("Kažkas iš šeimos", "Ktoś z rodziny")], ["kitas", tr("Kitas žmogus ar įstaiga", "Inna osoba lub instytucja")], ["nezinau", tr("Nežinau", "Nie wiem")]].map(([v, l]) => `<label><input type="radio" name="author" value="${v}"> ${l}</label>`).join("")}</div></fieldset>
+        <label>7. ${tr("Vardas ir pavardė (nebūtina)", "Imię i nazwisko (nieobowiązkowe)")}<input type="text" name="name" maxlength="120" autocomplete="name"></label>
+        <label>8. ${tr("El. paštas arba telefonas (neskelbiamas)", "E-mail lub telefon (nie publikujemy)")}<input type="text" name="contact" required maxlength="200" autocomplete="email"></label>
         <label class="sh-hp" aria-hidden="true">Svetainė<input type="text" name="svetaine" tabindex="-1" autocomplete="off"></label>
         <input type="hidden" name="t" value="${Date.now()}">
         <label class="sh-chk"><input type="checkbox" name="agree" value="1" required> ${tr("Sutinku, kad laikomasinos.lt komanda gautų ir saugotų šią informaciją, kaip parašyta žemiau.", "Zgadzam się, aby zespół laikomasinos.lt otrzymał i przechowywał te informacje, jak opisano poniżej.")}</label>
-        <label class="sh-chk"><input type="checkbox" name="byname" value="1"> ${tr("Jei įrašas bus paskelbtas, prie jo galima nurodyti mano vardą.", "Jeśli wpis zostanie opublikowany, można podać przy nim moje imię.")}</label>
+        <label class="sh-chk"><input type="checkbox" name="publish" value="1"> ${tr("Sutinku, kad tai būtų paskelbta laikomasinos.lt ir kad kiti galėtų tai naudoti nurodę šaltinį (licencija CC BY 4.0). Turiu teisę tuo dalintis.", "Zgadzam się na publikację na laikomasinos.lt i na to, by inni mogli z tego korzystać z podaniem źródła (licencja CC BY 4.0). Mam prawo tym się dzielić.")}</label>
+        <label class="sh-chk"><input type="checkbox" name="byname" value="1"> ${tr("Prie paskelbto įrašo nurodykite mano vardą.", "Przy opublikowanym wpisie podajcie moje imię.")}</label>
         <button class="sh-btn" type="submit">${tr("Siųsti", "Wyślij")}</button>
         <p class="sh-msg" id="shMsg" role="status" aria-live="polite"></p>
-        <p class="sh-priv">${tr("Ką atsiųsite, gaus laikomasinos.lt komanda (info@participio.lt). Kontaktą naudosime tik tam, kad susisiektume dėl šio įrašo, ir jo neskelbsime. Prieš skelbdami ką nors laiko mašinoje, su jumis pasitarsime. Norite, kad įrašą ištrintume? Parašykite info@participio.lt.", "To, co wyślesz, otrzyma zespół laikomasinos.lt (info@participio.lt). Kontaktu użyjemy tylko po to, by skontaktować się w sprawie tego wpisu, i nie opublikujemy go. Zanim cokolwiek opublikujemy w wehikule czasu, porozmawiamy z Tobą. Chcesz, żebyśmy usunęli wpis? Napisz na info@participio.lt.")}</p>
+        <p class="sh-priv">${tr("Ką atsiųsite, gaus laikomasinos.lt komanda (info@participio.lt). Kontaktą naudosime tik tam, kad susisiektume dėl šio įrašo, ir jo neskelbsime. Įrašą peržiūrėsime ir, jei sutikote, paskelbsime laiko mašinoje. Jei kas neaišku, parašysime. Norite, kad įrašą ištrintume? Parašykite info@participio.lt.", "To, co wyślesz, otrzyma zespół laikomasinos.lt (info@participio.lt). Kontaktu użyjemy tylko po to, by skontaktować się w sprawie tego wpisu, i nie opublikujemy go. Przejrzymy wpis i, jeśli wyrażono zgodę, opublikujemy go w wehikule czasu. Jeśli coś będzie niejasne, napiszemy. Chcesz, żebyśmy usunęli wpis? Napisz na info@participio.lt.")}</p>
       </form>`;
   }
   $("#shareBody").addEventListener("submit", async e => {
@@ -2793,7 +2801,7 @@ h1, h2, h3, .w-title, .sv-title, .sp-wt, .p-title, .log-head h2, .st h3 { font-s
     try {
       const r = await fetch("submit.php", { method: "POST", body: fd }), j = await r.json().catch(() => ({}));
       if (r.ok && j.ok) {
-        f.outerHTML = `<div class="sh-form sh-done" role="status"><h3>${tr("Ačiū! Gavome jūsų įrašą.", "Dziękujemy! Otrzymaliśmy Twój wpis.")}</h3><p>${tr("Peržiūrėsime jį ir susisieksime prieš ką nors paskelbdami.", "Przejrzymy go i skontaktujemy się, zanim cokolwiek opublikujemy.")}</p><button class="sh-btn" type="button" data-again>${tr("Siųsti dar vieną", "Wyślij kolejny")}</button></div>`;
+        f.outerHTML = `<div class="sh-form sh-done" role="status"><h3>${tr("Ačiū! Gavome jūsų įrašą.", "Dziękujemy! Otrzymaliśmy Twój wpis.")}</h3><p>${tr("Peržiūrėsime jį ir netrukus įdėsime į laiko mašiną.", "Przejrzymy go i wkrótce dodamy do wehikułu czasu.")}</p><button class="sh-btn" type="button" data-again>${tr("Siųsti dar vieną", "Wyślij kolejny")}</button></div>`;
         return;
       }
       const m = ERR[j.error]; if (m) say(m[0], m[1]); else throw 0;
