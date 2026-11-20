@@ -164,7 +164,10 @@ a:hover { color: #8FF5FF; }
 .w-title { margin: 0; font: italic 400 clamp(40px, 6.4vw, 92px)/1 var(--f-display); text-wrap: balance; text-shadow: 0 4px 34px rgba(0, 10, 60, 0.85), 0 1px 3px rgba(0, 10, 60, 0.6); }
 .w-sub { margin: 0; max-width: 560px; font-size: clamp(16px, 1.6vw, 20px); line-height: 1.45; color: var(--ink); text-shadow: 0 2px 14px rgba(0, 10, 60, 0.9); }
 .w-ask { margin: 6px 0 0; font: 500 12px var(--f-mono); letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-soft); text-shadow: 0 2px 10px rgba(0, 10, 60, 0.9); }
-.w-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; width: min(900px, 100%); }
+.w-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; width: min(1180px, 100%); }
+.w-opt.is-share { border-color: #FFB4A3; background: rgba(255, 180, 163, 0.16); }
+.w-opt.is-share:hover, .w-opt.is-share:focus-visible { border-color: #FFB4A3; background: rgba(255, 180, 163, 0.28); }
+@media (max-width: 1100px) and (min-width: 701px) { .w-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .w-opt { display: grid; gap: 4px; text-align: left; padding: 14px 16px; border-radius: 16px; border: 1px solid var(--line); background: rgba(8, 22, 96, 0.62); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); color: var(--ink); cursor: pointer; font: inherit; transition: transform 0.18s, border-color 0.18s, background 0.18s; }
 .w-opt b { font: 400 26px/1.1 var(--f-display); }
 .w-opt span { font-size: 13px !important; }
@@ -2766,9 +2769,20 @@ h1, h2, h3, .w-title, .sv-title, .sp-wt, .p-title, .log-head h2, .st h3 { font-s
     if (!f.checkValidity()) { f.reportValidity(); return; }
     if (file && file.size > 10 * 1024 * 1024) { say("Failas per didelis: tinka iki 10 MB. Didesnius siųskite laišku.", "Plik jest za duży: do 10 MB. Większe wyślij listem."); return; }
     btn.disabled = true; say("Siunčiama…", "Wysyłanie…");
+    const fd = new FormData(f);
+    // Big photos upload slowly and can time out: send a JPEG of at most 2400 px instead (the browser makes it)
+    if (file && /^image\/(jpeg|png|webp)$/.test(file.type) && file.size > 900 * 1024) {
+      try {
+        const bmp = await createImageBitmap(file), k = Math.min(1, 2400 / Math.max(bmp.width, bmp.height));
+        const c = document.createElement("canvas"); c.width = Math.round(bmp.width * k); c.height = Math.round(bmp.height * k);
+        const g = c.getContext("2d"); g.fillStyle = "#fff"; g.fillRect(0, 0, c.width, c.height); g.drawImage(bmp, 0, 0, c.width, c.height);
+        const blob = await new Promise(r => c.toBlob(r, "image/jpeg", 0.86));
+        if (blob && blob.size < file.size) fd.set("file", blob, file.name.replace(/\.\w+$/, "") + ".jpg");
+      } catch (_) { /* keep the original file */ }
+    }
     const ERR = { type: ["Tinka nuotraukos (JPG, PNG, HEIC, WEBP) arba PDF.", "Pasują zdjęcia (JPG, PNG, HEIC, WEBP) lub PDF."], file: ["Failas per didelis: tinka iki 10 MB. Didesnius siųskite laišku.", "Plik jest za duży: do 10 MB. Większe wyślij listem."], fast: ["Palaukite kelias sekundes ir spauskite dar kartą.", "Poczekaj kilka sekund i kliknij jeszcze raz."], limit: ["Šiandien jau daug išsiuntėte. Kitus įrašus siųskite laišku.", "Wysłano już dużo. Kolejne wpisy wyślij listem."] };
     try {
-      const r = await fetch("submit.php", { method: "POST", body: new FormData(f) }), j = await r.json().catch(() => ({}));
+      const r = await fetch("submit.php", { method: "POST", body: fd }), j = await r.json().catch(() => ({}));
       if (r.ok && j.ok) {
         f.outerHTML = `<div class="sh-form sh-done" role="status"><h3>${tr("Ačiū! Gavome jūsų įrašą.", "Dziękujemy! Otrzymaliśmy Twój wpis.")}</h3><p>${tr("Peržiūrėsime jį ir susisieksime prieš ką nors paskelbdami.", "Przejrzymy go i skontaktujemy się, zanim cokolwiek opublikujemy.")}</p><button class="sh-btn" type="button" data-again>${tr("Siųsti dar vieną", "Wyślij kolejny")}</button></div>`;
         return;
@@ -3149,9 +3163,10 @@ vec3 objectTangent = vec3(tangent.xyz);
   const W_OPTS = [
     { k: "browse", main: true, t: tr("Naršyti rinkinį", "Przeglądaj zbiór"), s: tr("Visi įrašai išdėlioti vienoje vietoje, rinkis pats", "Wszystkie wpisy rozłożone w jednym miejscu, wybierz sam") },
     { k: "history", t: tr("Skaityti istorijas", "Czytaj historie"), s: tr("Trumpai apie tai, ką rodo šaltiniai ir duomenys", "Krótko o tym, co pokazują źródła i dane") },
-    { k: "travel", t: tr("Paleisti laiko mašiną", "Uruchom wehikuł czasu"), s: tr("Įrašai patys plaukia pro šalį, nuo 1619 m. iki šių dienų", "Wpisy same przepływają obok, od 1619 r. do dziś") }
+    { k: "travel", t: tr("Paleisti laiko mašiną", "Uruchom wehikuł czasu"), s: tr("Įrašai patys plaukia pro šalį, nuo 1619 m. iki šių dienų", "Wpisy same przepływają obok, od 1619 r. do dziś") },
+    { k: "share", share: true, t: tr("Papildyti laiko mašiną", "Uzupełnij wehikuł czasu"), s: tr("Turite nuotrauką, daiktą ar prisiminimą? Pasidalinkite", "Masz zdjęcie, przedmiot lub wspomnienie? Podziel się") }
   ];
-  $("#wGrid").innerHTML = W_OPTS.map(o => `<button class="w-opt${o.main ? " is-main" : ""}" type="button" data-w="${o.k}"><b>${o.t}</b><span>${o.s}</span></button>`).join("");
+  $("#wGrid").innerHTML = W_OPTS.map(o => `<button class="w-opt${o.main ? " is-main" : ""}${o.share ? " is-share" : ""}" type="button" data-w="${o.k}"><b>${o.t}</b><span>${o.s}</span></button>`).join("");
   // The count follows the records; Lithuanian and Polish number agreement
   const ltDocs = n => (n % 10 === 1 && n % 100 !== 11) ? `Čia surinktas ${n} dokumentas` : (n % 10 >= 2 && (n % 100 < 10 || n % 100 >= 20)) ? `Čia surinkti ${n} dokumentai` : `Čia surinkta ${n} dokumentų`;
   const plDocs = n => n === 1 ? "Zebraliśmy tu 1 dokument" : (n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20)) ? `Zebraliśmy tu ${n} dokumenty` : `Zebraliśmy tu ${n} dokumentów`;
@@ -3191,6 +3206,7 @@ vec3 objectTangent = vec3(tangent.xyz);
     closeWelcome(() => {
       if (k === "browse") { if (mode !== "scatter") setMode("scatter"); }
       if (k === "travel") setMode("stream");
+      if (k === "share") openPage("pasidalink");
       if (k === "people") { setMode("grid"); if (focusKind !== "asmuo") setFocus("asmuo"); }
       if (k === "history") openStory();
       if (k === "data") { timebar.classList.remove("is-collapsed"); try { localStorage.setItem("rykantai-strip", "1"); } catch (e) {} stripShow(dialYear()); openStory(); }
